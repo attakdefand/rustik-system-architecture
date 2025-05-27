@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -490,6 +490,32 @@ export default function MasterFlowPage() {
                   }}
                 >
                   Explore Alerting &amp; Drift Detection (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <WorkflowIcon className="h-6 w-6 mr-3" />
+                  CI/CD Integration (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Plug Rustik into your pipeline: break the build if your IaC deviates from approved architectural patterns, 
+                  or auto-generate compliance reports on every PR.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "CI/CD Integration feature is coming soon!",
+                    });
+                  }}
+                >
+                  Explore CI/CD Integration (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
