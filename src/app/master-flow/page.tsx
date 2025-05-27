@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -487,7 +486,7 @@ export default function MasterFlowPage() {
                     });
                   }}
                 >
-                  Explore Cost & Performance Simulation (Coming Soon)
+                  Explore Cost &amp; Performance Simulation (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
@@ -672,6 +671,31 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <ClipboardCheck className="h-6 w-6 mr-3" />
+                  Compliance &amp; Audit Reporting (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Bake in templates for standards like PCI-DSS, HIPAA, ISO 27001 or GDPR, then generate compliance reports that map each architectural decision to required controls.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Compliance & Audit Reporting is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Compliance Reporting (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
           </div>
         )}
       </main>
@@ -681,5 +705,4 @@ export default function MasterFlowPage() {
     </div>
   );
 }
-
     
