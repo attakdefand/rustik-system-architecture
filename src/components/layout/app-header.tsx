@@ -1,6 +1,12 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Updated, more modern R-like SVG icon for Rustik
 const RustikLogoIcon = () => (
@@ -24,7 +30,36 @@ export function AppHeader() {
             <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
             <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 italic">Dream. Click. Architect.</p>
+          <TooltipProvider delayDuration={100}>
+            <p className="text-xs text-muted-foreground mt-1 italic">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default hover:text-primary transition-colors">Dream.</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Got an idea? Start visualizing your system here.</p>
+                </TooltipContent>
+              </Tooltip>
+              {' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default hover:text-primary transition-colors">Click.</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select components and see how they interact.</p>
+                </TooltipContent>
+              </Tooltip>
+              {' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default hover:text-primary transition-colors">Architect.</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Design and understand complex architectures conceptually.</p>
+                </TooltipContent>
+              </Tooltip>
+            </p>
+          </TooltipProvider>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
