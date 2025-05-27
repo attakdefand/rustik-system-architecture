@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -118,7 +119,7 @@ export default function MasterFlowPage() {
 
     const microservicesApplicable = isMicroservicesFlowApplicable(flowInput);
     if (microservicesApplicable) {
-      setMicroserviceSuggestions({ ...initialAnalysisState, isLoading: true, attempted: true });
+      setMicroserviceSuggestions({ ...initialAnalysisState, isLoading: true, attempted: true, data: {suggestedServices: []} });
     } else {
       setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false, data: {suggestedServices: []} }); 
     }
@@ -155,7 +156,7 @@ export default function MasterFlowPage() {
             break;
           case 'microservices':
              if (microservicesApplicable) {
-                setMicroserviceSuggestions({ data: result.data, isLoading: false, error: result.error, attempted: true });
+                setMicroserviceSuggestions({ data: result.data , isLoading: false, error: result.error, attempted: true });
             }
             break;
         }
@@ -171,7 +172,7 @@ export default function MasterFlowPage() {
       if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({data:null, isLoading: false, error: generalError, attempted: true});
       if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (microservicesApplicable && !microserviceSuggestions.data && !microserviceSuggestions.error) {
-        setMicroserviceSuggestions({data:null, isLoading: false, error: generalError, attempted: true});
+        setMicroserviceSuggestions({data:{suggestedServices: []}, isLoading: false, error: generalError, attempted: true});
       }
     }
   };
@@ -692,6 +693,31 @@ export default function MasterFlowPage() {
                   }}
                 >
                   Explore Compliance Reporting (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <Store className="h-6 w-6 mr-3" />
+                  Extensible Plugin Marketplace (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Let users publish and share new component definitions, AI flow templates, compliance policies, or even custom cost-model providers.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Extensible Plugin Marketplace is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Plugin Marketplace (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
