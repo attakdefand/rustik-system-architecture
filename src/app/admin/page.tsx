@@ -1,7 +1,7 @@
 
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Users, Shield, Library, LayoutTemplate, Settings, ToggleRight, ScrollText, LineChart, BellPlus, UserCog, LockKeyholeIcon, Settings2, ListChecks, FolderGit2, DatabaseZap, Workflow, Landmark, FlaskConical, Info, PackageSearch, DatabaseIcon
 } from 'lucide-react';
