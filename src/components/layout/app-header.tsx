@@ -2,7 +2,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // New A-style/Compass-style logo
 const RustikArchitectLogo = () => (
@@ -15,8 +17,10 @@ const RustikArchitectLogo = () => (
 );
 
 export function AppHeader() {
-  const mottoTexts = ["Dream", "Click", "Architect", "Built with Rustik"];
+  const pathname = usePathname();
+  const [mottoTexts] = useState(["Dream", "Click", "Architect", "Built with Rustik"]);
   const [currentMottoIndex, setCurrentMottoIndex] = useState(0);
+  const [showMottoSuffix, setShowMottoSuffix] = useState(false);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -36,45 +40,88 @@ export function AppHeader() {
     'bg-purple-500',
   ];
 
+  const mottoWords = ["Dream.", "Click.", "Architect."];
+  const mottoTooltips = [
+    "Got an idea? Start visualizing your system here.",
+    "Select components and see how they interact.",
+    "Design and understand complex architectures conceptually."
+  ];
+
+  const handleMottoWordClick = () => {
+    setShowMottoSuffix(true);
+  };
+
+  const navItems = [
+    { href: "/master-flow", label: "Master-Flow" },
+    { href: "/", label: "Components" },
+    { href: "/system-builder-challenges", label: "Builder Insights" },
+    { href: "/system-visualizer", label: "Visualizer" },
+  ];
+
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between py-3 px-4 sm:px-6">
         <Link href="/" className="flex flex-col items-center group">
-          <div className="relative flex flex-col items-center"> {/* Ensures vertical stacking of logo elements */}
+          <div className="relative flex flex-col items-center">
             <div className="relative w-16 h-16 flex items-center justify-center">
               <RustikArchitectLogo />
               {dotColors.map((color, index) => (
                 <span
-                  key={index}
+                  key={`logo-dot-${index}`}
                   className={`absolute w-2 h-2 rounded-full animate-orbit-blink ${color}`}
                   style={{ animationDelay: `${index * 0.5}s` }}
                 />
               ))}
             </div>
             <h1 className="text-3xl font-bold text-primary tracking-tight mt-1">Rustik</h1>
-            {/* Cycling Motto Text - Positioned here */}
+            
             <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] overflow-hidden">
               <span className="animate-slide-in-out-text absolute left-1/2 -translate-x-1/2">
                 {mottoTexts[currentMottoIndex]}
               </span>
             </div>
+
+            <div className="flex items-baseline space-x-1 text-xs text-muted-foreground mt-2 italic">
+              <TooltipProvider>
+                {mottoWords.map((word, index) => (
+                  <Tooltip key={word}>
+                    <TooltipTrigger asChild>
+                      <span onClick={handleMottoWordClick} className="cursor-pointer hover:text-primary transition-colors">
+                        {word}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {mottoTooltips[index]}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
+              {showMottoSuffix && (
+                <span className="ml-1 animate-fade-in-fast">Do it with Rustik!</span>
+              )}
+            </div>
           </div>
         </Link>
-        <nav className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/master-flow" className="flex flex-col items-center">
-              <span>Master-Flow</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/">Components</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/system-builder-challenges">Builder Insights</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/system-visualizer">Visualizer</Link>
-          </Button>
+        <nav className="flex items-center gap-1 sm:gap-2">
+          {navItems.map((item) => (
+            <div key={item.href} className="flex flex-col items-center py-1">
+              <Button variant="ghost" asChild className="pb-0.5 text-sm sm:text-base px-2 sm:px-3">
+                <Link href={item.href}>
+                  <span>{item.label}</span>
+                </Link>
+              </Button>
+              {pathname === item.href && (
+                <div className="flex h-1 mt-0.5 rounded-full overflow-hidden">
+                  {dotColors.map((bgColor, index) => (
+                    <span
+                      key={`${item.href}-underline-${index}`}
+                      className={`h-full w-2 ${bgColor}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
       </div>
     </header>
