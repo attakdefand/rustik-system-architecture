@@ -12,10 +12,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput, FileText } from 'lucide-react';
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput, FileText, ImageIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
-import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
+import { suggestMicroservices, type SuggestMicroservicesInput, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureInput, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
@@ -93,22 +93,29 @@ export default function SystemVisualizerPage() {
   };
   
   const prepareForAnalysis = () => {
-    setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id) && (selectedTypesMap.get(comp.id)?.size ?? 0) > 0));
-    setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
+    const flowInput = getFlowInput();
+    if (flowInput.components.length === 0) {
+        toast({ title: "Selection Required", description: "Please select at least one component type to analyze.", variant: "destructive" });
+        return false;
+    }
+    setGeneratedDiagramComponents(flowInput.components.map(c => architectureComponents.find(ac => ac.title === c.componentTitle)!));
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Snapshot for diagram display
     setAnalysisTriggered(true); 
 
-    // Reset specific analysis states
-    setAiAnalysis(null);
-    setAnalysisError(null);
-    setSuggestedMicroservicesList(null);
-    setSuggestMicroservicesError(null);
-    setSecurityPostureResult(null);
-    setSecurityAnalysisError(null);
+    // Reset specific analysis states if needed, though they are reset on selection change
+    // setAiAnalysis(null);
+    // setAnalysisError(null);
+    // setSuggestedMicroservicesList(null);
+    // setSuggestMicroservicesError(null);
+    // setSecurityPostureResult(null);
+    // setSecurityAnalysisError(null);
+    return true;
   }
 
   const handleGenerateInteractionAnalysis = async () => {
-    prepareForAnalysis();
+    if (!prepareForAnalysis()) return;
     setIsAnalyzing(true);
+    setAiAnalysis(null);
     setAnalysisError(null);
     const flowInput = getFlowInput();
 
@@ -124,13 +131,14 @@ export default function SystemVisualizerPage() {
   };
 
   const handleSuggestMicroservices = async () => {
-    prepareForAnalysis(); // Ensure analysisTriggered is true and diagram components are set
+    if (!prepareForAnalysis()) return;
     setIsSuggestingMicroservices(true);
+    setSuggestedMicroservicesList(null);
     setSuggestMicroservicesError(null);
     const flowInput = getFlowInput();
     
     try {
-      const result = await suggestMicroservices(flowInput);
+      const result = await suggestMicroservices(flowInput as SuggestMicroservicesInput);
       setSuggestedMicroservicesList(result.suggestedServices);
     } catch (error) {
       console.error("AI Microservice Suggestion Error:", error);
@@ -141,8 +149,9 @@ export default function SystemVisualizerPage() {
   };
   
   const handleAnalyzeSecurityPosture = async () => {
-    prepareForAnalysis(); // Ensure analysisTriggered is true and diagram components are set
+    if (!prepareForAnalysis()) return;
     setIsAnalyzingSecurity(true);
+    setSecurityPostureResult(null);
     setSecurityAnalysisError(null);
     const flowInput = getFlowInput();
 
@@ -303,7 +312,7 @@ export default function SystemVisualizerPage() {
                 onClick={handleAnalyzeSecurityPosture}
               >
                 <Shield className="mr-2 h-5 w-5" />
-                {isAnalyzingSecurity ? "Analyzing Security..." : "Analyze Security Posture"}
+                {isAnalyzingSecurity ? "Analyzing Security..." : "Analyze Conceptual Security Posture"}
               </Button>
               <Button
                 size="lg"
@@ -372,7 +381,7 @@ export default function SystemVisualizerPage() {
                   )}
                 </div>
                 <Separator />
-                <div>
+                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
                      <WorkflowIcon className="h-5 w-5 mr-2 text-accent" />
                     Conceptual Diagram Area:
@@ -403,7 +412,7 @@ export default function SystemVisualizerPage() {
                         </>
                     ) : (
                          <>
-                            <WorkflowIcon className="h-16 w-16 mx-auto mb-4 text-primary/40" />
+                            <ImageIcon className="h-16 w-16 mx-auto mb-4 text-primary/40" />
                             <p className="text-lg font-medium text-center text-muted-foreground">Conceptual Visual Diagram</p>
                             <p className="text-sm text-center text-muted-foreground">(Select components and trigger an analysis to see a textual representation here. Graphical diagram feature is in development.)</p>
                         </>
@@ -604,3 +613,5 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
+
+    
