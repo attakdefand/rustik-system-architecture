@@ -41,6 +41,12 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
 > **Not a Production Blueprint** – AI insights are suggestive, not definitive.
 > Real-world system design demands detailed planning, performance testing, and domain expertise.
 
+## Future Enhancements (Potential Ideas)
+
+*   **Interactive Diagrams in the Visualizer**: Visually represent how selected components connect.
+*   **Conceptual Cost Estimation Flows**: AI-driven estimation of cost factors.
+*   **User Accounts & Saved Configurations**: Allow users to save and revisit their architectural explorations.
+
 ## Cloning and Running Locally
 
 To clone and run Rustik on your local machine, follow these steps:
@@ -53,13 +59,14 @@ To clone and run Rustik on your local machine, follow these steps:
 ### Setup Instructions
 
 1.  **Clone the Repository**:
+    Open your terminal and run the following command to clone the project. If the repository URL is not `https://github.com/your-username/your-repository-name.git`, please replace it with the actual URL.
     ```bash
-    git clone https://github.com/your-username/your-repository-name.git nextn
-    cd nextn
+    git clone https://github.com/your-username/your-repository-name.git rustik-app
+    cd rustik-app
     ```
-    *(Replace `https://github.com/your-username/your-repository-name.git` with the actual repository URL if available, otherwise, this is a placeholder.)*
 
 2.  **Install Dependencies**:
+    Install the project dependencies using either npm or yarn:
     ```bash
     npm install
     ```
@@ -69,32 +76,41 @@ To clone and run Rustik on your local machine, follow these steps:
     ```
 
 3.  **Set Up Environment Variables**:
-    The application uses Genkit, which connects to Google AI models. You'll need a Google AI API key.
-    *   Create a file named `.env` in the root of the project.
-    *   Add your Google AI API key to this file:
+    The application uses Genkit, which connects to Google AI models (like Gemini) for its AI-powered features. You'll need a Google AI API key.
+    *   Create a new file named `.env` in the root directory of the project (i.e., inside the `rustik-app` folder).
+    *   Add your Google AI API key to this `.env` file. The content should look like this:
         ```env
         GOOGLE_API_KEY=your_google_ai_api_key_here
         ```
-    *   You can obtain a Google AI API key by visiting [Google AI Studio (formerly MakerSuite)](https://aistudio.google.com/).
+        Replace `your_google_ai_api_key_here` with your actual API key.
+    *   You can obtain a Google AI API key by visiting [Google AI Studio (formerly MakerSuite)](https://aistudio.google.com/). Create a new API key if you don't have one.
 
 4.  **Run the Development Servers**:
-    Rustik requires two development servers to run concurrently: one for the Next.js frontend and one for the Genkit AI flows.
+    Rustik requires two development servers to run concurrently:
+    *   One for the Next.js frontend application.
+    *   One for the Genkit AI flows (which act as the backend for AI features).
 
-    *   **Start the Genkit Development Server**:
-        Open a terminal window and run:
+    You will need to open **two separate terminal windows** or tabs for these commands.
+
+    *   **Terminal 1: Start the Genkit Development Server**:
+        In your first terminal window, navigate to the project directory (`rustik-app`) and run:
         ```bash
         npm run genkit:dev
         ```
-        This will typically start the Genkit server (often on port 3400, but check your terminal output). It will also automatically recompile your flows if you make changes to them.
+        This command starts the Genkit development server. It will typically run on port `3400` (e.g., `http://localhost:3400`). This server handles the AI flow executions. It will also automatically recompile your flows if you make changes to them in the `src/ai/flows/` directory.
 
-    *   **Start the Next.js Development Server**:
-        Open a *second* terminal window and run:
+    *   **Terminal 2: Start the Next.js Development Server**:
+        In your second terminal window, navigate to the project directory (`rustik-app`) and run:
         ```bash
         npm run dev
         ```
-        This will start the Next.js application, usually on `http://localhost:9002`.
+        This command starts the Next.js frontend application. It will typically run on port `9002` (e.g., `http://localhost:9002`).
 
 5.  **Access the Application**:
-    Open your web browser and navigate to `http://localhost:9002` (or the port specified in your terminal output for the Next.js server).
+    Once both servers are running:
+    *   Open your web browser.
+    *   Navigate to `http://localhost:9002` (or the port specified in your terminal output for the Next.js server).
+
+    You should now be able to use the Rustik application, including its AI-powered analysis features.
 
 We hope you find Rustik insightful for exploring the fascinating world of hyperscale system architecture!
