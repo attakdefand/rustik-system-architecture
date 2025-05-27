@@ -3,7 +3,11 @@ import { AppHeader } from '@/components/layout/app-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert } from 'lucide-react';
+import { 
+  Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, 
+  Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert,
+  DatabaseZap, Waypoints, Zap, Workflow, TrendingUp, Landmark, FlaskConical 
+} from 'lucide-react';
 
 export default function SystemBuilderChallengesPage() {
   const initialChallenges = [
@@ -34,23 +38,23 @@ export default function SystemBuilderChallengesPage() {
     },
   ];
 
-  const scalingChallenges = [
+  const scalingChallengesOneBillion = [
     {
       icon: Database,
       title: 'Database Scalability',
       description: 'This is often the biggest challenge. Your database layer must also be able to handle this scale. This typically involves techniques like database sharding (splitting data across multiple databases), read replicas, using highly scalable NoSQL databases (e.g., Cassandra, ScyllaDB, DynamoDB), and robust caching strategies. The Rustik app currently doesn\'t detail database components, but they are critical.',
     },
     {
-      icon: Server,
-      title: 'Network Infrastructure',
+      icon: Server, // Representing network infrastructure/servers
+      title: 'Network Infrastructure for Scale',
       description: 'You need massive bandwidth, robust peering arrangements with ISPs, and sufficient capacity at each Point of Presence (PoP).',
     },
     {
       icon: Code,
-      title: 'Application-Level Design',
+      title: 'Application-Level Design for Scale',
       description: 'The specific logic of your application running on the Rust nodes must be highly optimized. Inefficient algorithms or poorly designed data access patterns can still bring a system to its knees.',
     },
-    {
+     {
       icon: Route, 
       title: 'API Gateway & Management',
       description: 'At massive scale with many microservices, a dedicated API Gateway layer is essential for managing request routing, authentication, rate limiting, and other cross-cutting concerns for all API traffic.',
@@ -78,10 +82,67 @@ export default function SystemBuilderChallengesPage() {
     },
     {
       icon: DollarSign,
-      title: 'Cost',
+      title: 'Cost of Scale',
       description: 'Building, deploying, and maintaining infrastructure at this scale is a significant financial investment.',
     },
   ];
+
+  const scalingChallengesFiveBillion = [
+    {
+      icon: DatabaseZap,
+      title: 'Extreme Data Volume & Velocity',
+      description: 'Handling data for 5 billion users presents amplified challenges:',
+      subItems: [
+        { text: 'Sophisticated Database Sharding: Multi-level or geo-sharding, and potentially custom data distribution solutions are needed. Managing this number of database instances is immensely complex.' },
+        { text: 'Data Gravity & Replication: Moving and replicating petabytes or exabytes of data globally becomes a colossal logistical and technical challenge.' },
+      ],
+    },
+    {
+      icon: Waypoints,
+      title: 'Unprecedented Network Capacity & Global Reach',
+      description: 'The network demands are on another level:',
+      subItems: [
+        { text: 'Unimaginable Bandwidth: Requires a global network with extreme capacity.' },
+        { text: 'Dense PoP Network: Points of Presence must be incredibly dense and have massive throughput capabilities.' },
+        { text: 'Critical Peering & CDN Strategies: These become even more complex and vital for performance and cost.' },
+      ],
+    },
+    {
+      icon: Zap,
+      title: 'Intense Computational Efficiency',
+      description: 'Every cycle counts at this scale:',
+      subItems: [
+        { text: 'Hyper-Optimization: Tiny inefficiencies in code (e.g., an extra millisecond per request) are multiplied by 5 billion, making micro-optimizations critical.' },
+        { text: 'Maximized Resource Utilization: Squeezing every bit of performance from CPUs, memory, and network I/O is non-negotiable.' },
+      ],
+    },
+    {
+      icon: Workflow,
+      title: 'Magnified Operational Complexity & Automation',
+      description: 'Operations must be flawless and highly automated:',
+      subItems: [
+        { text: 'Advanced Observability: The volume of metrics, logs, and traces is staggering, requiring AI-assisted tools for analysis and insight.' },
+        { text: 'Extreme Automation: Provisioning, deployment, scaling, and failure recovery must be automated to an extreme degree; manual intervention is impossible.' },
+        { text: 'Hyper-Specialized Teams: You\'d likely have highly specialized teams dedicated to every layer and component of the stack.' },
+      ],
+    },
+    {
+      icon: TrendingUp,
+      title: 'Astronomical Cost Management (FinOps)',
+      description: 'Costs for infrastructure, bandwidth, and top-tier engineering talent will be enormous. Extremely sophisticated FinOps practices are essential to maintain financial viability.',
+    },
+    {
+      icon: Landmark,
+      title: 'Amplified Global Compliance & Data Sovereignty',
+      description: 'With 5 billion users, you\'re dealing with an even wider and more complex array of international data privacy laws (GDPR, CCPA, etc.) and data residency requirements. This adds immense complexity to data storage, processing, and legal frameworks.',
+    },
+    {
+      icon: FlaskConical,
+      title: 'Pushing Technological Boundaries',
+      description: 'At this scale, you will likely push the limits of existing off-the-shelf technologies. Innovation in custom hardware, novel networking solutions, or entirely new data storage and processing paradigms becomes necessary, often defining the cutting edge of technology (similar to hyperscalers like Google, Meta, Amazon).',
+    },
+  ];
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -120,8 +181,8 @@ export default function SystemBuilderChallengesPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {scalingChallenges.map((challenge, index) => (
-            <Card key={`scaling-${index}`} className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+          {scalingChallengesOneBillion.map((challenge, index) => (
+            <Card key={`scaling-1b-${index}`} className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
               <CardHeader className="flex flex-row items-start gap-4 pb-4">
                 <challenge.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
                 <CardTitle className="text-xl font-semibold text-primary">{challenge.title}</CardTitle>
@@ -131,10 +192,40 @@ export default function SystemBuilderChallengesPage() {
                 {challenge.subItems && challenge.subItems.length > 0 && (
                   <ul className="space-y-2 mt-3 pt-3 border-t border-border/50">
                     {challenge.subItems.map((item, subIndex) => (
-                      <li key={`sub-${subIndex}`} className="flex items-start gap-3 text-sm text-foreground/70">
+                      <li key={`sub-1b-${subIndex}`} className="flex items-start gap-3 text-sm text-foreground/70">
                         <item.icon className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                         <span>{item.text}</span>
                       </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center my-16 sm:my-20">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100">
+            Scaling to 5 Billion Users: Amplified Challenges
+          </h2>
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+            Moving from 1 billion to 5 billion users isn't just a linear increase; it exponentially amplifies every challenge:
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {scalingChallengesFiveBillion.map((challenge, index) => (
+            <Card key={`scaling-5b-${index}`} className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+              <CardHeader className="flex flex-row items-start gap-4 pb-4">
+                <challenge.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                <CardTitle className="text-xl font-semibold text-primary">{challenge.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-foreground/80 mb-3">{challenge.description}</p>
+                {challenge.subItems && challenge.subItems.length > 0 && (
+                  <ul className="list-disc list-inside space-y-2 mt-3 pt-3 border-t border-border/50 text-sm text-foreground/70">
+                    {challenge.subItems.map((item, subIndex) => (
+                      <li key={`sub-5b-${subIndex}`}>{item.text}</li>
                     ))}
                   </ul>
                 )}
@@ -162,3 +253,5 @@ export default function SystemBuilderChallengesPage() {
     </div>
   );
 }
+
+    
