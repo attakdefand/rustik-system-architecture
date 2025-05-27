@@ -1,3 +1,4 @@
+
 import type { FC } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -13,10 +14,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge'; // Added Badge import
-import type { ArchitectureComponent } from '@/data/architecture-data'; // Ensure this type is imported
+import { Badge } from '@/components/ui/badge';
+import type { ArchitectureComponent } from '@/data/architecture-data';
 
-interface ArchitectureBlockProps extends ArchitectureComponent {} // Use the imported type
+interface ArchitectureBlockProps extends ArchitectureComponent {}
 
 const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   title,
@@ -26,16 +27,17 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   realWorldExamples,
   eli5Summary,
   eli5Details,
-  complexity, // Added complexity
+  complexity,
+  implementationGuidance, // Added implementationGuidance
 }) => {
   const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
     switch (complexityLevel) {
       case 'Beginner':
-        return 'default'; // Or 'secondary' if default is too strong
+        return 'default';
       case 'Intermediate':
-        return 'secondary'; // Or a custom variant if needed
+        return 'secondary';
       case 'Advanced':
-        return 'destructive'; // Or a custom variant for advanced
+        return 'destructive';
       default:
         return 'default';
     }
@@ -76,6 +78,17 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
               {realWorldExamples.map((example, index) => <li key={index}>{example}</li>)}
             </ul>
           </div>
+          {implementationGuidance && implementationGuidance.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-lg font-semibold mb-2 text-accent">Implementation Guidance</h3>
+                <ul className="list-disc list-inside space-y-1.5 text-sm text-foreground/80">
+                  {implementationGuidance.map((step, index) => <li key={index}>{step}</li>)}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
       <div className="p-6 pt-0">
