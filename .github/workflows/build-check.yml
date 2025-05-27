@@ -1,0 +1,36 @@
+
+name: Build Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Next.js App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Matches the recommended version in your README
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+        env:
+          # If your build process tries to access GOOGLE_API_KEY (e.g., during Genkit init),
+          # you might need to provide a dummy value here for the build to pass in CI.
+          # Create a repository secret named DUMMY_GOOGLE_API_KEY_FOR_BUILD in your GitHub settings 
+          # (e.g., with a value like "dummy_key_for_ci_build").
+          # If the build doesn't require it, you can remove this env block.
+          GOOGLE_API_KEY: ${{ secrets.DUMMY_GOOGLE_API_KEY_FOR_BUILD }}
