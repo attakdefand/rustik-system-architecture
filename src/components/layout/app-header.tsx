@@ -1,4 +1,6 @@
+
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // Simple R-like SVG icon for Rustik
 const RustikLogoIcon = () => (
@@ -12,11 +14,22 @@ const RustikLogoIcon = () => (
 export function AppHeader() {
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto flex items-center gap-3 py-4 px-4 sm:px-6">
+      <div className="container mx-auto flex items-center justify-between py-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
           <RustikLogoIcon />
           <h1 className="text-3xl font-bold text-primary tracking-tight">Rustik</h1>
         </Link>
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" asChild>
+            <Link href="/">Components</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/system-builder-challenges">Builder Insights</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/system-visualizer">Visualizer</Link>
+          </Button>
+        </nav>
       </div>
     </header>
   );
