@@ -9,14 +9,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Construction, DraftingCompass } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Construction, DraftingCompass, Diagram, ImageIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
 
 // Helper function for complexity badge styling (similar to ArchitectureBlock)
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
   switch (complexityLevel) {
     case 'Beginner':
-      return 'default'; // default usually is primary color
+      return 'default';
     case 'Intermediate':
       return 'secondary';
     case 'Advanced':
@@ -28,6 +29,8 @@ const complexityVariant = (complexityLevel: ArchitectureComponent['complexity'])
 
 export default function SystemVisualizerPage() {
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
+  const [diagramGenerated, setDiagramGenerated] = useState(false);
+  const [generatedDiagramComponents, setGeneratedDiagramComponents] = useState<ArchitectureComponent[]>([]);
 
   const handleComponentSelect = (componentId: string, isSelected: boolean) => {
     setSelectedComponents(prevSelected => {
@@ -39,6 +42,16 @@ export default function SystemVisualizerPage() {
       }
       return newSelected;
     });
+    // If selections change, hide the previously generated diagram
+    if (diagramGenerated) {
+      setDiagramGenerated(false);
+    }
+  };
+
+  const handleGenerateDiagram = () => {
+    const currentSelected = architectureComponents.filter(comp => selectedComponents.has(comp.id));
+    setGeneratedDiagramComponents(currentSelected);
+    setDiagramGenerated(true);
   };
 
   return (
@@ -111,19 +124,85 @@ export default function SystemVisualizerPage() {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Button size="lg" disabled>
+            <Button 
+              size="lg" 
+              disabled={selectedComponents.size === 0}
+              onClick={handleGenerateDiagram}
+            >
               <DraftingCompass className="mr-2 h-5 w-5" />
               Generate Diagram (Conceptual)
             </Button>
             {selectedComponents.size > 0 && (
               <p className="text-sm text-muted-foreground mt-4">
-                Selected {selectedComponents.size} component(s).
+                Selected {selectedComponents.size} component(s). Click generate to see a conceptual overview.
               </p>
             )}
           </div>
+
+          {diagramGenerated && (
+            <Card className="mt-16 w-full max-w-5xl mx-auto shadow-xl rounded-xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-primary flex items-center">
+                  <Diagram className="mr-3 h-7 w-7" />
+                  Conceptual System Overview
+                </CardTitle>
+                <CardDescription className="pt-1">
+                  Based on your selections, here's a high-level look at the chosen components and their potential roles.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8 pt-2">
+                <div>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                    <component.icon className="h-5 w-5 mr-2 text-accent" /> {/* Generic icon */}
+                    Selected Architectural Elements:
+                  </h4>
+                  {generatedDiagramComponents.length > 0 ? (
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 pl-2">
+                      {generatedDiagramComponents.map(comp => (
+                        <li key={comp.id} className="flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
+                          <comp.icon className="h-6 w-6 mr-3 text-primary flex-shrink-0" />
+                          <span className="font-medium">{comp.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground">No components were selected for this diagram.</p>
+                  )}
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                     <ImageIcon className="h-5 w-5 mr-2 text-accent" />
+                    Visual Diagram Area:
+                  </h4>
+                  <div className="p-10 border-2 border-dashed border-border/70 rounded-lg text-center text-muted-foreground bg-muted/20">
+                    <ImageIcon className="h-16 w-16 mx-auto mb-4 text-primary/40" />
+                    <p className="text-lg font-medium">Conceptual Visual Diagram</p>
+                    <p className="text-sm">(This area will display a dynamic diagram based on your selections - Feature in development)</p>
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                    <Construction className="h-5 w-5 mr-2 text-accent" /> {/* Changed to construction or similar */}
+                    AI-Powered Interaction Analysis:
+                  </h4>
+                  <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
+                    <p className="font-medium">
+                      An AI-powered explanation would describe potential interactions, benefits, and considerations for combining these selected components.
+                    </p>
+                    <blockquote className="pl-4 border-l-4 border-primary/60 italic text-sm bg-primary/5 p-3 rounded-md">
+                      <strong>Example:</strong> "If you've selected <strong>Anycast IP</strong>, <strong>Load Balancers</strong>, and <strong>Rust App Nodes</strong>, a typical pattern involves Anycast IP routing global users to the nearest regional point of presence. Within each region, Load Balancers would distribute traffic across a cluster of Rust App Nodes, ensuring high availability and performance..."
+                    </blockquote>
+                    <p className="text-sm text-muted-foreground text-right mt-2">(This AI-driven analysis is a future enhancement.)</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        <div className="mt-16 text-center">
+        <div className="mt-20 text-center">
           <Button asChild variant="outline">
             <Link href="/system-builder-challenges">Learn about System Building Challenges</Link>
           </Button>
@@ -135,3 +214,12 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
+
+// Need to replace this generic icon logic for "Selected Architectural Elements" if possible, or remove it.
+// For now, I'll use Construction icon as a placeholder. If you have a better generic icon for a list of components, let me know.
+// The individual component icons are used within the list items themselves.
+const placeholderIcon = Construction; 
+// Assigning to component.icon for the header to avoid error, though it's not ideal.
+// It will be shadowed by the local `component` in the map function for list items.
+(architectureComponents[0] || { icon: Construction }).icon = placeholderIcon;
+
