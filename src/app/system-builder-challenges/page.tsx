@@ -3,7 +3,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, Layers, Activity, Scaling, Repeat, Wrench } from 'lucide-react';
+import { Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert } from 'lucide-react';
 
 export default function SystemBuilderChallengesPage() {
   const initialChallenges = [
@@ -27,6 +27,11 @@ export default function SystemBuilderChallengesPage() {
       title: 'Vast Number of Combinations',
       description: 'The number of ways components can be combined and configured is enormous. Ensuring the generated system is truly "powerful" and correct for a given set of choices is a massive challenge.',
     },
+    {
+      icon: Gavel,
+      title: 'Navigating Global Compliance & Data Governance',
+      description: 'For systems handling a billion users, especially globally, adhering to diverse data privacy laws (like GDPR, CCPA), data sovereignty, and industry-specific regulations is a major architectural driver and operational hurdle.',
+    },
   ];
 
   const scalingChallenges = [
@@ -46,9 +51,19 @@ export default function SystemBuilderChallengesPage() {
       description: 'The specific logic of your application running on the Rust nodes must be highly optimized. Inefficient algorithms or poorly designed data access patterns can still bring a system to its knees.',
     },
     {
+      icon: Route, 
+      title: 'API Gateway & Management',
+      description: 'At massive scale with many microservices, a dedicated API Gateway layer is essential for managing request routing, authentication, rate limiting, and other cross-cutting concerns for all API traffic.',
+    },
+    {
       icon: Layers,
       title: 'Caching, Caching, Caching',
       description: 'Aggressive caching at multiple levels (CDN, load balancer, in-memory caches on app nodes, database query caches) is essential to reduce load on backend systems.',
+    },
+    {
+      icon: ShieldAlert,
+      title: 'Security Architecture at Scale',
+      description: 'Protecting a system with a billion users requires a comprehensive security strategy, including robust DDoS mitigation, Web Application Firewalls (WAFs), advanced Identity and Access Management (IAM), and diligent threat modeling and data encryption practices.',
     },
     {
       icon: ShieldCheck,
@@ -97,10 +112,10 @@ export default function SystemBuilderChallengesPage() {
 
         <div className="text-center my-16 sm:my-20">
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100">
-            Key Considerations for Massive Scale
+            Key Considerations for Massive Scale (e.g., 1 Billion Users)
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Achieving true massive scale (e.g., 1 billion users) with the described architectural components requires addressing these additional critical areas:
+            Achieving true massive scale with the described architectural components requires addressing these additional critical areas:
           </p>
         </div>
 

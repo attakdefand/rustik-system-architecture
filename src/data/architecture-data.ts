@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, Route, ShieldAlert, Gavel } from 'lucide-react';
 
 export interface TypeDefinition {
   name: string;
@@ -55,9 +55,9 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Load Balancer(s)',
     icon: Network,
     types: [
-      { name: 'Layer-4 (TCP/QUIC) LB: handles raw connections (e.g. HAProxy in TCP mode, Envoy TCP proxy).', description: 'Distributes traffic based on network-level info (IP, port); fast & simple.' },
-      { name: 'Layer-7 (HTTP/TLS) LB: terminates TLS, inspects HTTP, applies routing rules (e.g. Envoy HTTP, NGINX, AWS ALB).', description: 'Smarter routing based on application data (URLs, headers); enables advanced features.' },
-      { name: 'Cloud-native LB: Google Cloud TCP/UDP/SSL LB, AWS Network Load Balancer (NLB).', description: 'Managed load balancing services provided by cloud platforms, often with tight integration.' },
+      { name: 'Layer-4 (TCP/QUIC) LB', description: 'Handles raw connections (e.g. HAProxy in TCP mode, Envoy TCP proxy); distributes traffic based on network-level info (IP, port); fast & simple.' },
+      { name: 'Layer-7 (HTTP/TLS) LB', description: 'Terminates TLS, inspects HTTP, applies routing rules (e.g. Envoy HTTP, NGINX, AWS ALB); smarter routing based on application data (URLs, headers).' },
+      { name: 'Cloud-native LB', description: 'Managed services (Google Cloud TCP/UDP/SSL LB, AWS NLB) provided by cloud platforms, often with tight integration.' },
     ],
     useCases: [
       'TLS Termination: offload encryption so your app nodes stay fast.',
@@ -79,13 +79,46 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
   },
   {
+    id: 'api-gateway',
+    title: 'API Gateway',
+    icon: Route,
+    types: [
+        { name: 'Request Routing & Composition', description: 'Directs incoming API requests to appropriate backend microservices, potentially aggregating results.' },
+        { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
+        { name: 'Rate Limiting & Quotas', description: 'Protects backend services from overload by controlling the number of requests allowed.' },
+        { name: 'Request/Response Transformation', description: 'Modifies request or response payloads to match backend service expectations or client needs.' },
+        { name: 'API Versioning Support', description: 'Manages multiple versions of APIs simultaneously, allowing graceful upgrades.' },
+    ],
+    useCases: [
+        'Providing a single, unified entry point for a microservices backend.',
+        'Enforcing security policies like authentication and authorization consistently.',
+        'Managing API traffic, quotas, and throttling to protect backend services.',
+        'Simplifying client interaction by abstracting backend complexity.'
+    ],
+    realWorldExamples: [
+        'Amazon API Gateway for serverless and containerized backends.',
+        'Kong Gateway as a popular open-source option.',
+        'Apigee (Google Cloud) for enterprise API management.'
+    ],
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "Imagine a very organized main reception desk for a huge office building with many different departments (your microservices). This desk takes all incoming calls (API requests), checks who is calling and if they're allowed (auth), directs them to the correct department, and makes sure no single department gets too many calls at once.",
+    complexity: 'Intermediate',
+    implementationGuidance: [
+        'Choose a managed cloud service (AWS API Gateway, Azure API Management, Google Apigee) or self-host (Kong, Tyk).',
+        'Define clear API contracts (e.g., using OpenAPI/Swagger) for your backend services.',
+        'Configure routing rules to map public API endpoints to internal microservices.',
+        'Implement authentication (e.g., OAuth2, API Keys) and authorization policies.',
+        'Set up rate limiting and usage quotas to prevent abuse and ensure fair usage.'
+    ]
+  },
+  {
     id: 'rust-app-nodes',
     title: 'Rust App Nodes',
     icon: ServerCog,
     types: [
-      { name: 'Single-binary service: one executable per node (e.g. your app_server).', description: 'Simple deployment; all application logic in one compiled file.' },
-      { name: 'Containerized: each node runs in its own Docker container or Kubernetes pod.', description: 'Ensures consistent environments and simplifies scaling with orchestration tools.' },
-      { name: 'VM-based: each node on a dedicated virtual machine.', description: 'Provides strong isolation but can be heavier than containers.' },
+      { name: 'Single-binary service', description: 'One executable per node (e.g. your app_server); simple deployment, all logic in one file.' },
+      { name: 'Containerized (Docker/Kubernetes)', description: 'Each node in its own container/pod; ensures consistent environments, simplifies scaling.' },
+      { name: 'VM-based', description: 'Each node on a dedicated virtual machine; provides strong isolation but can be heavier.' },
     ],
     useCases: [
       'High-performance APIs: handling thousands of requests per second.',
@@ -300,34 +333,68 @@ export const architectureComponents: ArchitectureComponent[] = [
   {
     id: 'operational-excellence',
     title: 'Operational Excellence Pillars',
-    icon: ShieldCheck,
+    icon: ShieldCheck, // Kept ShieldCheck as it's broadly about robust operations
     types: [
-      { name: "Comprehensive Monitoring & Observability (Metrics, Logs, Traces)", description: "Gathers detailed data to understand system health and behavior." },
-      { name: "Automated Alerting & Incident Response", description: "Automatically notifies teams of issues and helps manage responses." },
+      { name: "Comprehensive Monitoring & Observability", description: "Metrics, logs, traces to understand system health and behavior." },
+      { name: "Automated Alerting & Incident Response", description: "Notifies teams of issues and helps manage responses automatically." },
       { name: "Automated Scaling (Horizontal & Vertical)", description: "Adjusts system capacity automatically based on demand." },
-      { name: "Safe Deployment Strategies (Blue/Green, Canary, Rolling)", description: "Enables releasing new software versions with minimal risk." },
-      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations through code for consistency." }
+      { name: "Safe Deployment Strategies", description: "Blue/Green, Canary, Rolling releases for minimal risk software updates." },
+      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations via code for consistency." }
     ],
     useCases: [
-      "Proactively identifying and resolving issues before they impact users.",
+      "Proactively identifying and resolving issues before user impact.",
       "Maintaining system performance and availability under varying loads.",
       "Deploying new features and updates safely and efficiently.",
-      "Ensuring consistent and reproducible environments."
+      "Ensuring consistent and reproducible environments across the board."
     ],
     realWorldExamples: [
-      "Netflix's Simian Army (Chaos Monkey) tests system resilience.",
-      "Cloud providers offer extensive monitoring and auto-scaling capabilities.",
-      "Mature tech companies have sophisticated CI/CD pipelines with automated canary deployments.",
-      "Tools like Terraform and Ansible are widely used for IaC."
+      "Netflix's Simian Army (Chaos Monkey) tests system resilience proactively.",
+      "Cloud providers (AWS, Azure, GCP) offer extensive monitoring and auto-scaling capabilities.",
+      "Mature tech companies use sophisticated CI/CD pipelines with automated canary deployments.",
+      "Tools like Terraform and Ansible are widely used for IaC and configuration management."
     ],
     eli5Summary: "Detailed Explanation",
     eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response).",
     complexity: "Advanced",
     implementationGuidance: [
-      "Implement a centralized logging and metrics platform (e.g., ELK stack, Prometheus, Grafana).",
-      "Define clear Service Level Objectives (SLOs) and set up alerts based on them.",
+      "Implement centralized logging and metrics (e.g., ELK stack, Prometheus, Grafana).",
+      "Define clear Service Level Objectives (SLOs) and set up alerts.",
       "Automate infrastructure provisioning and deployment processes.",
       "Regularly test failover and disaster recovery procedures."
+    ]
+  },
+  {
+    id: 'security-architecture-principles',
+    title: 'Security Architecture Principles',
+    icon: ShieldAlert,
+    types: [
+        { name: "Defense in Depth", description: "Applying multiple layers of security controls throughout the system." },
+        { name: "Zero Trust Architecture", description: "Never trust, always verify; assumes breaches are inevitable and limits blast radius." },
+        { name: "Data Encryption (In Transit & At Rest)", description: "Protecting sensitive data whether it's moving across networks or stored." },
+        { name: "Identity & Access Management (IAM)", description: "Controlling who can access what resources, based on the principle of least privilege." },
+        { name: "DDoS Protection & Web Application Firewall (WAF)", description: "Mitigating large-scale denial-of-service attacks and filtering malicious web traffic." }
+    ],
+    useCases: [
+        "Protecting against unauthorized access and data breaches.",
+        "Ensuring data privacy and confidentiality for users.",
+        "Maintaining service availability and integrity, even under attack.",
+        "Complying with security regulations and standards."
+    ],
+    realWorldExamples: [
+        "Multi-factor authentication (MFA) for all administrative access.",
+        "Using TLS/SSL for all network communication (data in transit).",
+        "Encrypting databases and storage volumes (data at rest).",
+        "Cloudflare or AWS Shield for DDoS mitigation."
+    ],
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "Building a super-secure castle for our playground! This means having many layers of walls (defense in depth), always checking everyone's ID even if they're already inside (zero trust), using secret codes for all messages (encryption), and having strong guards at the main gate to stop bad guys or too many people rushing in at once (DDoS/WAF).",
+    complexity: 'Advanced',
+    implementationGuidance: [
+        "Conduct regular security audits and penetration testing.",
+        "Implement robust IAM policies and regularly review access rights.",
+        "Use strong encryption for all sensitive data, both in transit and at rest.",
+        "Deploy WAF and DDoS mitigation services at the network edge.",
+        "Develop an incident response plan for security breaches."
     ]
   },
   {
@@ -382,8 +449,8 @@ export const architectureComponents: ArchitectureComponent[] = [
     realWorldExamples: [
         "Kubernetes: kube-proxy + CoreDNS serve as your cluster’s canonical “who’s up and where” database."
     ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Imagine a classroom list on the wall that always shows which teachers are in which rooms—and moves kids to the room that’s open if one teacher steps out.",
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and pushes configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Choose a discovery mechanism (e.g., DNS-based, dedicated tool like Consul).",
@@ -397,24 +464,23 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Shared State & Data Plane',
     icon: Archive,
     types: [
-        { name: "In-memory Cache (Redis, Memcached)", description: "Fast key-value stores for caching frequently accessed data." },
-        { name: "Relational DB (Postgres, MySQL)", description: "Structured databases with ACID properties." },
-        { name: "NoSQL (Cassandra, DynamoDB)", description: "Flexible schema databases for high scalability." },
-        { name: "Message Queues (RabbitMQ, Kafka)", description: "Enable asynchronous communication between services." },
+        { name: "Distributed Caches (Redis, Memcached)", description: "Fast, shared memory stores for frequently accessed data to speed up applications." },
+        { name: "Relational Databases (PostgreSQL, MySQL)", description: "Traditional databases for structured data with strong consistency (ACID properties)." },
+        { name: "NoSQL Databases (MongoDB, Cassandra)", description: "Flexible databases for various data models (document, key-value, etc.), often prioritizing scale." },
+        { name: "Message Queues (Kafka, RabbitMQ)", description: "Systems for enabling asynchronous communication between different parts of an application." },
         { name: "Object Storage (S3, GCS)", description: "Scalable storage for large, unstructured data like files, images, and backups." }
     ],
     useCases: [
-        "Cache hot data close to your app for micro-latency", 
-        "Persist user-driven state and leaderboards", 
-        "Stream events between microservices",
         "Storing and retrieving application data", 
+        "Caching frequently accessed information", 
+        "Enabling asynchronous communication between services",
         "Persisting large binary objects"
     ],
     realWorldExamples: [
         "Spotify uses Cassandra for user-playback history at scale, plus Kafka for event streaming."
     ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Think of a giant library (database) where all the stories live, and a little bookshelf (cache) in each room to keep today’s favorite books handy.",
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "This represents where your application’s data lives and how it’s replicated. It includes caches, databases, and queues. Think of it as the school's main library, shared toy chests, and message boards – where all important information is kept and shared.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Select appropriate data stores based on consistency, availability, and performance needs (CAP theorem).",
@@ -425,27 +491,26 @@ export const architectureComponents: ArchitectureComponent[] = [
   },
   {
     id: 'observability-ops',
-    title: 'Observability & Ops',
+    title: 'Observability & Operations',
     icon: Gauge,
     types: [
-        { name: "Metrics (Prometheus + Grafana)", description: "Collect and visualize time-series data." },
-        { name: "Distributed Tracing (Jaeger, Zipkin, OpenTelemetry)", description: "Track requests across multiple services." },
-        { name: "Logging (ELK / EFK stacks, Loki)", description: "Aggregate and search application and system logs." },
+        { name: "Metrics (Prometheus, Grafana)", description: "Numerical data (e.g., request counts, latency) visualized in dashboards to track performance." },
+        { name: "Logging (ELK Stack, Splunk)", description: "Collecting and searching through text-based event logs from all parts of the system." },
+        { name: "Tracing (Jaeger, Zipkin)", description: "Following a single request's journey through multiple services to debug issues." },
         { name: "Alerting (PagerDuty, OpsGenie)", description: "Automatically notifying engineers when critical problems or thresholds are detected." },
         { name: "Dashboards", description: "Visual displays combining metrics, logs, and traces to give an overview of system health." }
     ],
     useCases: [
-        "Alert when error rates spike", 
-        "Trace a user’s request across services", 
-        "Query logs for debug after an incident",
         "Monitoring system health and performance", 
+        "Diagnosing and troubleshooting issues", 
+        "Understanding system behavior under load",
         "Proactive incident detection and response"
     ],
     realWorldExamples: [
         "Uber uses Jaeger to visualize request paths across hundreds of microservices."
     ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Imagine putting a little bell on every teacher’s desk so you can hear when they get busy or drop a book—and then looking on a map to see exactly where they rang it.",
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "This layer is about understanding your system's health through metrics, logs, tracing, dashboards, and alerting. Imagine the school has cameras (logs), thermometers (metrics), and ways to follow a kid from one room to another (tracing), with alarms if something is wrong.",
     complexity: 'Intermediate',
     implementationGuidance: [
         "Instrument applications to emit structured logs, metrics, and traces.",
@@ -459,15 +524,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Deployment & CI/CD',
     icon: Rocket,
     types: [
-        { name: "GitHub Actions / GitLab CI / Jenkins", description: "Automate build, test, and integration pipelines." },
-        { name: "Argo CD / Flux (GitOps deployers)", description: "Continuous delivery using Git as the source of truth." },
-        { name: "Spinnaker (multi-cloud delivery)", description: "Platform for continuous delivery to multiple cloud environments." },
+        { name: "Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", description: "Automatically building and testing code changes frequently." },
+        { name: "Continuous Delivery/Deployment", description: "Automating the release of software to staging or production environments." },
+        { name: "Infrastructure as Code (Terraform, CloudFormation)", description: "Managing and provisioning infrastructure using code and automation." },
         { name: "Automated Testing (Unit, Integration, E2E)", description: "Running various tests automatically to ensure code quality and prevent regressions." }
     ],
     useCases: [
-        "Run tests + security scans on every PR", 
-        "Roll out new versions gradually (canaries, blue/green)", 
-        "Roll back automatically on failure",
         "Automating the software build, test, and release process",
         "Ensuring consistent and repeatable deployments", 
         "Reducing manual effort and risk of human error", 
@@ -476,8 +538,8 @@ export const architectureComponents: ArchitectureComponent[] = [
     realWorldExamples: [
         "Netflix uses Spinnaker for automated multi-region deployments with sophisticated traffic-shifting strategies."
     ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Think of a magical robot that, when you finish drawing a new picture, checks it for mistakes, then quietly replaces the old picture on the wall while showing just a few friends first—so if something’s wrong you can swap it back.",
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "This encompasses automated build, test, and deploy pipelines for safe and repeatable roll-outs. It's like having an efficient assembly line for making new toys or updating robot teachers, ensuring every change is automatically checked and delivered safely.",
     complexity: 'Intermediate',
     implementationGuidance: [
         "Set up version control (e.g., Git) for all code and configurations.",
@@ -491,17 +553,14 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Autoscaling & Resilience Patterns',
     icon: Scaling,
     types: [
-        { name: "Horizontal Pod Autoscaler (K8s HPA)", description: "Automatically scales Kubernetes pods based on metrics." },
-        { name: "Custom Metrics & Predictive Scaling (e.g. using queue lengths)", description: "Scale based on business-specific or predicted load." },
-        { name: "Chaos Engineering (Gremlin, Chaos Monkey)", description: "Proactively test system resilience by injecting failures." },
+        { name: "Horizontal Pod Autoscaler (Kubernetes)", description: "Automatically changes the number of running application instances (pods) in Kubernetes." },
+        { name: "Cloud Provider Autoscaling Groups", description: "Managed services from AWS, Azure, GCP that adjust server capacity." },
+        { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail." },
         { name: "Rate Limiting", description: "Controls the amount of traffic sent or received to prevent overload." },
         { name: "Retry Mechanisms", description: "Automatically re-attempts failed operations, often with delays (exponential backoff)." },
         { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function." }
     ],
     useCases: [
-        "Spin up more app nodes when CPU or QPS rises", 
-        "Simulate failures to test your fallback logic", 
-        "Throttle or shed load under extreme pressure",
         "Automatically adjusting capacity to meet demand", 
         "Preventing cascading failures", 
         "Gracefully handling service degradation", 
@@ -510,8 +569,8 @@ export const architectureComponents: ArchitectureComponent[] = [
     realWorldExamples: [
         "AWS’s Application Auto Scaling adjusts EC2 instances based on CloudWatch alarms."
     ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Imagine having extra robot teachers on standby who come in only when the classroom gets full, and every now and then you turn off a random robot for a minute to make sure the class still works fine without them.",
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Define scaling policies based on relevant metrics (e.g., CPU, memory, queue length).",
@@ -521,5 +580,3 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   }
 ];
-
-    
