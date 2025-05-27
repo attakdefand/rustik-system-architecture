@@ -20,6 +20,9 @@ export function AppHeader() {
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
+            <Link href="/master-flow">Master-Flow</Link>
+          </Button>
+          <Button variant="ghost" asChild>
             <Link href="/">Components</Link>
           </Button>
           <Button variant="ghost" asChild>
