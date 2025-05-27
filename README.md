@@ -47,12 +47,12 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
 
 ## Future Enhancements (Potential Ideas)
 
-*   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections.
-*   **Conceptual Cost Estimation Flows**: AI-driven estimation of high-level cost factors associated with selected architectural components (e.g., "compute-intensive," "storage-heavy").
-*   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later.
 *   **AI-Driven Architectural Pattern Recommendation Engine**: Users describe a high-level problem or goal, and the AI suggests suitable architectural components and patterns.
-*   **Conceptual Scalability Simulation ("What-if" Scenarios)**: AI analyzes how a selected architecture might conceptually respond to different load levels or failure scenarios.
+*   **Conceptual Scalability Simulation / "What-if" Scenarios**: AI analyzes how a selected architecture might conceptually respond to different load levels or failure scenarios.
 *   **Automated Conceptual Architectural Document Generation**: AI generates a high-level architectural design document (Markdown) based on user selections and analysis results.
+*   **Conceptual Cost Estimation Flows**: AI-driven estimation of high-level cost factors associated with selected architectural components (e.g., "compute-intensive," "storage-heavy").
+*   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later. (Note: This would require significant backend changes).
+*   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections. (Note: Requires a client-side diagramming library).
 
 ## Cloning and Running Locally
 
@@ -120,5 +120,14 @@ To clone and run Rustik on your local machine, follow these steps:
     *   Navigate to `http://localhost:9002` (or the port specified in your terminal output for the Next.js server).
 
     You should now be able to use the Rustik application, including its AI-powered analysis features.
+
+## Automated Workflows with GitHub Actions
+
+This project uses GitHub Actions to automate several quality checks:
+
+*   **Linting and Type Checking**: Automatically checks your code for style issues (ESLint) and type errors (TypeScript) on every push or pull request. This helps catch common mistakes early. (See: `.github/workflows/lint-typecheck.yml`)
+*   **Build Check**: Ensures your Next.js application successfully builds whenever changes are made. This prevents merging code that breaks the production build. (See: `.github/workflows/build-check.yml`)
+    *   **Note on Build Check**: The build process might require a `GOOGLE_API_KEY`. For CI, you can set a dummy key as a GitHub repository secret named `DUMMY_GOOGLE_API_KEY_FOR_BUILD`. If the build doesn't require it, this can be omitted from the workflow file.
+*   **(Future) Automated Testing**: If automated tests (unit, integration, end-to-end) are added to the project, GitHub Actions can be configured to run them automatically to verify the application's functionality.
 
 We hope you find Rustik insightful for exploring the fascinating world of hyperscale system architecture!
