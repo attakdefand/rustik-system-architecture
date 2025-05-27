@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -274,6 +274,12 @@ export default function MasterFlowPage() {
    );
   };
 
+  const getComponentIcon = (title: string) => {
+    const component = architectureComponents.find(c => c.title === title);
+    // Fallback to a generic icon if not found, though this shouldn't happen
+    return component ? component.icon : Layers; 
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -383,6 +389,44 @@ export default function MasterFlowPage() {
                     </div>
                 </div>
             )}
+            
+            {currentFlowInput && currentFlowInput.components.length > 0 && (
+              <Card className="shadow-xl rounded-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                    <ClipboardList className="h-6 w-6 mr-3" />
+                    Your Selected Architectural Blueprint
+                  </CardTitle>
+                  <CardDescription>
+                    A summary of the components and types you've chosen for analysis.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  {currentFlowInput.components.map((comp, index) => {
+                    const ComponentIcon = getComponentIcon(comp.componentTitle);
+                    return (
+                      <div key={`blueprint-${index}`} className="p-3 rounded-md bg-muted/30 border">
+                        <div className="flex items-center mb-1.5">
+                          <ComponentIcon className="h-5 w-5 mr-2 text-primary flex-shrink-0" />
+                          <span className="font-medium text-foreground">{comp.componentTitle}</span>
+                        </div>
+                        {comp.selectedTypes && comp.selectedTypes.length > 0 && (
+                          <ul className="list-disc list-inside pl-7 text-sm text-foreground/80 space-y-0.5 mt-1">
+                            {comp.selectedTypes.map(type => (
+                              <li key={type}>{type}</li>
+                            ))}
+                          </ul>
+                        )}
+                         {(!comp.selectedTypes || comp.selectedTypes.length === 0) && (
+                            <p className="pl-7 text-xs text-muted-foreground italic mt-1">No specific types selected for this component.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
 
             {renderAnalysisSection<AnalyzeSystemOutput>("Interaction Analysis", Layers, interactionAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
@@ -450,7 +494,7 @@ export default function MasterFlowPage() {
               </div>
             ))}
 
-            {microserviceSuggestions.attempted && renderAnalysisSection<SuggestMicroservicesOutput>("AI-Suggested Potential Microservices", Cpu, microserviceSuggestions, (data) => (
+            {microserviceSuggestions.attempted && isMicroservicesFlowApplicable(currentFlowInput) && renderAnalysisSection<SuggestMicroservicesOutput>("AI-Suggested Potential Microservices", Cpu, microserviceSuggestions, (data) => (
                data.suggestedServices && data.suggestedServices.length > 0 && data.suggestedServices[0].name !== "Context Needed" ? (
                 <ul className="space-y-5">
                   {data.suggestedServices.map((service, index) => (
@@ -579,7 +623,7 @@ export default function MasterFlowPage() {
               </CardHeader>
               <CardContent className="p-6 text-foreground/90 space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Connect Rustik to your real-world telemetry (e.g., Prometheus, Terraform state, AWS Config) and get alerts when live infra drifts from the modeled architecture or exhibits unusual behavior.
+                 Connect Rustik to your real-world telemetry (e.g., Prometheus, Terraform state, AWS Config) and get alerts when live infra drifts from the modeled architecture or exhibits unusual behavior.
                 </p>
                 <Button 
                   variant="outline"
@@ -731,4 +775,6 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+    
+
     
