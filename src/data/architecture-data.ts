@@ -83,7 +83,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'API Gateway',
     icon: RouterIcon,
     types: [
-        { name: 'Request Routing & Composition', description: 'Directs incoming API requests to appropriate backend microservices, potentially aggregating results from multiple services (Aggregator Pattern).' },
+        { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services.' },
         { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
         { name: 'Rate Limiting & Quotas', description: 'Protects backend services from overload by controlling the number of requests allowed.' },
         { name: 'Request/Response Transformation', description: 'Modifies request or response payloads to match backend service expectations or client needs.' },
@@ -137,6 +137,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Utilize crates like Tokio for asynchronous operations and Serde for (de)serialization.',
       'Implement thorough error handling and logging (e.g., using `tracing` or `log` crates).',
       'Containerize your application (e.g., with Docker) for consistent deployment and scaling.',
+      'Apply relevant software design patterns (e.g., Gang of Four patterns) to structure your application logic for maintainability and flexibility.',
     ],
   },
   {
@@ -146,11 +147,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     types: [
       { name: 'Independent Service Decomposition', description: 'Breaking down large applications into smaller, self-contained, and independently deployable services.' },
       { name: 'API-Driven Communication (e.g., REST, gRPC)', description: 'Services communicate via well-defined APIs, promoting loose coupling.' },
-      { name: 'Decentralized Data Management', description: 'Each microservice typically owns its own database to ensure autonomy and independent evolution.' },
+      { name: 'Decentralized Data Management', description: 'Each microservice typically owns its own database to ensure autonomy.' },
       { name: 'Containerization & Orchestration (e.g., Kubernetes)', description: 'Commonly used for deploying, scaling, and managing microservices.' },
       { name: "Database per Service Principle", description: "Each microservice owns and manages its own database schema and data, ensuring loose coupling and independent evolution." },
       { name: "Saga Pattern", description: "Manages data consistency across multiple services in distributed transactions using a sequence of local transactions and compensating actions." },
-      { name: "Sidecar Pattern", description: "Deploys auxiliary components (e.g., proxies, logging agents, monitoring agents) alongside a main application in a separate process or container to augment its functionality." },
+      { name: "Sidecar Pattern", description: "Deploys auxiliary components (e.g., proxies, logging agents) alongside a main application in a separate process or container." },
     ],
     useCases: [
       'Building large, complex applications that require high scalability and agility.',
@@ -244,22 +245,22 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "NoSQL Databases (Key-Value, Document, Columnar)", description: "Flexible schema databases optimized for specific data models and scale needs." },
       { name: "Database Caching (e.g., Redis, Memcached)", description: "Stores frequently accessed data in fast memory to reduce database hits." },
       { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." },
-      { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models and often different data stores, optimizing each path for performance, scalability, and complexity." },
-      { name: "Event Sourcing", description: "Persists the state of a business entity as a sequence of immutable state-changing events, providing a full audit log and enabling temporal queries." },
+      { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models/data stores." },
+      { name: "Event Sourcing", description: "Persists entity state as a sequence of immutable state-changing events, providing a full audit log." },
     ],
     useCases: [
       "Scaling applications with large datasets and high transaction volumes.",
       "Improving read performance for data-intensive applications.",
       "Handling unstructured or semi-structured data at scale.",
       "Reducing database load and improving response times for frequently accessed data.",
-      "Optimizing systems with different read and write patterns (CQRS)."
+      "Optimizing systems with different read/write patterns or needing strong auditability."
     ],
     realWorldExamples: [
       "Facebook shards its user database to manage billions of profiles.",
       "Wikipedia uses read replicas to serve high volumes of article views.",
       "Twitter (X) uses various NoSQL solutions like Manhattan for different data needs.",
       "Many e-commerce sites use Redis to cache product details and user sessions.",
-      "Complex domain systems use Event Sourcing for auditability and state reconstruction."
+      "Financial systems using Event Sourcing for auditable transaction histories."
     ],
     eli5Summary: "Detailed Explanation",
     eli5Details: "How we make sure our 'toy box' (database) can hold all the toys for 1 billion friends and find them quickly. We might have many toy boxes (sharding), copies of popular toy lists (read replicas), special super-fast toy boxes for certain toys (NoSQL), remember where recently used toys are (caching), or even have separate lists for 'toys we are playing with now' vs 'all toys we own' (CQRS/Event Sourcing).",
@@ -269,7 +270,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       "Implement robust data replication and synchronization for read replicas.",
       "Evaluate consistency models (e.g., eventual, strong) for NoSQL databases.",
       "Develop a clear caching strategy, including cache invalidation mechanisms.",
-      "For CQRS/Event Sourcing, carefully model commands, events, and queries."
+      "For CQRS/Event Sourcing, carefully model commands, events, and queries, and consider the implications for data consistency and read model projections."
     ]
   },
   {
@@ -333,7 +334,8 @@ export const architectureComponents: ArchitectureComponent[] = [
       "Profile applications to identify performance bottlenecks.",
       "Design database queries and data access layers carefully.",
       "Store session state externally (e.g., in Redis) for stateless services.",
-      "Use message queues (e.g., Kafka, RabbitMQ) for asynchronous tasks."
+      "Use message queues (e.g., Kafka, RabbitMQ) for asynchronous tasks.",
+      "Apply established software design patterns (e.g., Gang of Four patterns) to structure internal application code for robustness and maintainability."
     ]
   },
   {
@@ -495,7 +497,7 @@ export const architectureComponents: ArchitectureComponent[] = [
         "Many large-scale microservice deployments use Istio or Linkerd."
     ],
     eli5Summary: 'Detailed Explanation',
-    eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and pushes configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
+    eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and push configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Choose a discovery mechanism based on your orchestration platform (e.g., Kubernetes-native, or standalone like Consul).",
