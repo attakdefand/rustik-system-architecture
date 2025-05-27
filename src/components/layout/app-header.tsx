@@ -14,9 +14,16 @@ export function AppHeader() {
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between py-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3">
-          <RustikLogoIcon />
-          <h1 className="text-3xl font-bold text-primary tracking-tight">Rustik</h1>
+        <Link href="/" className="flex flex-col items-center">
+          <div className="flex items-center gap-3">
+            <RustikLogoIcon />
+            <h1 className="text-3xl font-bold text-primary tracking-tight">Rustik</h1>
+          </div>
+          <div className="flex space-x-1 mt-0.5" aria-hidden="true">
+            <span className="h-1.5 w-1.5 bg-red-500 rounded-full animate-blink-red"></span>
+            <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
+            <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
+          </div>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
