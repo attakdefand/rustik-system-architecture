@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { LockKeyhole } from 'lucide-react'; // Added for Admin link
 
-// New A-style/Compass-style logo
+// A-style/Compass-style logo
 const RustikArchitectLogo = () => (
   <svg viewBox="0 0 100 100" fill="currentColor" className="h-12 w-12 text-primary relative z-10">
     {/* A-shape legs */}
@@ -18,22 +19,22 @@ const RustikArchitectLogo = () => (
 
 export function AppHeader() {
   const pathname = usePathname();
-  const [mottoTexts] = useState(["Dream", "Click", "Architect", "Built with Rustik"]);
-  const [currentMottoIndex, setCurrentMottoIndex] = useState(0);
+  const [mottoCycleTexts] = useState(["Dream", "Click", "Architect", "Built with Rustik"]);
+  const [currentMottoCycleIndex, setCurrentMottoCycleIndex] = useState(0);
   const [showMottoSuffix, setShowMottoSuffix] = useState(false);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setCurrentMottoIndex((prevIndex) => (prevIndex + 1) % mottoTexts.length);
+      setCurrentMottoCycleIndex((prevIndex) => (prevIndex + 1) % mottoCycleTexts.length);
     }, 30000); // Change text every 30 seconds
 
     return () => clearInterval(intervalId);
-  }, [mottoTexts.length]);
+  }, [mottoCycleTexts.length]);
 
   const dotColors = [
     'bg-red-500',
-    'bg-orange-500',
-    'bg-yellow-500',
+    'bg-orange-400', // Adjusted orange for better visibility
+    'bg-yellow-400', // Adjusted yellow for better visibility
     'bg-green-500',
     'bg-blue-500',
     'bg-indigo-500',
@@ -56,6 +57,7 @@ export function AppHeader() {
     { href: "/", label: "Components" },
     { href: "/system-builder-challenges", label: "Builder Insights" },
     { href: "/system-visualizer", label: "Visualizer" },
+    { href: "/admin", label: "Admin Panel", icon: LockKeyhole }, // Added Admin link
   ];
 
   return (
@@ -77,7 +79,7 @@ export function AppHeader() {
             
             <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] overflow-hidden">
               <span className="animate-slide-in-out-text absolute left-1/2 -translate-x-1/2">
-                {mottoTexts[currentMottoIndex]}
+                {mottoCycleTexts[currentMottoCycleIndex]}
               </span>
             </div>
 
@@ -102,11 +104,12 @@ export function AppHeader() {
             </div>
           </div>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
           {navItems.map((item) => (
             <div key={item.href} className="flex flex-col items-center py-1">
               <Button variant="ghost" asChild className="pb-0.5 text-sm sm:text-base px-2 sm:px-3">
-                <Link href={item.href}>
+                <Link href={item.href} className="flex items-center gap-1.5">
+                  {item.icon && <item.icon className="h-4 w-4" />}
                   <span>{item.label}</span>
                 </Link>
               </Button>
