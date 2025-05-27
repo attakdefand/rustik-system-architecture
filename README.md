@@ -87,6 +87,8 @@ Here are some advanced directions Rustik could explore in the future to become a
     Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
 *   **ChatOps & Collaboration Bots**:
     Integrate with Slack/Teams so you can “@rustik analyze this config” or get architecture change notifications in your dev channels.
+*   **Mobile Companion App**:
+    Carry your architecture explorer on your phone or tablet, complete with tap-to-zoom diagrams and on-the-go commentary.
 *   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later. (Note: This would require significant backend changes).
 *   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections. (Note: Requires a client-side diagramming library).
 
