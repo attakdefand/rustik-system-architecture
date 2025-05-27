@@ -40,7 +40,7 @@ export function AppHeader() {
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between py-3 px-4 sm:px-6">
         <Link href="/" className="flex flex-col items-center group">
-          <div className="relative flex flex-col items-center">
+          <div className="relative flex flex-col items-center"> {/* Ensures vertical stacking of logo elements */}
             <div className="relative w-16 h-16 flex items-center justify-center">
               <RustikArchitectLogo />
               {dotColors.map((color, index) => (
@@ -52,6 +52,7 @@ export function AppHeader() {
               ))}
             </div>
             <h1 className="text-3xl font-bold text-primary tracking-tight mt-1">Rustik</h1>
+            {/* Cycling Motto Text - Positioned here */}
             <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] overflow-hidden">
               <span className="animate-slide-in-out-text absolute left-1/2 -translate-x-1/2">
                 {mottoTexts[currentMottoIndex]}
