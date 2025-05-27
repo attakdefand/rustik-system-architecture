@@ -368,15 +368,22 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Service Discovery & Control Plane',
     icon: Settings2,
     types: [
-        { name: "Consul / etcd / ZooKeeper", description: "Dedicated tools that help services find and communicate with each other." },
-        { name: "Kubernetes Services", description: "Built-in mechanism in Kubernetes for service discovery and load balancing." },
-        { name: "Istio / Linkerd (Service Mesh)", description: "Advanced control planes providing traffic management, security, and observability for microservices." },
+        { name: "Kubernetes (etcd + API server + controllers)", description: "Cluster-native service discovery and configuration." },
+        { name: "HashiCorp Consul (DNS/API-based service registry)", description: "Dedicated service mesh and discovery tool." },
+        { name: "Envoy + xDS (Envoy’s own control plane)", description: "Dynamic configuration API for Envoy proxies." },
         { name: "Custom Control Plane", description: "A bespoke system built to manage service discovery and configuration for specific needs." }
     ],
-    useCases: ["Locating microservices", "Distributing configuration updates", "Managing service health and routing policies", "Orchestrating complex deployments"],
-    realWorldExamples: ["Netflix Eureka for service discovery", "Kubernetes for container orchestration and service exposure", "Envoy/Istio for managing microservice traffic"],
+    useCases: [
+        "Locating microservices", 
+        "Distributing configuration updates", 
+        "Managing service health and routing policies", 
+        "Orchestrating complex deployments"
+    ],
+    realWorldExamples: [
+        "Kubernetes: kube-proxy + CoreDNS serve as your cluster’s canonical “who’s up and where” database."
+    ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and pushes configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
+    eli5Details: "Imagine a classroom list on the wall that always shows which teachers are in which rooms—and moves kids to the room that’s open if one teacher steps out.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Choose a discovery mechanism (e.g., DNS-based, dedicated tool like Consul).",
@@ -390,16 +397,24 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Shared State & Data Plane',
     icon: Archive,
     types: [
-        { name: "Distributed Caches (Redis, Memcached)", description: "Fast, shared memory stores for frequently accessed data to speed up applications." },
-        { name: "Relational Databases (PostgreSQL, MySQL)", description: "Traditional databases for structured data with strong consistency (ACID properties)." },
-        { name: "NoSQL Databases (MongoDB, Cassandra)", description: "Flexible databases for various data models (document, key-value, etc.), often prioritizing scale." },
-        { name: "Message Queues (Kafka, RabbitMQ)", description: "Systems for enabling asynchronous communication between different parts of an application." },
+        { name: "In-memory Cache (Redis, Memcached)", description: "Fast key-value stores for caching frequently accessed data." },
+        { name: "Relational DB (Postgres, MySQL)", description: "Structured databases with ACID properties." },
+        { name: "NoSQL (Cassandra, DynamoDB)", description: "Flexible schema databases for high scalability." },
+        { name: "Message Queues (RabbitMQ, Kafka)", description: "Enable asynchronous communication between services." },
         { name: "Object Storage (S3, GCS)", description: "Scalable storage for large, unstructured data like files, images, and backups." }
     ],
-    useCases: ["Storing and retrieving application data", "Caching frequently accessed information", "Enabling asynchronous communication between services", "Persisting large binary objects"],
-    realWorldExamples: ["E-commerce sites using Redis for session and product caching", "Social media apps using Cassandra for user feeds", "Financial systems using Kafka for event streaming"],
+    useCases: [
+        "Cache hot data close to your app for micro-latency", 
+        "Persist user-driven state and leaderboards", 
+        "Stream events between microservices",
+        "Storing and retrieving application data", 
+        "Persisting large binary objects"
+    ],
+    realWorldExamples: [
+        "Spotify uses Cassandra for user-playback history at scale, plus Kafka for event streaming."
+    ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "This represents where your application’s data lives and how it’s replicated. It includes caches, databases, and queues. Think of it as the school's main library, shared toy chests, and message boards – where all important information is kept and shared.",
+    eli5Details: "Think of a giant library (database) where all the stories live, and a little bookshelf (cache) in each room to keep today’s favorite books handy.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Select appropriate data stores based on consistency, availability, and performance needs (CAP theorem).",
@@ -410,19 +425,27 @@ export const architectureComponents: ArchitectureComponent[] = [
   },
   {
     id: 'observability-ops',
-    title: 'Observability & Operations',
+    title: 'Observability & Ops',
     icon: Gauge,
     types: [
-        { name: "Metrics (Prometheus, Grafana)", description: "Numerical data (e.g., request counts, latency) visualized in dashboards to track performance." },
-        { name: "Logging (ELK Stack, Splunk)", description: "Collecting and searching through text-based event logs from all parts of the system." },
-        { name: "Tracing (Jaeger, Zipkin)", description: "Following a single request's journey through multiple services to debug issues." },
+        { name: "Metrics (Prometheus + Grafana)", description: "Collect and visualize time-series data." },
+        { name: "Distributed Tracing (Jaeger, Zipkin, OpenTelemetry)", description: "Track requests across multiple services." },
+        { name: "Logging (ELK / EFK stacks, Loki)", description: "Aggregate and search application and system logs." },
         { name: "Alerting (PagerDuty, OpsGenie)", description: "Automatically notifying engineers when critical problems or thresholds are detected." },
         { name: "Dashboards", description: "Visual displays combining metrics, logs, and traces to give an overview of system health." }
     ],
-    useCases: ["Monitoring system health and performance", "Diagnosing and troubleshooting issues", "Understanding system behavior under load", "Proactive incident detection and response"],
-    realWorldExamples: ["Sites using Prometheus/Grafana for real-time dashboards", "Companies using Datadog or New Relic for comprehensive APM", "Distributed tracing to follow requests across microservices"],
+    useCases: [
+        "Alert when error rates spike", 
+        "Trace a user’s request across services", 
+        "Query logs for debug after an incident",
+        "Monitoring system health and performance", 
+        "Proactive incident detection and response"
+    ],
+    realWorldExamples: [
+        "Uber uses Jaeger to visualize request paths across hundreds of microservices."
+    ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "This layer is about understanding your system's health through metrics, logs, tracing, dashboards, and alerting. Imagine the school has cameras (logs), thermometers (metrics), and ways to follow a kid from one room to another (tracing), with alarms if something is wrong.",
+    eli5Details: "Imagine putting a little bell on every teacher’s desk so you can hear when they get busy or drop a book—and then looking on a map to see exactly where they rang it.",
     complexity: 'Intermediate',
     implementationGuidance: [
         "Instrument applications to emit structured logs, metrics, and traces.",
@@ -436,15 +459,25 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Deployment & CI/CD',
     icon: Rocket,
     types: [
-        { name: "Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", description: "Automatically building and testing code changes frequently." },
-        { name: "Continuous Delivery/Deployment", description: "Automating the release of software to staging or production environments." },
-        { name: "Infrastructure as Code (Terraform, CloudFormation)", description: "Managing and provisioning infrastructure using code and automation." },
+        { name: "GitHub Actions / GitLab CI / Jenkins", description: "Automate build, test, and integration pipelines." },
+        { name: "Argo CD / Flux (GitOps deployers)", description: "Continuous delivery using Git as the source of truth." },
+        { name: "Spinnaker (multi-cloud delivery)", description: "Platform for continuous delivery to multiple cloud environments." },
         { name: "Automated Testing (Unit, Integration, E2E)", description: "Running various tests automatically to ensure code quality and prevent regressions." }
     ],
-    useCases: ["Automating the software build, test, and release process", "Ensuring consistent and repeatable deployments", "Reducing manual effort and risk of human error", "Enabling faster iteration and delivery of features"],
-    realWorldExamples: ["Tech companies using Jenkins or GitHub Actions to automatically build and deploy every code change", "Using Terraform to define and manage cloud infrastructure"],
+    useCases: [
+        "Run tests + security scans on every PR", 
+        "Roll out new versions gradually (canaries, blue/green)", 
+        "Roll back automatically on failure",
+        "Automating the software build, test, and release process",
+        "Ensuring consistent and repeatable deployments", 
+        "Reducing manual effort and risk of human error", 
+        "Enabling faster iteration and delivery of features"
+    ],
+    realWorldExamples: [
+        "Netflix uses Spinnaker for automated multi-region deployments with sophisticated traffic-shifting strategies."
+    ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "This encompasses automated build, test, and deploy pipelines for safe and repeatable roll-outs. It's like having an efficient assembly line for making new toys or updating robot teachers, ensuring every change is automatically checked and delivered safely.",
+    eli5Details: "Think of a magical robot that, when you finish drawing a new picture, checks it for mistakes, then quietly replaces the old picture on the wall while showing just a few friends first—so if something’s wrong you can swap it back.",
     complexity: 'Intermediate',
     implementationGuidance: [
         "Set up version control (e.g., Git) for all code and configurations.",
@@ -458,17 +491,27 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Autoscaling & Resilience Patterns',
     icon: Scaling,
     types: [
-        { name: "Horizontal Pod Autoscaler (Kubernetes)", description: "Automatically changes the number of running application instances (pods) in Kubernetes." },
-        { name: "Cloud Provider Autoscaling Groups", description: "Managed services from AWS, Azure, GCP that adjust server capacity." },
-        { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail." },
+        { name: "Horizontal Pod Autoscaler (K8s HPA)", description: "Automatically scales Kubernetes pods based on metrics." },
+        { name: "Custom Metrics & Predictive Scaling (e.g. using queue lengths)", description: "Scale based on business-specific or predicted load." },
+        { name: "Chaos Engineering (Gremlin, Chaos Monkey)", description: "Proactively test system resilience by injecting failures." },
         { name: "Rate Limiting", description: "Controls the amount of traffic sent or received to prevent overload." },
         { name: "Retry Mechanisms", description: "Automatically re-attempts failed operations, often with delays (exponential backoff)." },
         { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function." }
     ],
-    useCases: ["Automatically adjusting capacity to meet demand", "Preventing cascading failures", "Gracefully handling service degradation", "Improving system stability and availability"],
-    realWorldExamples: ["E-commerce sites automatically scaling up web servers during holiday sales", "Microservices using circuit breakers to stop calling a failing downstream service", "APIs implementing rate limiting to prevent abuse"],
+    useCases: [
+        "Spin up more app nodes when CPU or QPS rises", 
+        "Simulate failures to test your fallback logic", 
+        "Throttle or shed load under extreme pressure",
+        "Automatically adjusting capacity to meet demand", 
+        "Preventing cascading failures", 
+        "Gracefully handling service degradation", 
+        "Improving system stability and availability"
+    ],
+    realWorldExamples: [
+        "AWS’s Application Auto Scaling adjusts EC2 instances based on CloudWatch alarms."
+    ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down.",
+    eli5Details: "Imagine having extra robot teachers on standby who come in only when the classroom gets full, and every now and then you turn off a random robot for a minute to make sure the class still works fine without them.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Define scaling policies based on relevant metrics (e.g., CPU, memory, queue length).",
@@ -478,3 +521,5 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   }
 ];
+
+    
