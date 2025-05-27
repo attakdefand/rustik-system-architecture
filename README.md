@@ -25,6 +25,12 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
 4.  **Comprehensive Architectural Profile**: Use the **Master-Flow** tab. Select your desired components and types, then click "Analyze Full Architectural Profile" to receive a multi-faceted report including interaction analysis, scaling potential, and a suggested capacity tier.
 5.  **Learn About Scaling Challenges**: Visit the **Builder Insights** tab to understand the complexities of designing and operating systems at massive scale.
 
+## ⚠️ Purpose & Disclaimer
+
+> **Educational Tool** – Rustik is for conceptual learning only.
+> **Not a Production Blueprint** – AI insights are suggestive, not definitive.
+> Real-world system design demands detailed planning, performance testing, and domain expertise.
+
 ## Cloning and Running Locally
 
 To clone and run Rustik on your local machine, follow these steps:
@@ -80,12 +86,6 @@ To clone and run Rustik on your local machine, follow these steps:
 
 5.  **Access the Application**:
     Open your web browser and navigate to `http://localhost:9002` (or the port specified in your terminal output for the Next.js server).
-
-## Project Purpose & Disclaimer
-
-*   Rustik is primarily an **educational tool** designed to help users explore and understand complex system architecture concepts in an interactive way.
-*   The AI-generated analyses are **conceptual and for informational purposes only**. They are not production-ready designs or definitive architectural advice.
-*   This tool is **not intended to automatically generate fully functional systems**. Real-world system design requires deep expertise, thorough planning, and consideration of specific business and operational contexts.
 
 ## Future Enhancements (Potential Ideas)
 
