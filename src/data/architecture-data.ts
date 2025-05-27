@@ -140,6 +140,38 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
   },
   {
+    id: 'microservices-architecture',
+    title: 'Microservices Architecture',
+    icon: Layers, // Using Layers to represent multiple distinct services
+    types: [
+      { name: 'Independent Service Decomposition', description: 'Breaking down large applications into smaller, self-contained, and independently deployable services.' },
+      { name: 'API-Driven Communication (e.g., REST, gRPC)', description: 'Services communicate via well-defined APIs, promoting loose coupling.' },
+      { name: 'Decentralized Data Management', description: 'Each microservice typically owns its own database to ensure autonomy.' },
+      { name: 'Containerization & Orchestration (e.g., Kubernetes)', description: 'Commonly used for deploying, scaling, and managing microservices.' },
+    ],
+    useCases: [
+      'Building large, complex applications that require high scalability and agility.',
+      'Enabling independent development, deployment, and scaling of different application parts.',
+      'Allowing different technology stacks for different services if needed.',
+    ],
+    realWorldExamples: [
+      'Netflix: A pioneer of microservices, using them to handle massive streaming and backend operations.',
+      'Amazon: Their e-commerce platform is built with a vast number of microservices.',
+      'Spotify: Music streaming service composed of many services (recommendations, playback, user accounts, etc.).',
+    ],
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "Imagine instead of one giant robot doing everything in a toy factory, you have many smaller, specialized robots. One robot just puts wheels on cars, another paints them, and another puts them in boxes. Each robot works independently, and if one needs fixing or upgrading, it doesn't stop the whole factory. They talk to each other through simple messages.",
+    complexity: 'Advanced',
+    implementationGuidance: [
+      'Carefully define service boundaries based on business capabilities (Domain-Driven Design can help).',
+      'Establish robust inter-service communication mechanisms (synchronous like REST/gRPC, or asynchronous via message queues).',
+      'Implement service discovery to allow services to find each other dynamically.',
+      'Set up comprehensive monitoring, logging, and distributed tracing for observability across services.',
+      'Invest in mature CI/CD pipelines for automated testing and independent deployment of services.',
+      'Address challenges like data consistency across services and managing distributed transactions if needed.'
+    ],
+  },
+  {
     id: 'async-io',
     title: 'Async IO + Epoll + Tokio',
     icon: Zap,
@@ -272,7 +304,6 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Efficient Data Access Patterns", description: "Optimizes how the application reads and writes data to reduce I/O bottlenecks." },
       { name: "Stateless Service Design", description: "Ensures services don't store session data locally, allowing easy scaling and failover." },
       { name: "Asynchronous Processing for Long Tasks", description: "Offloads time-consuming operations to background workers to keep the app responsive." },
-      { name: "Microservices Architecture", description: "Breaks down large applications into smaller, independent, and scalable services." }
     ],
     useCases: [
       "Minimizing CPU and memory footprint per request.",
@@ -333,7 +364,7 @@ export const architectureComponents: ArchitectureComponent[] = [
   {
     id: 'operational-excellence',
     title: 'Operational Excellence Pillars',
-    icon: ShieldCheck, // Kept ShieldCheck as it's broadly about robust operations
+    icon: ShieldCheck,
     types: [
       { name: "Comprehensive Monitoring & Observability", description: "Metrics, logs, traces to understand system health and behavior." },
       { name: "Automated Alerting & Incident Response", description: "Notifies teams of issues and helps manage responses automatically." },
@@ -435,28 +466,30 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Service Discovery & Control Plane',
     icon: Settings2,
     types: [
-        { name: "Kubernetes (etcd + API server + controllers)", description: "Cluster-native service discovery and configuration." },
-        { name: "HashiCorp Consul (DNS/API-based service registry)", description: "Dedicated service mesh and discovery tool." },
-        { name: "Envoy + xDS (Envoy’s own control plane)", description: "Dynamic configuration API for Envoy proxies." },
-        { name: "Custom Control Plane", description: "A bespoke system built to manage service discovery and configuration for specific needs." }
+        { name: "Kubernetes (etcd + API server + controllers)", description: "Cluster-native service discovery, configuration, and orchestration." },
+        { name: "HashiCorp Consul", description: "DNS/API-based service registry, health checking, and KV store for configuration." },
+        { name: "Envoy + xDS Control Plane", description: "Dynamic configuration API (xDS) for Envoy proxies, often part of a service mesh." },
+        { name: "Service Mesh (e.g., Istio, Linkerd)", description: "Dedicated infrastructure layer for managing service-to-service communication, including discovery." }
     ],
     useCases: [
-        "Locating microservices", 
-        "Distributing configuration updates", 
-        "Managing service health and routing policies", 
-        "Orchestrating complex deployments"
+        "Dynamically locating microservices across a distributed system.",
+        "Distributing configuration updates (e.g., feature flags, routing rules) to services.",
+        "Monitoring service health and enabling intelligent load balancing.",
+        "Orchestrating complex deployments and traffic shifting."
     ],
     realWorldExamples: [
-        "Kubernetes: kube-proxy + CoreDNS serve as your cluster’s canonical “who’s up and where” database."
+        "Kubernetes: CoreDNS for service discovery, API server for configuration.",
+        "Cloud providers often offer managed versions of Consul or Kubernetes.",
+        "Many large-scale microservice deployments use Istio or Linkerd."
     ],
     eli5Summary: 'Detailed Explanation',
     eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and pushes configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
     complexity: 'Advanced',
     implementationGuidance: [
-        "Choose a discovery mechanism (e.g., DNS-based, dedicated tool like Consul).",
-        "Integrate service registration/deregistration into your application lifecycle.",
-        "Define how configuration updates are propagated (e.g., push vs. pull).",
-        "Ensure the control plane itself is highly available and resilient."
+        "Choose a discovery mechanism based on your orchestration platform (e.g., Kubernetes-native, or standalone like Consul).",
+        "Integrate service registration/deregistration into your application deployment lifecycle.",
+        "Define how configuration updates are propagated (e.g., push via control plane, pull by services).",
+        "Ensure the control plane itself is highly available and resilient, as it's critical infrastructure."
     ]
   },
   {
@@ -465,28 +498,30 @@ export const architectureComponents: ArchitectureComponent[] = [
     icon: Archive,
     types: [
         { name: "Distributed Caches (Redis, Memcached)", description: "Fast, shared memory stores for frequently accessed data to speed up applications." },
-        { name: "Relational Databases (PostgreSQL, MySQL)", description: "Traditional databases for structured data with strong consistency (ACID properties)." },
-        { name: "NoSQL Databases (MongoDB, Cassandra)", description: "Flexible databases for various data models (document, key-value, etc.), often prioritizing scale." },
-        { name: "Message Queues (Kafka, RabbitMQ)", description: "Systems for enabling asynchronous communication between different parts of an application." },
-        { name: "Object Storage (S3, GCS)", description: "Scalable storage for large, unstructured data like files, images, and backups." }
+        { name: "Relational Databases (PostgreSQL, MySQL with replicas/sharding)", description: "Traditional databases for structured data, scaled with techniques like read replicas or sharding." },
+        { name: "NoSQL Databases (MongoDB, Cassandra, DynamoDB)", description: "Flexible databases for various data models (document, key-value, columnar), often prioritizing horizontal scalability." },
+        { name: "Message Queues (Kafka, RabbitMQ, Pulsar)", description: "Systems for enabling asynchronous communication and decoupling between different parts of an application." },
+        { name: "Object Storage (S3, GCS, MinIO)", description: "Scalable storage for large, unstructured data like files, images, videos, and backups." }
     ],
     useCases: [
-        "Storing and retrieving application data", 
-        "Caching frequently accessed information", 
-        "Enabling asynchronous communication between services",
-        "Persisting large binary objects"
+        "Storing and retrieving persistent application data.",
+        "Caching frequently accessed information to reduce latency.",
+        "Enabling asynchronous communication and event-driven architectures.",
+        "Persisting large binary objects and static assets."
     ],
     realWorldExamples: [
-        "Spotify uses Cassandra for user-playback history at scale, plus Kafka for event streaming."
+        "Spotify uses Cassandra for user-playback history at scale, plus Kafka for event streaming.",
+        "E-commerce sites use relational databases for orders and caches like Redis for sessions.",
+        "Cloud storage services like AWS S3 or Google Cloud Storage for user uploads."
     ],
     eli5Summary: 'Detailed Explanation',
     eli5Details: "This represents where your application’s data lives and how it’s replicated. It includes caches, databases, and queues. Think of it as the school's main library, shared toy chests, and message boards – where all important information is kept and shared.",
     complexity: 'Advanced',
     implementationGuidance: [
-        "Select appropriate data stores based on consistency, availability, and performance needs (CAP theorem).",
-        "Implement data replication and backup strategies.",
-        "Optimize data access patterns and query performance.",
-        "Consider data partitioning and sharding for scalability."
+        "Select appropriate data stores based on consistency, availability, partitioning tolerance (CAP theorem), and data model.",
+        "Implement robust data replication, backup, and disaster recovery strategies.",
+        "Optimize data access patterns, queries, and indexing for performance.",
+        "Consider data partitioning (sharding) strategies for very large datasets in relational or NoSQL databases."
     ]
   },
   {
@@ -494,29 +529,32 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Observability & Operations',
     icon: Gauge,
     types: [
-        { name: "Metrics (Prometheus, Grafana)", description: "Numerical data (e.g., request counts, latency) visualized in dashboards to track performance." },
-        { name: "Logging (ELK Stack, Splunk)", description: "Collecting and searching through text-based event logs from all parts of the system." },
-        { name: "Tracing (Jaeger, Zipkin)", description: "Following a single request's journey through multiple services to debug issues." },
-        { name: "Alerting (PagerDuty, OpsGenie)", description: "Automatically notifying engineers when critical problems or thresholds are detected." },
-        { name: "Dashboards", description: "Visual displays combining metrics, logs, and traces to give an overview of system health." }
+        { name: "Metrics (Prometheus, Grafana, Datadog)", description: "Numerical data (e.g., request counts, latency, error rates) visualized in dashboards to track performance and health." },
+        { name: "Logging (ELK Stack, Splunk, Loki)", description: "Collecting, searching, and analyzing text-based event logs from all parts of the system." },
+        { name: "Distributed Tracing (Jaeger, Zipkin, OpenTelemetry)", description: "Following a single request's journey through multiple services to identify bottlenecks and debug issues." },
+        { name: "Alerting (PagerDuty, OpsGenie, Alertmanager)", description: "Automatically notifying engineers when critical problems or predefined thresholds are detected." },
+        { name: "Dashboards & Visualization", description: "Visual displays combining metrics, logs, and traces to give a comprehensive overview of system health and behavior." }
     ],
     useCases: [
-        "Monitoring system health and performance", 
-        "Diagnosing and troubleshooting issues", 
-        "Understanding system behavior under load",
-        "Proactive incident detection and response"
+        "Monitoring system health, performance, and availability in real-time.",
+        "Diagnosing and troubleshooting issues quickly and effectively.",
+        "Understanding system behavior under load and identifying scaling needs.",
+        "Proactive incident detection and enabling efficient response."
     ],
     realWorldExamples: [
-        "Uber uses Jaeger to visualize request paths across hundreds of microservices."
+        "Uber uses Jaeger to visualize request paths across hundreds of microservices.",
+        "Most modern cloud-native applications use Prometheus and Grafana for metrics and dashboarding.",
+        "SaaS companies rely on PagerDuty or OpsGenie for on-call alerting."
     ],
     eli5Summary: 'Detailed Explanation',
     eli5Details: "This layer is about understanding your system's health through metrics, logs, tracing, dashboards, and alerting. Imagine the school has cameras (logs), thermometers (metrics), and ways to follow a kid from one room to another (tracing), with alarms if something is wrong.",
     complexity: 'Intermediate',
     implementationGuidance: [
-        "Instrument applications to emit structured logs, metrics, and traces.",
-        "Set up centralized collection and analysis tools.",
-        "Define key performance indicators (KPIs) and Service Level Objectives (SLOs).",
-        "Configure actionable alerts for critical issues."
+        "Instrument applications and infrastructure to emit structured logs, metrics, and traces.",
+        "Set up centralized collection, storage, and analysis tools for observability data.",
+        "Define key performance indicators (KPIs) and Service Level Objectives (SLOs) for critical services.",
+        "Configure actionable alerts for violations of SLOs or critical error conditions.",
+        "Develop comprehensive dashboards for different teams and stakeholders."
     ]
   },
   {
@@ -524,28 +562,31 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Deployment & CI/CD',
     icon: Rocket,
     types: [
-        { name: "Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", description: "Automatically building and testing code changes frequently." },
-        { name: "Continuous Delivery/Deployment", description: "Automating the release of software to staging or production environments." },
-        { name: "Infrastructure as Code (Terraform, CloudFormation)", description: "Managing and provisioning infrastructure using code and automation." },
-        { name: "Automated Testing (Unit, Integration, E2E)", description: "Running various tests automatically to ensure code quality and prevent regressions." }
+        { name: "Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", description: "Automatically building, testing, and merging code changes frequently." },
+        { name: "Continuous Delivery/Deployment (ArgoCD, Flux, Spinnaker)", description: "Automating the release of software to staging or production environments with various strategies." },
+        { name: "Infrastructure as Code (Terraform, CloudFormation, Pulumi)", description: "Managing and provisioning infrastructure using code and automation for consistency and repeatability." },
+        { name: "Automated Testing (Unit, Integration, E2E, Performance)", description: "Running various tests automatically to ensure code quality, prevent regressions, and validate performance." }
     ],
     useCases: [
-        "Automating the software build, test, and release process",
-        "Ensuring consistent and repeatable deployments", 
-        "Reducing manual effort and risk of human error", 
-        "Enabling faster iteration and delivery of features"
+        "Automating the software build, test, and release lifecycle.",
+        "Ensuring consistent, repeatable, and reliable deployments.",
+        "Reducing manual effort and the risk of human error in deployment processes.",
+        "Enabling faster iteration, quicker delivery of features, and rapid recovery from failures."
     ],
     realWorldExamples: [
-        "Netflix uses Spinnaker for automated multi-region deployments with sophisticated traffic-shifting strategies."
+        "Netflix uses Spinnaker for automated multi-region deployments with sophisticated traffic-shifting strategies like canary releases.",
+        "Many companies use GitHub Actions or GitLab CI for building and testing code on every commit.",
+        "Terraform is widely adopted for provisioning cloud infrastructure across AWS, Azure, and GCP."
     ],
     eli5Summary: 'Detailed Explanation',
     eli5Details: "This encompasses automated build, test, and deploy pipelines for safe and repeatable roll-outs. It's like having an efficient assembly line for making new toys or updating robot teachers, ensuring every change is automatically checked and delivered safely.",
     complexity: 'Intermediate',
     implementationGuidance: [
-        "Set up version control (e.g., Git) for all code and configurations.",
-        "Automate build and testing processes in a CI server.",
-        "Implement deployment pipelines with stages (e.g., dev, staging, prod).",
-        "Use Infrastructure as Code for provisioning and managing environments."
+        "Set up version control (e.g., Git) for all application code and infrastructure configurations.",
+        "Automate build and unit/integration testing processes in a CI server.",
+        "Implement deployment pipelines with stages (e.g., development, staging, production) and automated gates.",
+        "Use Infrastructure as Code tools for provisioning and managing all environments.",
+        "Adopt deployment strategies like blue/green, canary, or rolling updates to minimize risk."
     ]
   },
   {
@@ -553,30 +594,35 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Autoscaling & Resilience Patterns',
     icon: Scaling,
     types: [
-        { name: "Horizontal Pod Autoscaler (Kubernetes)", description: "Automatically changes the number of running application instances (pods) in Kubernetes." },
-        { name: "Cloud Provider Autoscaling Groups", description: "Managed services from AWS, Azure, GCP that adjust server capacity." },
-        { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail." },
-        { name: "Rate Limiting", description: "Controls the amount of traffic sent or received to prevent overload." },
-        { name: "Retry Mechanisms", description: "Automatically re-attempts failed operations, often with delays (exponential backoff)." },
-        { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function." }
+        { name: "Horizontal Pod Autoscaler (Kubernetes HPA)", description: "Automatically adjusts the number of running application instances (pods) based on CPU/memory or custom metrics." },
+        { name: "Cloud Provider Autoscaling Groups (e.g., AWS ASG)", description: "Managed services from cloud providers that adjust server/instance capacity based on defined policies." },
+        { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail, allowing the failing service time to recover." },
+        { name: "Rate Limiting & Throttling", description: "Controls the amount of traffic sent or received to prevent overload and ensure fair usage." },
+        { name: "Retry Mechanisms with Exponential Backoff", description: "Automatically re-attempts failed operations with increasing delays to handle transient errors." },
+        { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function without being affected." }
     ],
     useCases: [
-        "Automatically adjusting capacity to meet demand", 
-        "Preventing cascading failures", 
-        "Gracefully handling service degradation", 
-        "Improving system stability and availability"
+        "Automatically adjusting system capacity to meet fluctuating demand, optimizing cost and performance.",
+        "Preventing cascading failures and improving system stability during partial outages.",
+        "Gracefully handling service degradation and ensuring a better user experience during failures.",
+        "Protecting services from being overwhelmed by excessive traffic or misbehaving clients."
     ],
     realWorldExamples: [
-        "AWS’s Application Auto Scaling adjusts EC2 instances based on CloudWatch alarms."
+        "AWS’s Application Auto Scaling adjusts EC2 instances, ECS tasks, or DynamoDB capacity based on CloudWatch alarms.",
+        "Netflix's Hystrix library popularized the circuit breaker pattern.",
+        "API gateways often implement rate limiting to protect backend services."
     ],
     eli5Summary: 'Detailed Explanation',
     eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down.",
     complexity: 'Advanced',
     implementationGuidance: [
-        "Define scaling policies based on relevant metrics (e.g., CPU, memory, queue length).",
-        "Implement circuit breakers to isolate failing services.",
-        "Use retries with exponential backoff for transient errors.",
-        "Design services to be idempotent to safely handle retries."
+        "Define clear scaling policies based on relevant performance metrics (e.g., CPU utilization, memory usage, request queue length, custom application metrics).",
+        "Implement circuit breakers in inter-service communication to isolate failing services and prevent cascading failures.",
+        "Use retries with exponential backoff and jitter for transient network errors or temporary service unavailability.",
+        "Design services to be idempotent to safely handle retries without unintended side effects.",
+        "Consider bulkhead patterns to limit the blast radius of failures within your application components."
     ]
   }
 ];
+
+    
