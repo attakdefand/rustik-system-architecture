@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Construction, DraftingCompass, Diagram, ImageIcon } from 'lucide-react';
+import { Construction, DraftingCompass, Network, ImageIcon, ListChecks } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
 
 // Helper function for complexity badge styling (similar to ArchitectureBlock)
@@ -143,7 +143,7 @@ export default function SystemVisualizerPage() {
             <Card className="mt-16 w-full max-w-5xl mx-auto shadow-xl rounded-xl">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold text-primary flex items-center">
-                  <Diagram className="mr-3 h-7 w-7" />
+                  <Network className="mr-3 h-7 w-7" />
                   Conceptual System Overview
                 </CardTitle>
                 <CardDescription className="pt-1">
@@ -153,7 +153,7 @@ export default function SystemVisualizerPage() {
               <CardContent className="space-y-8 pt-2">
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <component.icon className="h-5 w-5 mr-2 text-accent" /> {/* Generic icon */}
+                    <ListChecks className="h-5 w-5 mr-2 text-accent" />
                     Selected Architectural Elements:
                   </h4>
                   {generatedDiagramComponents.length > 0 ? (
@@ -184,7 +184,7 @@ export default function SystemVisualizerPage() {
                 <Separator />
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <Construction className="h-5 w-5 mr-2 text-accent" /> {/* Changed to construction or similar */}
+                    <Construction className="h-5 w-5 mr-2 text-accent" />
                     AI-Powered Interaction Analysis:
                   </h4>
                   <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
@@ -214,12 +214,3 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
-
-// Need to replace this generic icon logic for "Selected Architectural Elements" if possible, or remove it.
-// For now, I'll use Construction icon as a placeholder. If you have a better generic icon for a list of components, let me know.
-// The individual component icons are used within the list items themselves.
-const placeholderIcon = Construction; 
-// Assigning to component.icon for the header to avoid error, though it's not ideal.
-// It will be shadowed by the local `component` in the map function for list items.
-(architectureComponents[0] || { icon: Construction }).icon = placeholderIcon;
-
