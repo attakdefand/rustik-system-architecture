@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Cpu, Database, Router as RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, ShieldAlert, Gavel } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu, Database, Router as RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, ShieldAlert, Gavel, MessageSquare } from 'lucide-react';
 
 export interface TypeDefinition {
   name: string;
@@ -83,7 +83,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'API Gateway',
     icon: RouterIcon,
     types: [
-        { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services.' },
+        { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services (Aggregator Pattern).' },
         { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
         { name: 'Rate Limiting & Quotas', description: 'Protects backend services from overload by controlling the number of requests allowed.' },
         { name: 'Request/Response Transformation', description: 'Modifies request or response payloads to match backend service expectations or client needs.' },
@@ -112,6 +112,41 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   },
   {
+    id: 'api-design-styles',
+    title: 'API Design Styles & Protocols',
+    icon: MessageSquare,
+    types: [
+      { name: 'REST API (HTTP/JSON)', description: 'Stateless, resource-oriented using HTTP methods. Ideal for public APIs, web apps, simplicity, broad compatibility.' },
+      { name: 'gRPC (High-Performance RPC)', description: 'Contract-first (Protocol Buffers), efficient binary protocol. Best for internal microservice communication requiring low latency & high throughput.' },
+      { name: 'GraphQL API (Flexible Data Querying)', description: 'Allows clients to request exactly the data they need, avoiding over/under-fetching. Great for mobile apps and complex data graphs.' },
+      { name: 'WebSocket API (Real-time Bidirectional)', description: 'Persistent, full-duplex TCP connection for real-time features like chat, live updates, online gaming.' },
+      { name: 'SOAP API (Legacy, XML-based)', description: 'XML-based protocol with built-in standards (WS-Security, etc.). Often for legacy enterprise integrations or specific industry standards.' },
+    ],
+    useCases: [
+      'Defining how services and clients communicate effectively.',
+      'Choosing the right protocol for specific interaction patterns (request-response, real-time, internal vs. external).',
+      'Balancing performance, complexity, and ease of use for various APIs.',
+    ],
+    realWorldExamples: [
+      'GitHub API (exposes both REST and GraphQL options)',
+      'Google internal services (heavily use gRPC)',
+      'Facebook/Meta mobile apps (extensive use of GraphQL)',
+      'Slack or Discord (use WebSockets for real-time chat messages)',
+      'Many older financial or government systems (may still use SOAP for B2B integrations)',
+    ],
+    eli5Summary: 'Detailed Explanation',
+    eli5Details: "Imagine different ways services in your big system can talk to each other or to the outside world. REST is like sending simple, clear postcards that everyone understands. gRPC is like having a super-fast, direct phone line with a secret code, perfect for services talking quickly amongst themselves. GraphQL is like ordering exactly what you want from a custom food menu, no more, no less, great for apps that need specific data. WebSockets are like keeping a walkie-talkie line open for constant back-and-forth chat.",
+    complexity: 'Intermediate',
+    implementationGuidance: [
+      'For public-facing APIs or broad client compatibility, consider REST for its ubiquity or GraphQL for its data flexibility.',
+      'For high-performance internal microservice communication, gRPC is often preferred due to its efficiency.',
+      'Use WebSockets for applications requiring persistent, real-time, two-way data flow like live dashboards or collaborative tools.',
+      'SOAP is typically reserved for integrating with legacy enterprise systems or specific industry standards that mandate it.',
+      'Always define clear API contracts (e.g., OpenAPI for REST, .proto files for gRPC, schema for GraphQL).',
+      'Implement robust API versioning, security (often managed by an API Gateway), and monitoring for all chosen API styles.',
+    ],
+  },
+  {
     id: 'rust-app-nodes',
     title: 'Rust App Nodes',
     icon: ServerCog,
@@ -137,7 +172,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Utilize crates like Tokio for asynchronous operations and Serde for (de)serialization.',
       'Implement thorough error handling and logging (e.g., using `tracing` or `log` crates).',
       'Containerize your application (e.g., with Docker) for consistent deployment and scaling.',
-      'Apply relevant software design patterns (e.g., Gang of Four patterns) to structure your application logic for maintainability and flexibility.',
+      'Apply established software design patterns (e.g., Gang of Four patterns) to structure internal application code for robustness and maintainability.',
     ],
   },
   {
@@ -245,8 +280,8 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "NoSQL Databases (Key-Value, Document, Columnar)", description: "Flexible schema databases optimized for specific data models and scale needs." },
       { name: "Database Caching (e.g., Redis, Memcached)", description: "Stores frequently accessed data in fast memory to reduce database hits." },
       { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." },
-      { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models/data stores." },
-      { name: "Event Sourcing", description: "Persists entity state as a sequence of immutable state-changing events, providing a full audit log." },
+      { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models/data stores, optimizing each path." },
+      { name: "Event Sourcing", description: "Persists entity state as a sequence of immutable state-changing events, providing a full audit log and enabling temporal queries." },
     ],
     useCases: [
       "Scaling applications with large datasets and high transaction volumes.",
@@ -540,7 +575,7 @@ export const architectureComponents: ArchitectureComponent[] = [
   },
   {
     id: 'observability-ops',
-    title: 'Observability & Operations',
+    title: 'Observability & Ops',
     icon: Gauge,
     types: [
         { name: "Metrics (Prometheus, Grafana, Datadog)", description: "Numerical data (e.g., request counts, latency, error rates) visualized in dashboards to track performance and health." },
