@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Construction, DraftingCompass, Network, ImageIcon, ListChecks } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
 
-// Helper function for complexity badge styling (similar to ArchitectureBlock)
+// Helper function for complexity badge styling
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
   switch (complexityLevel) {
     case 'Beginner':
@@ -28,30 +28,44 @@ const complexityVariant = (complexityLevel: ArchitectureComponent['complexity'])
 };
 
 export default function SystemVisualizerPage() {
-  const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
+  const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   const [diagramGenerated, setDiagramGenerated] = useState(false);
   const [generatedDiagramComponents, setGeneratedDiagramComponents] = useState<ArchitectureComponent[]>([]);
+  const [snapshotSelectedTypesMap, setSnapshotSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
 
-  const handleComponentSelect = (componentId: string, isSelected: boolean) => {
-    setSelectedComponents(prevSelected => {
-      const newSelected = new Set(prevSelected);
+
+  const handleTypeSelection = (componentId: string, type: string, isSelected: boolean) => {
+    setSelectedTypesMap(prevMap => {
+      const newMap = new Map(prevMap);
+      const typesSet = new Set(newMap.get(componentId) || []);
+
       if (isSelected) {
-        newSelected.add(componentId);
+        typesSet.add(type);
       } else {
-        newSelected.delete(componentId);
+        typesSet.delete(type);
       }
-      return newSelected;
+
+      if (typesSet.size > 0) {
+        newMap.set(componentId, typesSet);
+      } else {
+        newMap.delete(componentId);
+      }
+      return newMap;
     });
-    // If selections change, hide the previously generated diagram
     if (diagramGenerated) {
       setDiagramGenerated(false);
     }
   };
 
   const handleGenerateDiagram = () => {
-    const currentSelected = architectureComponents.filter(comp => selectedComponents.has(comp.id));
-    setGeneratedDiagramComponents(currentSelected);
+    const currentSelectedComponents = architectureComponents.filter(comp => selectedTypesMap.has(comp.id));
+    setGeneratedDiagramComponents(currentSelectedComponents);
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Store a snapshot of selections for the diagram
     setDiagramGenerated(true);
+  };
+  
+  const countSelectedComponents = () => {
+    return selectedTypesMap.size;
   };
 
   return (
@@ -81,7 +95,7 @@ export default function SystemVisualizerPage() {
 
         <div className="mt-8 w-full max-w-6xl">
           <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100">
-            Choose Your Architectural Components
+            Choose Your Architectural Components & Types
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
@@ -102,23 +116,30 @@ export default function SystemVisualizerPage() {
                     </p>
                   </CardContent>
                 </div>
-                <CardFooter className="pt-3 pb-4 px-4 border-t bg-muted/20">
-                  <div className="flex items-center space-x-2 w-full">
-                    <Checkbox
-                      id={`select-${component.id}`}
-                      checked={selectedComponents.has(component.id)}
-                      onCheckedChange={(checked) => {
-                        handleComponentSelect(component.id, !!checked);
-                      }}
-                      aria-label={`Select ${component.title}`}
-                    />
-                    <Label
-                      htmlFor={`select-${component.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
-                    >
-                      Select to include
-                    </Label>
-                  </div>
+                <CardFooter className="pt-3 pb-4 px-4 border-t bg-muted/20 flex-col items-start space-y-2">
+                  <Label className="text-xs font-semibold text-foreground/70 mb-1">Select specific types:</Label>
+                  {component.types && component.types.length > 0 ? (
+                    component.types.map((type, index) => (
+                      <div key={index} className="flex items-center space-x-2 w-full">
+                        <Checkbox
+                          id={`select-${component.id}-${type.replace(/\s+/g, '-').toLowerCase()}`}
+                          checked={selectedTypesMap.get(component.id)?.has(type) ?? false}
+                          onCheckedChange={(checked) => {
+                            handleTypeSelection(component.id, type, !!checked);
+                          }}
+                          aria-label={`Select type ${type} for ${component.title}`}
+                        />
+                        <Label
+                          htmlFor={`select-${component.id}-${type.replace(/\s+/g, '-').toLowerCase()}`}
+                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
+                        >
+                          {type}
+                        </Label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No specific types listed for this component.</p>
+                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -126,15 +147,15 @@ export default function SystemVisualizerPage() {
           <div className="mt-12 text-center">
             <Button 
               size="lg" 
-              disabled={selectedComponents.size === 0}
+              disabled={selectedTypesMap.size === 0}
               onClick={handleGenerateDiagram}
             >
               <DraftingCompass className="mr-2 h-5 w-5" />
               Generate Diagram (Conceptual)
             </Button>
-            {selectedComponents.size > 0 && (
+            {selectedTypesMap.size > 0 && (
               <p className="text-sm text-muted-foreground mt-4">
-                Selected {selectedComponents.size} component(s). Click generate to see a conceptual overview.
+                {countSelectedComponents()} component(s) with selected types. Click generate to see a conceptual overview.
               </p>
             )}
           </div>
@@ -154,19 +175,28 @@ export default function SystemVisualizerPage() {
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
                     <ListChecks className="h-5 w-5 mr-2 text-accent" />
-                    Selected Architectural Elements:
+                    Selected Architectural Elements & Types:
                   </h4>
                   {generatedDiagramComponents.length > 0 ? (
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 pl-2">
+                    <ul className="space-y-4 pl-2">
                       {generatedDiagramComponents.map(comp => (
-                        <li key={comp.id} className="flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                          <comp.icon className="h-6 w-6 mr-3 text-primary flex-shrink-0" />
-                          <span className="font-medium">{comp.title}</span>
+                        <li key={comp.id} className="p-3 rounded-md hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
+                          <div className="flex items-center mb-1">
+                            <comp.icon className="h-6 w-6 mr-3 text-primary flex-shrink-0" />
+                            <span className="font-medium text-lg">{comp.title}</span>
+                          </div>
+                          {snapshotSelectedTypesMap.get(comp.id) && (snapshotSelectedTypesMap.get(comp.id)!.size > 0) && (
+                            <ul className="list-disc list-inside pl-8 text-sm text-foreground/80 space-y-1 mt-2">
+                              {Array.from(snapshotSelectedTypesMap.get(comp.id)!).map(type => (
+                                <li key={type}>{type}</li>
+                              ))}
+                            </ul>
+                          )}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-muted-foreground">No components were selected for this diagram.</p>
+                    <p className="text-muted-foreground">No components or types were selected for this diagram.</p>
                   )}
                 </div>
                 <Separator />
@@ -189,10 +219,10 @@ export default function SystemVisualizerPage() {
                   </h4>
                   <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
                     <p className="font-medium">
-                      An AI-powered explanation would describe potential interactions, benefits, and considerations for combining these selected components.
+                      An AI-powered explanation would describe potential interactions, benefits, and considerations for combining these selected components and their types.
                     </p>
                     <blockquote className="pl-4 border-l-4 border-primary/60 italic text-sm bg-primary/5 p-3 rounded-md">
-                      <strong>Example:</strong> "If you've selected <strong>Anycast IP</strong>, <strong>Load Balancers</strong>, and <strong>Rust App Nodes</strong>, a typical pattern involves Anycast IP routing global users to the nearest regional point of presence. Within each region, Load Balancers would distribute traffic across a cluster of Rust App Nodes, ensuring high availability and performance..."
+                      <strong>Example:</strong> "If you've selected <strong>Anycast IP (Global Anycast)</strong>, <strong>Load Balancers (Layer-7)</strong>, and <strong>Rust App Nodes (Containerized)</strong>, a typical pattern involves Global Anycast routing users to the nearest regional PoP. Within each region, Layer-7 Load Balancers distribute HTTP/S traffic across a cluster of containerized Rust App Nodes, enabling advanced routing and efficient scaling..."
                     </blockquote>
                     <p className="text-sm text-muted-foreground text-right mt-2">(This AI-driven analysis is a future enhancement.)</p>
                   </div>
