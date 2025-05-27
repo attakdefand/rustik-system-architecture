@@ -5,25 +5,35 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
 
 ## Key Features
 
-*   **Component Library**: Browse a curated list of architectural components (e.g., Anycast IP, Load Balancers, Rust App Nodes, Database Strategies) with detailed explanations, use cases, and real-world examples.
+*   **Component Library**: Browse a curated list of architectural components (e.g., Anycast IP, Load Balancers, API Design Styles, Microservices Architecture, Database Strategies) with detailed explanations of their types, use cases, real-world examples, and implementation guidance.
 *   **System Visualizer**: Interactively select architectural components and their specific types.
-    *   Receive AI-powered analysis on potential interactions, benefits, and trade-offs of your selected configuration.
-*   **Capacity Analyzer**: Get AI-driven conceptual insights into the scaling potential of your chosen components, exploring strengths and potential bottlenecks for handling large user loads.
-*   **Master-Flow**: A comprehensive architectural analysis hub. Select components and trigger multiple AI evaluations in parallel, including:
+    *   Receive AI-powered analysis on potential **interactions, benefits, and trade-offs** of your selected configuration.
+    *   Get AI-driven **suggestions for potential microservices** based on your chosen infrastructure, if "Microservices Architecture" is selected.
+    *   Obtain a conceptual **security posture analysis**, including strengths, potential vulnerabilities, and recommendations.
+    *   Navigate to a dedicated page for a detailed **conceptual scaling potential analysis**.
+*   **Capacity Analyzer**: Get AI-driven conceptual insights into the scaling potential of your chosen components, exploring strengths and potential bottlenecks for handling large user loads. This is launched from the System Visualizer.
+*   **Master-Flow**: A comprehensive architectural analysis hub. Select components and their specific types, then trigger multiple AI evaluations in parallel, including:
     *   Interaction Analysis
     *   Conceptual Scaling Potential
-    *   Suggested User Capacity Tier with detailed reasoning.
-*   **Builder Insights**: A dedicated section discussing the challenges and considerations of building real-world, large-scale distributed systems, including scaling up to 1 billion and even 5 billion users.
-*   **AI-Powered Analysis**: Utilizes Genkit and Google AI models (Gemini) to provide dynamic, context-aware architectural insights.
+    *   Suggested User Capacity Tier (with detailed reasoning)
+    *   Conceptual Security Posture Analysis
+*   **Builder Insights**: A dedicated section discussing the challenges and considerations of building real-world, large-scale distributed systems, including detailed discussions on scaling up to 1 billion and even 5 billion users.
+*   **AI-Powered Analysis**: Utilizes Genkit and Google AI models (Gemini) to provide dynamic, context-aware architectural insights across various features.
 *   **Modern Tech Stack**: Built with Next.js (App Router), React, ShadCN UI components, Tailwind CSS, and TypeScript.
 
 ## How to Use Rustik
 
-1.  **Explore Components**: Navigate to the **Components** tab (homepage) to learn about individual architectural building blocks.
-2.  **Visualize Systems & Analyze Interactions**: Go to the **Visualizer** tab. Select components and their specific types, then click "Analyze Interactions" to get an AI-generated analysis.
-3.  **Analyze Scaling Potential**: From the Visualizer, after selecting components, click "Analyze Scaling Potential". This will take you to a dedicated page showing an AI's conceptual take on how your selections might scale.
-4.  **Comprehensive Architectural Profile**: Use the **Master-Flow** tab. Select your desired components and types, then click "Analyze Full Architectural Profile" to receive a multi-faceted report including interaction analysis, scaling potential, and a suggested capacity tier.
-5.  **Learn About Scaling Challenges**: Visit the **Builder Insights** tab to understand the complexities of designing and operating systems at massive scale.
+1.  **Explore Components**: Navigate to the **Components** tab (homepage) to learn about individual architectural building blocks and their detailed characteristics.
+2.  **Visualize Systems & Analyze Interactions**: Go to the **Visualizer** tab.
+    *   Select various architectural components and their specific types using the checkboxes.
+    *   Click "Analyze Interactions" to get an AI-generated analysis of how your chosen components might work together.
+    *   If "Microservices Architecture" and other relevant infrastructure are selected, click "Suggest Potential Microservices" for AI-based service suggestions.
+    *   Click "Analyze Conceptual Security Posture" for an AI-driven security overview of your selections.
+3.  **Analyze Scaling Potential**: From the Visualizer, after selecting components, click "Analyze Scaling Potential". This will take you to the **Capacity Analyzer** page, showing an AI's conceptual take on how your selections might scale and handle large user loads.
+4.  **Comprehensive Architectural Profile (Master-Flow)**: Use the **Master-Flow** tab.
+    *   Select your desired architectural components and their specific types.
+    *   Click "Analyze Full Architectural Profile" to receive a multi-faceted report including interaction analysis, scaling potential, a suggested capacity tier with reasoning, and a conceptual security posture analysis.
+5.  **Learn About Scaling Challenges**: Visit the **Builder Insights** tab to understand the complexities of designing and operating systems at massive scale, including specific considerations for 1 billion and 5 billion user systems.
 
 ## ⚠️ Purpose & Disclaimer
 
@@ -75,7 +85,7 @@ To clone and run Rustik on your local machine, follow these steps:
         ```bash
         npm run genkit:dev
         ```
-        This will typically start the Genkit server (often on port 3400, but check your terminal output).
+        This will typically start the Genkit server (often on port 3400, but check your terminal output). It will also automatically recompile your flows if you make changes to them.
 
     *   **Start the Next.js Development Server**:
         Open a *second* terminal window and run:
@@ -87,11 +97,4 @@ To clone and run Rustik on your local machine, follow these steps:
 5.  **Access the Application**:
     Open your web browser and navigate to `http://localhost:9002` (or the port specified in your terminal output for the Next.js server).
 
-## Future Enhancements (Potential Ideas)
-
-*   Interactive Diagrams in the Visualizer
-*   Cost Estimation Flows
-*   Security Posture Analysis
-*   User Accounts & Saved Configurations
-
-We hope you
+We hope you find Rustik insightful for exploring the fascinating world of hyperscale system architecture!
