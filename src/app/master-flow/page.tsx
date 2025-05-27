@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -520,6 +520,32 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <FlaskConical className="h-6 w-6 mr-3" />
+                  Digital Twin &amp; “What-If” Simulator (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Spin up a sandboxed, code-generated replica of your design (e.g. in Docker or Kubernetes) 
+                  and run synthetic load tests to validate performance and failure modes before you build.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Digital Twin & Simulator feature is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Digital Twin &amp; Simulator (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
           </div>
         )}
       </main>
@@ -529,5 +555,7 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+
+    
 
     
