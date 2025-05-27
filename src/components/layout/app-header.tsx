@@ -1,4 +1,6 @@
 
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +19,12 @@ const RustikLogoIcon = () => (
 
 
 export function AppHeader() {
+  const [showMottoSuffix, setShowMottoSuffix] = useState(false);
+
+  const handleMottoWordClick = () => {
+    setShowMottoSuffix(true);
+  };
+
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between py-4 px-4 sm:px-6">
@@ -30,11 +38,11 @@ export function AppHeader() {
             <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
             <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
           </div>
-          <TooltipProvider delayDuration={100}>
-            <div className="text-xs text-muted-foreground mt-1 italic">
+          <div className="text-xs text-muted-foreground mt-1 italic flex items-baseline space-x-1">
+            <TooltipProvider delayDuration={100}>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default hover:text-primary transition-colors">Dream.</span>
+                <TooltipTrigger asChild onClick={handleMottoWordClick}>
+                  <span className="cursor-pointer hover:text-primary transition-colors">Dream.</span>
                 </TooltipTrigger>
                 <TooltipContent>
                   Got an idea? Start visualizing your system here.
@@ -42,8 +50,8 @@ export function AppHeader() {
               </Tooltip>
               {' '}
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default hover:text-primary transition-colors">Click.</span>
+                <TooltipTrigger asChild onClick={handleMottoWordClick}>
+                  <span className="cursor-pointer hover:text-primary transition-colors">Click.</span>
                 </TooltipTrigger>
                 <TooltipContent>
                   Select components and see how they interact.
@@ -51,15 +59,20 @@ export function AppHeader() {
               </Tooltip>
               {' '}
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default hover:text-primary transition-colors">Architect.</span>
+                <TooltipTrigger asChild onClick={handleMottoWordClick}>
+                  <span className="cursor-pointer hover:text-primary transition-colors">Architect.</span>
                 </TooltipTrigger>
                 <TooltipContent>
                   Design and understand complex architectures conceptually.
                 </TooltipContent>
               </Tooltip>
-            </div>
-          </TooltipProvider>
+            </TooltipProvider>
+            {showMottoSuffix && (
+              <span className="ml-1 animate-fade-in-fast font-semibold text-primary">
+                 Do it with Rustik!
+              </span>
+            )}
+          </div>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
