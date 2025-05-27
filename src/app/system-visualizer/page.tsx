@@ -12,12 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, Workflow, WorkflowIcon } from 'lucide-react';
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureInput, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from "@/hooks/use-toast";
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
   switch (complexityLevel) {
@@ -34,6 +35,7 @@ const complexityVariant = (complexityLevel: ArchitectureComponent['complexity'])
 
 export default function SystemVisualizerPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
@@ -95,6 +97,7 @@ export default function SystemVisualizerPage() {
     setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
     setAnalysisTriggered(true); 
 
+    // Reset specific analysis states
     setAiAnalysis(null);
     setAnalysisError(null);
     setSuggestedMicroservicesList(null);
@@ -121,7 +124,7 @@ export default function SystemVisualizerPage() {
   };
 
   const handleSuggestMicroservices = async () => {
-    prepareForAnalysis();
+    prepareForAnalysis(); // Ensure analysisTriggered is true and diagram components are set
     setIsSuggestingMicroservices(true);
     setSuggestMicroservicesError(null);
     const flowInput = getFlowInput();
@@ -138,7 +141,7 @@ export default function SystemVisualizerPage() {
   };
   
   const handleAnalyzeSecurityPosture = async () => {
-    prepareForAnalysis();
+    prepareForAnalysis(); // Ensure analysisTriggered is true and diagram components are set
     setIsAnalyzingSecurity(true);
     setSecurityAnalysisError(null);
     const flowInput = getFlowInput();
@@ -158,10 +161,18 @@ export default function SystemVisualizerPage() {
   const handleAnalyzeScalingPotential = () => {
     const flowInput = getFlowInput();
     if (flowInput.components.length === 0) {
+      toast({ title: "Selection Required", description: "Please select at least one component type to analyze scaling potential.", variant: "destructive" });
       return;
     }
     const selectionString = encodeURIComponent(JSON.stringify(flowInput));
     router.push(`/capacity-analyzer?selection=${selectionString}`);
+  };
+
+  const handleExportClick = (exportType: string) => {
+    toast({
+      title: "Feature in Development",
+      description: `${exportType} export is coming soon!`,
+    });
   };
   
   const countSelectedTypes = () => {
@@ -190,7 +201,7 @@ export default function SystemVisualizerPage() {
 
   const isAnyAnalysisInProgress = isAnalyzing || isSuggestingMicroservices || isAnalyzingSecurity;
   const isAnyButtonDisabled = countSelectedTypes() === 0 || isAnyAnalysisInProgress;
-  const isSuggestMicroservicesButtonDisabled = !isMicroservicesArchitectureSelected() || !hasOtherInfrastructureComponentsSelected() || isAnyAnalysisInProgress;
+  const isSuggestMicroservicesButtonDisabled = !isMicroservicesArchitectureSelected() || !hasOtherInfrastructureComponentsSelected() || isAnyAnalysisInProgress || countSelectedTypes() === 0;
 
 
   return (
@@ -209,23 +220,20 @@ export default function SystemVisualizerPage() {
 
         <div className="mt-8 w-full max-w-6xl">
           <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100">
-            1. Choose Your Architectural Components & Types
+            1. Choose Your Architectural Components &amp; Types
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
               <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
-                <div>
-                  <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
-                    <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
-                    <div className="flex-grow">
-                      <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
-                      <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
-                        {component.complexity}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  {/* Removed CardContent with eli5Details here to make cards more compact */}
-                </div>
+                <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
+                  <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
+                  <div className="flex-grow">
+                    <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                    <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
+                      {component.complexity}
+                    </Badge>
+                  </div>
+                </CardHeader>
                 <CardFooter className="pt-3 pb-4 px-2 border-t border-border/50 bg-muted/20 flex-col items-start">
                   {component.types && component.types.length > 0 ? (
                     <Accordion type="single" collapsible className="w-full">
@@ -329,7 +337,7 @@ export default function SystemVisualizerPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold text-primary flex items-center">
                   <Network className="mr-3 h-7 w-7" />
-                  Conceptual System Overview & Analysis
+                  Conceptual System Overview &amp; Analysis
                 </CardTitle>
                 <CardDescription className="pt-1">
                   Based on your selections, here's a high-level look at the chosen components and AI-powered insights.
@@ -339,7 +347,7 @@ export default function SystemVisualizerPage() {
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
                     <ListChecks className="h-5 w-5 mr-2 text-accent" />
-                    Selected Architectural Elements & Types:
+                    Selected Architectural Elements &amp; Types:
                   </h4>
                   {generatedDiagramComponents.length > 0 ? (
                     <ul className="space-y-4 pl-2">
@@ -543,7 +551,27 @@ export default function SystemVisualizerPage() {
                     </div>
                   </>
                 )}
-
+                <Separator />
+                <div>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                    <FileOutput className="h-5 w-5 mr-2 text-accent" />
+                    Export Options:
+                  </h4>
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" onClick={() => handleExportClick("PlantUML")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export PlantUML
+                    </Button>
+                    <Button variant="outline" onClick={() => handleExportClick("SVG/PNG Diagram")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export SVG/PNG
+                    </Button>
+                    <Button variant="outline" onClick={() => handleExportClick("Terraform Stubs")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (Terraform)
+                    </Button>
+                     <Button variant="outline" onClick={() => handleExportClick("CloudFormation Stubs")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (CloudFormation)
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -562,3 +590,4 @@ export default function SystemVisualizerPage() {
   );
 }
 
+    
