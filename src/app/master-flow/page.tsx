@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -270,7 +270,7 @@ export default function MasterFlowPage() {
     (!isMicroservicesFlowApplicable(currentFlowInput) || (microserviceSuggestions.attempted && !microserviceSuggestions.isLoading));
 
 
-  const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading);
+  const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading);
 
   const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode, description?: string) => {
     if (!state.attempted && !state.isLoading && !analysesTriggered) return null; 
@@ -830,3 +830,5 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+
+    
