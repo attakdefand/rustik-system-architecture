@@ -1,0 +1,10 @@
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package.json
+    schedule:
+      interval: "daily"
+    # You can add labels, assignees, reviewers, etc.
+    # open-pull-requests-limit: 10

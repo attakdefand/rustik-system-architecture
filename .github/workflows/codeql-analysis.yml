@@ -1,0 +1,50 @@
+
+name: "CodeQL SAST Analysis (Conceptual)"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    # Example: Run every Monday at 2:30 AM UTC to catch issues proactively
+    - cron: '30 2 * * 1'
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Define the languages to scan. For your Next.js project, this is primary.
+        language: [ 'javascript-typescript' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        # To LATER specify custom queries, uncomment the following line and place your queries here.
+        # For example, to specify the CodeQL security-extended and security-and-quality query suites,
+        # queries: +security-extended, +security-and-quality
+
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, Swift, Kotlin).
+    # For JavaScript/TypeScript, this step is often not strictly necessary if CodeQL can find all sources,
+    # but including it can help in complex monorepos or if you have build steps that generate code.
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
