@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import type { ArchitectureComponent } from '@/data/architecture-data';
+import type { ArchitectureComponent, TypeDefinition } from '@/data/architecture-data';
 
 interface ArchitectureBlockProps extends ArchitectureComponent {}
 
@@ -28,7 +28,7 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   eli5Summary,
   eli5Details,
   complexity,
-  implementationGuidance, // Added implementationGuidance
+  implementationGuidance,
 }) => {
   const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
     switch (complexityLevel) {
@@ -61,7 +61,7 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
           <div>
             <h3 className="text-lg font-semibold mb-2 text-accent">Types</h3>
             <ul className="list-disc list-inside space-y-1.5 text-sm text-foreground/80">
-              {types.map((type, index) => <li key={index}>{type}</li>)}
+              {types.map((type: TypeDefinition, index: number) => <li key={index}>{type.name}</li>)}
             </ul>
           </div>
           <Separator />

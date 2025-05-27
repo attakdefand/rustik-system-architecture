@@ -2,11 +2,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-// Simple R-like SVG icon for Rustik
+// Updated, more modern R-like SVG icon for Rustik
 const RustikLogoIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor" className="h-10 w-10 text-primary">
-    <path d="M25 15 H75 C85 15 85 25 75 25 H45 V40 H70 C80 40 80 50 70 50 H45 V85 H30 V15 H25 Z" />
-    <path d="M45 50 L75 85 H60 L30 50 H45 Z" />
+    <path d="M25 15 H45 V35 H70 C80 35 85 42.5 85 50 C85 57.5 80 65 70 65 H45 V85 H25 V15 Z M45 50 H68 C73 50 73 55 68 55 H45 V50 Z" />
   </svg>
 );
 

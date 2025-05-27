@@ -2,11 +2,16 @@
 import type { LucideIcon } from 'lucide-react';
 import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling } from 'lucide-react';
 
+export interface TypeDefinition {
+  name: string;
+  description: string;
+}
+
 export interface ArchitectureComponent {
   id: string;
   title: string;
   icon: LucideIcon;
-  types: string[];
+  types: TypeDefinition[];
   useCases: string[];
   realWorldExamples: string[];
   eli5Summary: string;
@@ -21,10 +26,10 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Anycast IP',
     icon: Globe2,
     types: [
-      'IPv4 Anycast (e.g. 203.0.113.0/24)',
-      'IPv6 Anycast (e.g. 2001:db8::/32)',
-      'Global Anycast (announced from POPs on multiple continents)',
-      'Regional Anycast (limited to a single continent or country)',
+      { name: 'IPv4 Anycast (e.g. 203.0.113.0/24)', description: 'Uses older internet addresses, widely compatible for broad reach.' },
+      { name: 'IPv6 Anycast (e.g. 2001:db8::/32)', description: 'Uses newer, larger pool of internet addresses for future-proofing.' },
+      { name: 'Global Anycast (announced from POPs on multiple continents)', description: 'Directs users to the nearest server worldwide for lowest latency.' },
+      { name: 'Regional Anycast (limited to a single continent or country)', description: 'Optimizes routing and content delivery within a specific geographic area.' },
     ],
     useCases: [
       'CDNs & DNS: serve static content or DNS lookups from the nearest edge.',
@@ -50,9 +55,9 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Load Balancer(s)',
     icon: Network,
     types: [
-      'Layer-4 (TCP/QUIC) LB: handles raw connections (e.g. HAProxy in TCP mode, Envoy TCP proxy).',
-      'Layer-7 (HTTP/TLS) LB: terminates TLS, inspects HTTP, applies routing rules (e.g. Envoy HTTP, NGINX, AWS ALB).',
-      'Cloud-native LB: Google Cloud TCP/UDP/SSL LB, AWS Network Load Balancer (NLB).',
+      { name: 'Layer-4 (TCP/QUIC) LB: handles raw connections (e.g. HAProxy in TCP mode, Envoy TCP proxy).', description: 'Distributes traffic based on network-level info (IP, port); fast & simple.' },
+      { name: 'Layer-7 (HTTP/TLS) LB: terminates TLS, inspects HTTP, applies routing rules (e.g. Envoy HTTP, NGINX, AWS ALB).', description: 'Smarter routing based on application data (URLs, headers); enables advanced features.' },
+      { name: 'Cloud-native LB: Google Cloud TCP/UDP/SSL LB, AWS Network Load Balancer (NLB).', description: 'Managed load balancing services provided by cloud platforms, often with tight integration.' },
     ],
     useCases: [
       'TLS Termination: offload encryption so your app nodes stay fast.',
@@ -78,9 +83,9 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Rust App Nodes',
     icon: ServerCog,
     types: [
-      'Single-binary service: one executable per node (e.g. your app_server).',
-      'Containerized: each node runs in its own Docker container or Kubernetes pod.',
-      'VM-based: each node on a dedicated virtual machine.',
+      { name: 'Single-binary service: one executable per node (e.g. your app_server).', description: 'Simple deployment; all application logic in one compiled file.' },
+      { name: 'Containerized: each node runs in its own Docker container or Kubernetes pod.', description: 'Ensures consistent environments and simplifies scaling with orchestration tools.' },
+      { name: 'VM-based: each node on a dedicated virtual machine.', description: 'Provides strong isolation but can be heavier than containers.' },
     ],
     useCases: [
       'High-performance APIs: handling thousands of requests per second.',
@@ -106,10 +111,10 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Async IO + Epoll + Tokio',
     icon: Zap,
     types: [
-      'Epoll (Linux)',
-      'Kqueue (macOS/BSD)',
-      'IOCP (Windows)',
-      'Tokio Runtime (Rust)',
+      { name: 'Epoll (Linux)', description: 'Efficiently monitors many file descriptors for I/O events on Linux systems.' },
+      { name: 'Kqueue (macOS/BSD)', description: 'Similar to epoll, but for macOS and BSD-based operating systems.' },
+      { name: 'IOCP (Windows)', description: 'Windows-specific mechanism for scalable asynchronous I/O operations.' },
+      { name: 'Tokio Runtime (Rust)', description: 'A popular Rust framework for writing fast, reliable, and concurrent network applications.' },
     ],
     useCases: [
       'High-concurrency servers: serve many connections with few threads.',
@@ -136,9 +141,9 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Per-core Socket Accept + Sharding',
     icon: Cpu,
     types: [
-      'SO_REUSEPORT based sharding',
-      'Thread-per-core model',
-      'Connection handoff mechanisms',
+      { name: 'SO_REUSEPORT based sharding', description: 'Allows multiple sockets to bind to the same IP address and port, distributing connections kernel-side.' },
+      { name: 'Thread-per-core model', description: 'Assigns dedicated threads to each CPU core to handle its own set of connections.' },
+      { name: 'Connection handoff mechanisms', description: 'A central listener hands off accepted connections to worker threads/processes.' },
     ],
     useCases: [
       'Eliminate accept bottleneck: every CPU core can accept new connections.',
@@ -165,11 +170,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Database Strategies',
     icon: Database,
     types: [
-      "Database Sharding (Horizontal Partitioning)",
-      "Read Replicas for Read Scalability",
-      "NoSQL Databases (Key-Value, Document, Columnar)",
-      "Database Caching (e.g., Redis, Memcached)",
-      "Connection Pooling"
+      { name: "Database Sharding (Horizontal Partitioning)", description: "Splits large databases into smaller, faster, more manageable pieces called shards." },
+      { name: "Read Replicas for Read Scalability", description: "Creates copies of the database to handle read requests, reducing load on the primary." },
+      { name: "NoSQL Databases (Key-Value, Document, Columnar)", description: "Flexible schema databases optimized for specific data models and scale needs." },
+      { name: "Database Caching (e.g., Redis, Memcached)", description: "Stores frequently accessed data in fast memory to reduce database hits." },
+      { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." }
     ],
     useCases: [
       "Scaling applications with large datasets and high transaction volumes.",
@@ -198,11 +203,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Network Infrastructure Strategies',
     icon: RouterIcon,
     types: [
-      "High-Bandwidth Global Connectivity",
-      "Strategic ISP Peering Agreements",
-      "Sufficient Point of Presence (PoP) Capacity",
-      "Content Delivery Network (CDN) Integration",
-      "Redundant Network Paths"
+      { name: "High-Bandwidth Global Connectivity", description: "Ensures fast data transfer worldwide through extensive fiber optic networks." },
+      { name: "Strategic ISP Peering Agreements", description: "Optimizes traffic routes between networks, reducing latency and costs." },
+      { name: "Sufficient Point of Presence (PoP) Capacity", description: "Ensures edge locations can handle large volumes of user traffic without congestion." },
+      { name: "Content Delivery Network (CDN) Integration", description: "Distributes content closer to users globally for faster access." },
+      { name: "Redundant Network Paths", description: "Provides alternative routes for data if a primary path fails, ensuring reliability." }
     ],
     useCases: [
       "Ensuring low-latency access for a global user base.",
@@ -230,11 +235,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Application Design Principles for Scale',
     icon: Lightbulb,
     types: [
-      "Optimized Algorithms & Data Structures",
-      "Efficient Data Access Patterns",
-      "Stateless Service Design",
-      "Asynchronous Processing for Long Tasks",
-      "Microservices Architecture"
+      { name: "Optimized Algorithms & Data Structures", description: "Uses efficient code logic to minimize resource usage and processing time." },
+      { name: "Efficient Data Access Patterns", description: "Optimizes how the application reads and writes data to reduce I/O bottlenecks." },
+      { name: "Stateless Service Design", description: "Ensures services don't store session data locally, allowing easy scaling and failover." },
+      { name: "Asynchronous Processing for Long Tasks", description: "Offloads time-consuming operations to background workers to keep the app responsive." },
+      { name: "Microservices Architecture", description: "Breaks down large applications into smaller, independent, and scalable services." }
     ],
     useCases: [
       "Minimizing CPU and memory footprint per request.",
@@ -263,12 +268,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Caching Strategies',
     icon: Layers,
     types: [
-      "Content Delivery Network (CDN) Caching",
-      "Load Balancer Caching",
-      "Distributed In-Memory Caching (e.g., Redis, Memcached)",
-      "Application-Level / Local In-Memory Caching",
-      "Database Query Caching",
-      "Browser Caching"
+      { name: "Content Delivery Network (CDN) Caching", description: "Stores static content (images, videos) on edge servers close to users." },
+      { name: "Load Balancer Caching", description: "Some advanced load balancers can cache frequently requested content." },
+      { name: "Distributed In-Memory Caching (e.g., Redis, Memcached)", description: "Shares a fast cache across multiple application servers." },
+      { name: "Application-Level / Local In-Memory Caching", description: "Caches data within the application instance itself for quick access." },
+      { name: "Database Query Caching", description: "Stores results of frequent database queries to avoid re-computation." },
+      { name: "Browser Caching", description: "Instructs user browsers to store assets locally, reducing server requests." }
     ],
     useCases: [
       "Reducing latency for static and dynamic content delivery.",
@@ -297,11 +302,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Operational Excellence Pillars',
     icon: ShieldCheck,
     types: [
-      "Comprehensive Monitoring & Observability (Metrics, Logs, Traces)",
-      "Automated Alerting & Incident Response",
-      "Automated Scaling (Horizontal & Vertical)",
-      "Safe Deployment Strategies (Blue/Green, Canary, Rolling)",
-      "Infrastructure as Code (IaC) & Configuration Management"
+      { name: "Comprehensive Monitoring & Observability (Metrics, Logs, Traces)", description: "Gathers detailed data to understand system health and behavior." },
+      { name: "Automated Alerting & Incident Response", description: "Automatically notifies teams of issues and helps manage responses." },
+      { name: "Automated Scaling (Horizontal & Vertical)", description: "Adjusts system capacity automatically based on demand." },
+      { name: "Safe Deployment Strategies (Blue/Green, Canary, Rolling)", description: "Enables releasing new software versions with minimal risk." },
+      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations through code for consistency." }
     ],
     useCases: [
       "Proactively identifying and resolving issues before they impact users.",
@@ -330,11 +335,11 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'Cost Management Strategies',
     icon: DollarSign,
     types: [
-      "Resource Optimization & Rightsizing",
-      "Utilizing Reserved Instances/Capacity or Savings Plans",
-      "Leveraging Usage-Based & Spot Instances/Services",
-      "Comprehensive Cost Monitoring & Allocation (Tagging)",
-      "FinOps Practices & Budgeting"
+      { name: "Resource Optimization & Rightsizing", description: "Ensures resources (servers, databases) match actual needs to avoid overspending." },
+      { name: "Utilizing Reserved Instances/Capacity or Savings Plans", description: "Commits to usage for discounted pricing from cloud providers." },
+      { name: "Leveraging Usage-Based & Spot Instances/Services", description: "Pays only for what's used, or uses spare capacity at lower costs." },
+      { name: "Comprehensive Cost Monitoring & Allocation (Tagging)", description: "Tracks spending and attributes costs to specific projects or teams." },
+      { name: "FinOps Practices & Budgeting", description: "Implements financial operations principles for cloud cost management and planning." }
     ],
     useCases: [
       "Minimizing infrastructure spend without sacrificing performance or reliability.",
@@ -362,7 +367,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     id: 'service-discovery-control-plane',
     title: 'Service Discovery & Control Plane',
     icon: Settings2,
-    types: ["Consul / etcd / ZooKeeper", "Kubernetes Services", "Istio / Linkerd (Service Mesh)", "Custom Control Plane"],
+    types: [
+        { name: "Consul / etcd / ZooKeeper", description: "Dedicated tools that help services find and communicate with each other." },
+        { name: "Kubernetes Services", description: "Built-in mechanism in Kubernetes for service discovery and load balancing." },
+        { name: "Istio / Linkerd (Service Mesh)", description: "Advanced control planes providing traffic management, security, and observability for microservices." },
+        { name: "Custom Control Plane", description: "A bespoke system built to manage service discovery and configuration for specific needs." }
+    ],
     useCases: ["Locating microservices", "Distributing configuration updates", "Managing service health and routing policies", "Orchestrating complex deployments"],
     realWorldExamples: ["Netflix Eureka for service discovery", "Kubernetes for container orchestration and service exposure", "Envoy/Istio for managing microservice traffic"],
     eli5Summary: "Detailed Explanation",
@@ -379,7 +389,13 @@ export const architectureComponents: ArchitectureComponent[] = [
     id: 'shared-state-data-plane',
     title: 'Shared State & Data Plane',
     icon: Archive,
-    types: ["Distributed Caches (Redis, Memcached)", "Relational Databases (PostgreSQL, MySQL)", "NoSQL Databases (MongoDB, Cassandra)", "Message Queues (Kafka, RabbitMQ)", "Object Storage (S3, GCS)"],
+    types: [
+        { name: "Distributed Caches (Redis, Memcached)", description: "Fast, shared memory stores for frequently accessed data to speed up applications." },
+        { name: "Relational Databases (PostgreSQL, MySQL)", description: "Traditional databases for structured data with strong consistency (ACID properties)." },
+        { name: "NoSQL Databases (MongoDB, Cassandra)", description: "Flexible databases for various data models (document, key-value, etc.), often prioritizing scale." },
+        { name: "Message Queues (Kafka, RabbitMQ)", description: "Systems for enabling asynchronous communication between different parts of an application." },
+        { name: "Object Storage (S3, GCS)", description: "Scalable storage for large, unstructured data like files, images, and backups." }
+    ],
     useCases: ["Storing and retrieving application data", "Caching frequently accessed information", "Enabling asynchronous communication between services", "Persisting large binary objects"],
     realWorldExamples: ["E-commerce sites using Redis for session and product caching", "Social media apps using Cassandra for user feeds", "Financial systems using Kafka for event streaming"],
     eli5Summary: "Detailed Explanation",
@@ -396,7 +412,13 @@ export const architectureComponents: ArchitectureComponent[] = [
     id: 'observability-ops',
     title: 'Observability & Operations',
     icon: Gauge,
-    types: ["Metrics (Prometheus, Grafana)", "Logging (ELK Stack, Splunk)", "Tracing (Jaeger, Zipkin)", "Alerting (PagerDuty, OpsGenie)", "Dashboards"],
+    types: [
+        { name: "Metrics (Prometheus, Grafana)", description: "Numerical data (e.g., request counts, latency) visualized in dashboards to track performance." },
+        { name: "Logging (ELK Stack, Splunk)", description: "Collecting and searching through text-based event logs from all parts of the system." },
+        { name: "Tracing (Jaeger, Zipkin)", description: "Following a single request's journey through multiple services to debug issues." },
+        { name: "Alerting (PagerDuty, OpsGenie)", description: "Automatically notifying engineers when critical problems or thresholds are detected." },
+        { name: "Dashboards", description: "Visual displays combining metrics, logs, and traces to give an overview of system health." }
+    ],
     useCases: ["Monitoring system health and performance", "Diagnosing and troubleshooting issues", "Understanding system behavior under load", "Proactive incident detection and response"],
     realWorldExamples: ["Sites using Prometheus/Grafana for real-time dashboards", "Companies using Datadog or New Relic for comprehensive APM", "Distributed tracing to follow requests across microservices"],
     eli5Summary: "Detailed Explanation",
@@ -413,7 +435,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     id: 'deployment-cicd',
     title: 'Deployment & CI/CD',
     icon: Rocket,
-    types: ["Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", "Continuous Delivery/Deployment", "Infrastructure as Code (Terraform, CloudFormation)", "Automated Testing (Unit, Integration, E2E)"],
+    types: [
+        { name: "Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", description: "Automatically building and testing code changes frequently." },
+        { name: "Continuous Delivery/Deployment", description: "Automating the release of software to staging or production environments." },
+        { name: "Infrastructure as Code (Terraform, CloudFormation)", description: "Managing and provisioning infrastructure using code and automation." },
+        { name: "Automated Testing (Unit, Integration, E2E)", description: "Running various tests automatically to ensure code quality and prevent regressions." }
+    ],
     useCases: ["Automating the software build, test, and release process", "Ensuring consistent and repeatable deployments", "Reducing manual effort and risk of human error", "Enabling faster iteration and delivery of features"],
     realWorldExamples: ["Tech companies using Jenkins or GitHub Actions to automatically build and deploy every code change", "Using Terraform to define and manage cloud infrastructure"],
     eli5Summary: "Detailed Explanation",
@@ -430,7 +457,14 @@ export const architectureComponents: ArchitectureComponent[] = [
     id: 'autoscaling-resilience',
     title: 'Autoscaling & Resilience Patterns',
     icon: Scaling,
-    types: ["Horizontal Pod Autoscaler (Kubernetes)", "Cloud Provider Autoscaling Groups", "Circuit Breakers", "Rate Limiting", "Retry Mechanisms", "Bulkheads"],
+    types: [
+        { name: "Horizontal Pod Autoscaler (Kubernetes)", description: "Automatically changes the number of running application instances (pods) in Kubernetes." },
+        { name: "Cloud Provider Autoscaling Groups", description: "Managed services from AWS, Azure, GCP that adjust server capacity." },
+        { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail." },
+        { name: "Rate Limiting", description: "Controls the amount of traffic sent or received to prevent overload." },
+        { name: "Retry Mechanisms", description: "Automatically re-attempts failed operations, often with delays (exponential backoff)." },
+        { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function." }
+    ],
     useCases: ["Automatically adjusting capacity to meet demand", "Preventing cascading failures", "Gracefully handling service degradation", "Improving system stability and availability"],
     realWorldExamples: ["E-commerce sites automatically scaling up web servers during holiday sales", "Microservices using circuit breakers to stop calling a failing downstream service", "APIs implementing rate limiting to prevent abuse"],
     eli5Summary: "Detailed Explanation",

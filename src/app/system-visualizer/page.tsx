@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Construction, DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle } from 'lucide-react';
-import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
+import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput } from '@/ai/flows/analyze-system-flow';
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 
@@ -40,15 +40,15 @@ export default function SystemVisualizerPage() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
 
-  const handleTypeSelection = (componentId: string, type: string, isSelected: boolean) => {
+  const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
       const newMap = new Map(prevMap);
       const typesSet = new Set(newMap.get(componentId) || []);
 
       if (isSelected) {
-        typesSet.add(type);
+        typesSet.add(typeName);
       } else {
-        typesSet.delete(type);
+        typesSet.delete(typeName);
       }
 
       if (typesSet.size > 0) {
@@ -143,25 +143,30 @@ export default function SystemVisualizerPage() {
                     </p>
                   </CardContent>
                 </div>
-                <CardFooter className="pt-3 pb-4 px-4 border-t bg-muted/20 flex-col items-start space-y-2">
+                <CardFooter className="pt-3 pb-4 px-4 border-t bg-muted/20 flex-col items-start space-y-3">
                   <Label className="text-xs font-semibold text-foreground/70 mb-1">Select specific types:</Label>
                   {component.types && component.types.length > 0 ? (
-                    component.types.map((type, index) => (
-                      <div key={index} className="flex items-center space-x-2 w-full">
-                        <Checkbox
-                          id={`select-${component.id}-${type.replace(/\s+/g, '-').toLowerCase()}`}
-                          checked={selectedTypesMap.get(component.id)?.has(type) ?? false}
-                          onCheckedChange={(checked) => {
-                            handleTypeSelection(component.id, type, !!checked);
-                          }}
-                          aria-label={`Select type ${type} for ${component.title}`}
-                        />
-                        <Label
-                          htmlFor={`select-${component.id}-${type.replace(/\s+/g, '-').toLowerCase()}`}
-                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
-                        >
-                          {type}
-                        </Label>
+                    component.types.map((typeDef: TypeDefinition, index) => (
+                      <div key={index} className="flex flex-col w-full">
+                        <div className="flex items-center space-x-2 w-full">
+                          <Checkbox
+                            id={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                            checked={selectedTypesMap.get(component.id)?.has(typeDef.name) ?? false}
+                            onCheckedChange={(checked) => {
+                              handleTypeSelection(component.id, typeDef.name, !!checked);
+                            }}
+                            aria-label={`Select type ${typeDef.name} for ${component.title}`}
+                          />
+                          <Label
+                            htmlFor={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
+                          >
+                            {typeDef.name}
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground pl-6 pt-0.5">
+                          {typeDef.description}
+                        </p>
                       </div>
                     ))
                   ) : (
