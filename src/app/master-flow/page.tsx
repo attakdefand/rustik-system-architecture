@@ -4,13 +4,14 @@
 import { useState } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
+import { useToast } from "@/hooks/use-toast";
 
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows/analyze-capacity-flow';
@@ -37,6 +38,7 @@ interface AnalysisState<T> {
 
 export default function MasterFlowPage() {
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
+  const { toast } = useToast();
   
   const initialAnalysisState = { data: null, isLoading: false, error: null, attempted: false };
   const [interactionAnalysis, setInteractionAnalysis] = useState<AnalysisState<AnalyzeSystemOutput>>(initialAnalysisState);
@@ -141,7 +143,7 @@ export default function MasterFlowPage() {
       if (!interactionAnalysis.data && !interactionAnalysis.error) setInteractionAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (!capacityAnalysis.data && !capacityAnalysis.error) setCapacityAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({data:null, isLoading: false, error: generalError, attempted: true});
-      if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading:false, error: generalError, attempted: true});
+      if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (microservicesApplicable && !microserviceSuggestions.data && !microserviceSuggestions.error) {
         setMicroserviceSuggestions({data:null, isLoading: false, error: generalError, attempted: true});
       }
@@ -215,18 +217,15 @@ export default function MasterFlowPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
               <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
-                <div>
-                  <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
-                    <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
-                    <div className="flex-grow">
-                      <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
-                      <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
-                        {component.complexity}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  {/* Removed CardContent with eli5Details here to make cards more compact */}
-                </div>
+                <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
+                  <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
+                  <div className="flex-grow">
+                    <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                    <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
+                      {component.complexity}
+                    </Badge>
+                  </div>
+                </CardHeader>
                 <CardContent className="pt-3 pb-4 px-4 border-t border-border/50 bg-muted/20 flex-col items-start space-y-2">
                   <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
                   {component.types && component.types.length > 0 ? (
@@ -363,6 +362,33 @@ export default function MasterFlowPage() {
                  <p className="text-muted-foreground">Microservice suggestions were not applicable for the current selection, or no specific suggestions could be generated. Ensure 'Microservices Architecture' and other relevant infrastructure components are selected.</p>
               )
             ))}
+            
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <DollarSign className="h-6 w-6 mr-3" />
+                  Advanced Simulation (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  For a deeper dive, future enhancements could integrate cloud-provider APIs (AWS, GCP, Azure) 
+                  to attach real cost estimates and latency profiles to each component, then run “what-if” scenarios 
+                  to forecast budget vs. performance trade-offs.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Cost &amp; Performance Simulation is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Cost &amp; Performance Simulation (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
 
           </div>
         )}
