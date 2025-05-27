@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList, Info } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +19,7 @@ import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows
 import { suggestCapacityTier, type SuggestCapacityTierOutput } from '@/ai/flows/suggest-capacity-tier-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
 import { suggestMicroservices, type SuggestMicroservicesInput, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
-import { generateDocument, type GenerateDocumentOutput } from '@/ai/flows/generate-document-flow';
+import { generateDocument, type GenerateDocumentFromAnalysesInput, type GenerateDocumentOutput } from '@/ai/flows/generate-document-flow';
 
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -35,7 +35,7 @@ interface AnalysisState<T> {
   data: T | null;
   isLoading: boolean;
   error: string | null;
-  attempted: boolean; // To track if this analysis was even attempted
+  attempted: boolean; 
 }
 
 interface CategorizedComponents {
@@ -103,7 +103,7 @@ export default function MasterFlowPage() {
     });
     if (analysesTriggered) {
         setAnalysesTriggered(false);
-        setCurrentFlowInput(null); // Reset current flow input if selections change
+        setCurrentFlowInput(null); 
     }
   };
 
@@ -214,7 +214,7 @@ export default function MasterFlowPage() {
   
   const handleGenerateDocument = async () => {
     if (!currentFlowInput || currentFlowInput.components.length === 0) {
-        toast({ title: "Cannot Generate Document", description: "Please analyze a profile first.", variant: "destructive" });
+        toast({ title: "Cannot Generate Document", description: "Please analyze a profile first, or ensure components are selected.", variant: "destructive" });
         return;
     }
     if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading) ) {
@@ -225,8 +225,17 @@ export default function MasterFlowPage() {
     setIsGeneratingDocument(true);
     setDocumentGenerationError(null);
 
+    const documentInput: GenerateDocumentFromAnalysesInput = {
+        selectedComponents: currentFlowInput,
+        interactionAnalysis: interactionAnalysis.data,
+        capacityAnalysis: capacityAnalysis.data,
+        tierSuggestion: tierSuggestion.data,
+        securityPostureAnalysis: securityPostureAnalysis.data,
+        microserviceSuggestions: microserviceSuggestions.data,
+    };
+
     try {
-        const result = await generateDocument(currentFlowInput);
+        const result = await generateDocument(documentInput);
         const markdownDocument = result.markdownDocument;
 
         const filename = 'conceptual_architecture_rustik.md';
@@ -505,6 +514,18 @@ export default function MasterFlowPage() {
                   </div>
                 )}
 
+                {data.keyAssumptions && data.keyAssumptions.length > 0 && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-md border border-border/70">
+                    <h5 className="font-semibold text-md mb-1 text-foreground/80 flex items-center">
+                        <Info className="h-4 w-4 mr-2 text-muted-foreground" />
+                        Key Assumptions Made by AI:
+                    </h5>
+                    <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/70">
+                      {data.keyAssumptions.map((assumption, i) => <li key={`assumption-${i}`}>{assumption}</li>)}
+                    </ul>
+                  </div>
+                )}
+
                 {data.considerationsForNextTier && data.considerationsForNextTier.length > 0 && (
                   <div className="mt-4 p-3 bg-accent/5 rounded-md border border-accent/20">
                     <h5 className="font-semibold text-md mb-1 text-accent/90">Considerations for Next Capacity Tier:</h5>
@@ -514,7 +535,7 @@ export default function MasterFlowPage() {
                   </div>
                 )}
               </div>
-            ), "Suggests a conceptual user capacity tier the system might be suitable for, with detailed reasoning.")}
+            ), "Suggests a conceptual user capacity tier the system might be suitable for, with detailed reasoning and key assumptions.")}
 
             {renderAnalysisSection<AnalyzeSecurityPostureOutput>("Conceptual Security Posture", Shield, securityPostureAnalysis, (data) => (
               <div>

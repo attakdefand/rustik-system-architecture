@@ -28,6 +28,9 @@ const SuggestCapacityTierOutputSchema = z.object({
   considerationsForNextTier: z.array(z.string()).describe(
     'A list of 2-3 crucial components, strategies, or architectural considerations that would be essential to address if aiming for the *next* higher conceptual tier of user capacity.'
   ),
+  keyAssumptions: z.array(z.string()).optional().describe(
+    'A list of 2-3 key assumptions the AI made when suggesting this tier (e.g., "Assumes optimal database configuration," "Assumes efficient application code").'
+  ),
 });
 export type SuggestCapacityTierOutput = z.infer<typeof SuggestCapacityTierOutputSchema>;
 
@@ -37,7 +40,7 @@ export async function suggestCapacityTier(input: SuggestCapacityTierInput): Prom
 
 const suggestCapacityTierPrompt = ai.definePrompt({
   name: 'suggestCapacityTierPrompt',
-  input: { schema: z.custom<SuggestCapacityTierInput>() }, // Using z.custom as AnalyzeSystemInputSchema is not directly exported
+  input: { schema: z.custom<SuggestCapacityTierInput>() }, 
   output: { schema: SuggestCapacityTierOutputSchema },
   prompt: `You are a highly experienced Chief System Architect specializing in designing and evaluating hyperscale systems.
 A user has selected the following architectural components and their specific types:
@@ -64,6 +67,7 @@ Based on this selection, provide a conceptual analysis of the user capacity tier
         *   Cost implications and budget.
 3.  **keyStrengthsForTier**: Identify the 2-3 most important architectural strengths from the user's selection that directly support the suggested capacity tier.
 4.  **considerationsForNextTier**: List 2-3 crucial additional components, strategies, or architectural considerations (not already fully covered by the user's selection) that would be essential to address if the user wanted to aim for the *next* higher conceptual tier of user capacity. If they are already at the highest conceptual tier you model, suggest areas for continuous improvement or extreme optimization.
+5.  **keyAssumptions**: List 2-3 key underlying assumptions you made when suggesting this tier. For example: "Assumes application code is highly optimized and efficiently utilizes resources." or "Assumes database queries are well-indexed and the database itself is scaled appropriately for the load." or "Assumes that chosen autoscaling strategies are correctly implemented and tuned."
 
 **Output Format Guidance:**
 - Ensure the output strictly adheres to the SuggestCapacityTierOutputSchema.
@@ -83,14 +87,15 @@ const suggestCapacityTierFlow = ai.defineFlow(
   async (input) => {
     const validatedInput = input.components && input.components.length > 0
       ? input
-      : { components: [] }; // Ensure prompt gets a valid structure
+      : { components: [] }; 
 
     if (validatedInput.components.length === 0) {
       return {
         suggestedTier: "Please select architectural components to receive a capacity tier suggestion.",
         reasoning: "No components were selected. To get a conceptual capacity tier analysis, please choose components and their types from the list.",
         keyStrengthsForTier: [],
-        considerationsForNextTier: []
+        considerationsForNextTier: [],
+        keyAssumptions: []
       };
     }
     
