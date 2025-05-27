@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,7 +46,8 @@ export default function MasterFlowPage() {
   const [capacityAnalysis, setCapacityAnalysis] = useState<AnalysisState<AnalyzeCapacityOutput>>(initialAnalysisState);
   const [tierSuggestion, setTierSuggestion] = useState<AnalysisState<SuggestCapacityTierOutput>>(initialAnalysisState);
   const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>(initialAnalysisState);
-  const [microserviceSuggestions, setMicroserviceSuggestions] = useState<AnalysisState<SuggestMicroservicesOutput>>(initialAnalysisState);
+  const [microserviceSuggestions, setMicroserviceSuggestions] = useState<AnalysisState<SuggestMicroservicesOutput>>({...initialAnalysisState, data: {suggestedServices: []}});
+
 
   const [isGeneratingDocument, setIsGeneratingDocument] = useState(false);
   const [documentGenerationError, setDocumentGenerationError] = useState<string | null>(null);
@@ -81,7 +82,8 @@ export default function MasterFlowPage() {
     };
   };
 
-  const isMicroservicesFlowApplicable = (flowInput: AnalyzeSystemInput): boolean => {
+  const isMicroservicesFlowApplicable = (flowInput: AnalyzeSystemInput | null): boolean => {
+    if (!flowInput) return false;
     const microservicesCompSelected = flowInput.components.some(
       (c) => c.componentTitle === "Microservices Architecture"
     );
@@ -94,7 +96,7 @@ export default function MasterFlowPage() {
 
   const handleAnalyzeProfile = async () => {
     const flowInput = getFlowInput();
-    setCurrentFlowInput(flowInput); // Store the input for document generation later
+    setCurrentFlowInput(flowInput); 
 
     if (flowInput.components.length === 0) {
       const errorMsg = "Please select at least one component type to analyze.";
@@ -113,13 +115,13 @@ export default function MasterFlowPage() {
     setCapacityAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
     setTierSuggestion({ ...initialAnalysisState, isLoading: true, attempted: true });
     setSecurityPostureAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
-    setDocumentGenerationError(null); // Reset document error
+    setDocumentGenerationError(null); 
 
     const microservicesApplicable = isMicroservicesFlowApplicable(flowInput);
     if (microservicesApplicable) {
       setMicroserviceSuggestions({ ...initialAnalysisState, isLoading: true, attempted: true });
     } else {
-      setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false, data: {suggestedServices: []} }); // Set to false but provide default data
+      setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false, data: {suggestedServices: []} }); 
     }
 
     try {
@@ -180,7 +182,7 @@ export default function MasterFlowPage() {
         toast({ title: "Cannot Generate Document", description: "Please analyze a profile first.", variant: "destructive" });
         return;
     }
-    if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading) ) {
+    if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading) ) {
         toast({ title: "Cannot Generate Document", description: "Please wait for all analyses to complete.", variant: "destructive" });
         return;
     }
@@ -192,7 +194,6 @@ export default function MasterFlowPage() {
         const result = await generateDocument(currentFlowInput);
         const markdownDocument = result.markdownDocument;
 
-        // Trigger download
         const filename = 'conceptual_architecture_rustik.md';
         const blob = new Blob([markdownDocument], { type: 'text/markdown;charset=utf-8;' });
         const link = document.createElement('a');
@@ -231,7 +232,7 @@ export default function MasterFlowPage() {
     capacityAnalysis.attempted && !capacityAnalysis.isLoading &&
     tierSuggestion.attempted && !tierSuggestion.isLoading &&
     securityPostureAnalysis.attempted && !securityPostureAnalysis.isLoading &&
-    (!isMicroservicesFlowApplicable(getFlowInput()) || (microserviceSuggestions.attempted && !microserviceSuggestions.isLoading));
+    (!isMicroservicesFlowApplicable(currentFlowInput) || (microserviceSuggestions.attempted && !microserviceSuggestions.isLoading));
 
 
   const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading);
@@ -341,7 +342,7 @@ export default function MasterFlowPage() {
             </h3>
           <Button size="lg" disabled={isAnalyzeButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
             <Maximize className="mr-2 h-5 w-5" />
-            {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading)) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
+            {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading)) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
           {countSelectedTypes() > 0 && !isAnalyzeButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
@@ -573,7 +574,7 @@ export default function MasterFlowPage() {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-primary flex items-center">
                   <BellRing className="h-6 w-6 mr-3" />
-                  Anomaly &amp; Drift Detection (Conceptual)
+                  Alerting &amp; Drift Detection (Conceptual)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 text-foreground/90 space-y-4">
@@ -585,11 +586,11 @@ export default function MasterFlowPage() {
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
-                      description: "Anomaly & Drift Detection is coming soon!",
+                      description: "Alerting & Drift Detection is coming soon!",
                     });
                   }}
                 >
-                  Explore Anomaly &amp; Drift Detection (Coming Soon)
+                  Explore Alerting &amp; Drift Detection (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
@@ -642,6 +643,31 @@ export default function MasterFlowPage() {
                   }}
                 >
                   Explore Digital Twin &amp; Simulator (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <BrainCircuitIcon className="h-6 w-6 mr-3" />
+                  Adaptive Blueprint Optimization (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Adaptive Blueprint Optimization is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Adaptive Blueprint Optimization (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
