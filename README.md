@@ -18,6 +18,7 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
     *   Suggested User Capacity Tier (with detailed reasoning)
     *   Conceptual Security Posture Analysis
     *   AI-Suggested Potential Microservices (if applicable)
+    *   Downloadable Conceptual Architecture Document (Markdown)
 *   **Builder Insights**: A dedicated section discussing the challenges and considerations of building real-world, large-scale distributed systems, including detailed discussions on scaling up to 1 billion and even 5 billion users, and advanced architectural concepts.
 *   **AI-Powered Analysis**: Utilizes Genkit and Google AI models (Gemini) to provide dynamic, context-aware architectural insights across various features.
 *   **Modern Tech Stack**: Built with Next.js (App Router), React, ShadCN UI components, Tailwind CSS, and TypeScript.
@@ -32,12 +33,13 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
     *   Click "Analyze Conceptual Security Posture" for an AI-driven security overview of your selections.
 
     **System Visualizer Screenshot:**
-    ![System Visualizer Screenshot](./docs/images/system-visualizer-screenshot.png)
+    <img src="./docs/images/system-visualizer-screenshot.png" alt="System Visualizer Screenshot" width="700"/>
 
 3.  **Analyze Scaling Potential**: From the Visualizer, after selecting components, click "Analyze Scaling Potential". This will take you to the **Capacity Analyzer** page, showing an AI's conceptual take on how your selections might scale and handle large user loads.
 4.  **Comprehensive Architectural Profile (Master-Flow)**: Use the **Master-Flow** tab.
     *   Select your desired architectural components and their specific types.
     *   Click "Analyze Full Architectural Profile" to receive a multi-faceted report including interaction analysis, scaling potential, a suggested capacity tier with reasoning, a conceptual security posture analysis, and AI-suggested potential microservices (if applicable).
+    *   Once analyses are complete, you can download a conceptual architectural document in Markdown format.
 5.  **Learn About Scaling Challenges**: Visit the **Builder Insights** tab to understand the complexities of designing and operating systems at massive scale, including specific considerations for 1 billion and 5 billion user systems, and cutting-edge architectural concepts.
 
 ## ⚠️ Purpose & Disclaimer
@@ -67,7 +69,7 @@ Here are some advanced directions Rustik could explore in the future to become a
 *   **Saved Profiles & Templates**:
     Offer templates for common patterns (e.g. “Global CDN + Multi-Region DB”) and let users snapshot and share “best practice” configurations across projects or orgs. This would likely require user accounts.
 *   **Alerting & Drift Detection**:
-    If you connect your visual models to live infrastructure (via metrics or Terraform state), detect and notify when real-world topology drifts away from the designed architecture.
+    If you connect your visual models to live infrastructure (via metrics or Terraform state), detect and notify when real-world topology drifts away from the designed architecture or exhibits unusual behavior.
 *   **CI/CD Integration (Advanced)**:
     Plug Rustik into your pipeline: break the build if your IaC deviates from approved architectural patterns, or auto-generate compliance reports on every PR.
 *   **AI-Driven Architectural Pattern Recommendation Engine**: Users describe a high-level problem or goal, and the AI suggests suitable architectural components and patterns.
@@ -81,6 +83,8 @@ Here are some advanced directions Rustik could explore in the future to become a
     *   **Performance Monitoring in Sandbox**: Requires mechanisms to collect, aggregate, and analyze performance metrics from the temporary "digital twin."
 *   **Policy-as-Code Enforcement**:
     Define organizational rules (e.g. “all traffic between regions must use mTLS” or “no single-AZ database”) in a declarative language, then block or flag any design that violates them.
+*   **Adaptive Blueprint Optimization**:
+    Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
 *   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later. (Note: This would require significant backend changes).
 *   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections. (Note: Requires a client-side diagramming library).
 
