@@ -35,7 +35,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Google Public DNS (8.8.8.8 and 8.8.4.4) uses global IPv4 anycast so lookups come from the nearest Google POP.',
       'Cloudflare’s network serves website assets and DNS via anycast, giving fast responses worldwide.',
     ],
-    eli5Summary: '👶 Explained like you’re 5',
+    eli5Summary: 'Detailed Explanation',
     eli5Details: 'Imagine you have the same toy in lots of playgrounds around the world. When your friend wants to play, they automatically go to the nearest playground and pick up the toy—so they don’t have to travel far and can play quickly. If one playground is closed, they just go to the next nearest one without even noticing.',
     complexity: 'Intermediate',
     implementationGuidance: [
@@ -63,7 +63,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Netflix uses AWS NLB to distribute millions of video-stream connections.',
       'Shopify uses HAProxy and Envoy in front of their microservices to manage traffic surges.',
     ],
-    eli5Summary: '👶 Explained like you’re 5',
+    eli5Summary: 'Detailed Explanation',
     eli5Details: 'Think of a teacher at the door who sends each new kid to an empty classroom. If one classroom is full or the teacher sees a problem inside, they send the next kid to a different room—so no room gets too crowded.',
     complexity: 'Intermediate',
     implementationGuidance: [
@@ -91,7 +91,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Discord uses Rust/Tokio for their voice service to handle millions of concurrent calls.',
       'Dropbox migrated parts of their sync engine to Rust for speed and safety.',
     ],
-    eli5Summary: '👶 Explained like you’re 5',
+    eli5Summary: 'Detailed Explanation',
     eli5Details: 'Imagine each classroom has a super-smart robot teacher (Rust app). That robot can talk to lots and lots of kids all at once really fast and never gets tired or makes silly mistakes.',
     complexity: 'Advanced',
     implementationGuidance: [
@@ -119,7 +119,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Nginx uses epoll under the hood for its event loop.',
       'Node.js uses libuv (which on Linux uses epoll) to handle thousands of simultaneous sockets.',
     ],
-    eli5Summary: '👶 Explained like you’re 5',
+    eli5Summary: 'Detailed Explanation',
     eli5Details: 'Picture a mail sorter who doesn’t deliver every letter one by one but instead watches lots of mailboxes at once and only goes to the ones that have new mail. That mail sorter never stands idle or gets stuck waiting.',
     complexity: 'Advanced',
     implementationGuidance: [
@@ -145,7 +145,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Caddy web server uses SO_REUSEPORT for multi-core scalability.',
       'Envoy’s listener implementation can leverage per-core dispatch to maximize throughput.',
     ],
-    eli5Summary: '👶 Explained like you’re 5',
+    eli5Summary: 'Detailed Explanation',
     eli5Details: 'Imagine each robot teacher has its own door to the playground. When a new kid arrives, whichever robot’s door the kid walks up to is ready to let them in—so no single door gets a big line.',
     complexity: 'Advanced',
     implementationGuidance: [
