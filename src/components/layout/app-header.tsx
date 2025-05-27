@@ -24,6 +24,7 @@ export function AppHeader() {
             <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
             <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1 italic">Dream. Click. Architect.</p>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
