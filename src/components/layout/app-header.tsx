@@ -31,13 +31,13 @@ export function AppHeader() {
             <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
           </div>
           <TooltipProvider delayDuration={100}>
-            <p className="text-xs text-muted-foreground mt-1 italic">
+            <div className="text-xs text-muted-foreground mt-1 italic">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="cursor-default hover:text-primary transition-colors">Dream.</span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Got an idea? Start visualizing your system here.</p>
+                  Got an idea? Start visualizing your system here.
                 </TooltipContent>
               </Tooltip>
               {' '}
@@ -46,7 +46,7 @@ export function AppHeader() {
                   <span className="cursor-default hover:text-primary transition-colors">Click.</span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Select components and see how they interact.</p>
+                  Select components and see how they interact.
                 </TooltipContent>
               </Tooltip>
               {' '}
@@ -55,10 +55,10 @@ export function AppHeader() {
                   <span className="cursor-default hover:text-primary transition-colors">Architect.</span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Design and understand complex architectures conceptually.</p>
+                  Design and understand complex architectures conceptually.
                 </TooltipContent>
               </Tooltip>
-            </p>
+            </div>
           </TooltipProvider>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
