@@ -16,10 +16,10 @@ interface AdminEndpoint {
 interface AdminFeature {
   feature: string;
   description: string;
-  endpoints?: AdminEndpoint[]; // Made optional for schema section
+  endpoints?: AdminEndpoint[];
   icon: LucideIcon;
   keyActions: string[];
-  schemaDetails?: string; // New field for schema
+  schemaDetails?: string;
 }
 
 const adminFunctionalityData: AdminFeature[] = [
@@ -52,7 +52,7 @@ const adminFunctionalityData: AdminFeature[] = [
   },
   {
     feature: "Component Library Admin",
-    description: "Manage the catalog of architectural components and their type definitions.",
+    description: "Manage the catalog of architectural components and their type definitions (if data becomes dynamic).",
     icon: Library,
     keyActions: ["List components", "Add new component", "Update component metadata", "Remove component", "Manage component types"],
     endpoints: [
@@ -67,7 +67,7 @@ const adminFunctionalityData: AdminFeature[] = [
     feature: "Template & Profile Management",
     description: "Create, update, and share architecture templates and saved profiles.",
     icon: LayoutTemplate,
-    keyActions: ["List templates", "Create new template", "Update template", "Delete template"],
+    keyActions: ["List templates", "Create new template", "Update template", "Delete template", "Share template with team"],
     endpoints: [
       { method: "GET",    path: "/admin/templates",        action: "List all templates" },
       { method: "POST",   path: "/admin/templates",        action: "Create a new template" },
@@ -110,9 +110,9 @@ const adminFunctionalityData: AdminFeature[] = [
   },
   {
     feature: "Analytics & System Health",
-    description: "Dashboards for usage metrics, performance stats, error rates, and service availability.",
+    description: "Dashboards for usage metrics, performance stats, error rates, and service availability (typically integrates with external monitoring tools).",
     icon: LineChart,
-    keyActions: ["Retrieve key metrics", "Check service statuses"],
+    keyActions: ["Retrieve key metrics (summary)", "Check service statuses (links/integrations)"],
     endpoints: [
       { method: "GET",    path: "/admin/metrics",          action: "Retrieve key metrics" },
       { method: "GET",    path: "/admin/health",           action: "Check service statuses" }
@@ -122,19 +122,19 @@ const adminFunctionalityData: AdminFeature[] = [
     feature: "Notification & Alert Settings",
     description: "Configure email/webhook alerts for threshold breaches, drift detection, and pipeline failures.",
     icon: BellPlus,
-    keyActions: ["List alert rules", "Create new alert", "Update alert rule", "Remove alert"],
+    keyActions: ["List alert rules", "Create new alert rule", "Update alert rule", "Remove alert rule"],
     endpoints: [
       { method: "GET",    path: "/admin/alerts",           action: "List alert rules" },
-      { method: "POST",   path: "/admin/alerts",           action: "Create a new alert" },
+      { method: "POST",   path: "/admin/alerts",           action: "Create a new alert rule" },
       { method: "PUT",    path: "/admin/alerts/:id",       action: "Update alert rule" },
-      { method: "DELETE", path: "/admin/alerts/:id",       action: "Remove an alert" }
+      { method: "DELETE", path: "/admin/alerts/:id",       action: "Remove an alert rule" }
     ]
   },
   {
     feature: "Team & Collaboration Management",
     description: "Invite users, create teams, assign ownership of templates and projects.",
     icon: UserCog,
-    keyActions: ["List teams", "Create new team", "Update team info", "Delete team", "Add user to team"],
+    keyActions: ["List teams", "Create new team", "Update team info", "Delete team", "Add user to team", "Remove user from team"],
     endpoints: [
       { method: "GET",    path: "/admin/teams",            action: "List all teams" },
       { method: "POST",   path: "/admin/teams",            action: "Create a new team" },
@@ -145,11 +145,11 @@ const adminFunctionalityData: AdminFeature[] = [
   },
   {
     feature: "Conceptual Database Schema (Relational)",
-    description: "This outlines a conceptual relational database schema to support the admin functionalities described. PK denotes Primary Key, FK denotes Foreign Key.",
+    description: "This outlines a conceptual relational database schema to support the admin functionalities. PK denotes Primary Key, FK denotes Foreign Key. Timestamps (e.g., `created_at`, `updated_at`) are recommended for most tables.",
     icon: DatabaseIcon,
     keyActions: ["Review table structures", "Understand data relationships", "Identify key entities"],
     schemaDetails: `
-      <h4 class="text-md font-semibold mt-3 mb-1.5 text-foreground/90">Key Tables & Core Attributes:</h4>
+      <h4 class="text-md font-semibold mt-3 mb-1.5 text-foreground/90">Core Entities:</h4>
       <ul class="list-disc list-inside space-y-3 text-sm text-foreground/80">
         <li>
           <strong>Users</strong>
@@ -158,7 +158,7 @@ const adminFunctionalityData: AdminFeature[] = [
             <li><code>username</code> (VARCHAR, UNIQUE, NOT NULL)</li>
             <li><code>email</code> (VARCHAR, UNIQUE, NOT NULL)</li>
             <li><code>hashed_password</code> (VARCHAR, NOT NULL)</li>
-            <li><code>status</code> (ENUM/VARCHAR - e.g., 'active', 'inactive', NOT NULL)</li>
+            <li><code>status</code> (ENUM/VARCHAR - e.g., 'active', 'inactive', 'pending', NOT NULL)</li>
             <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
@@ -166,7 +166,7 @@ const adminFunctionalityData: AdminFeature[] = [
           <strong>Roles</strong>
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
             <li><code>role_id</code> (PK, UUID/Serial)</li>
-            <li><code>role_name</code> (VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>role_name</code> (VARCHAR, UNIQUE, NOT NULL - e.g., 'admin', 'editor', 'viewer')</li>
             <li><code>description</code> (TEXT)</li>
           </ul>
         </li>
@@ -174,41 +174,88 @@ const adminFunctionalityData: AdminFeature[] = [
           <strong>Permissions</strong>
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
             <li><code>permission_id</code> (PK, UUID/Serial)</li>
-            <li><code>permission_key</code> (VARCHAR, UNIQUE, NOT NULL - e.g., 'user:create', 'component:edit')</li>
+            <li><code>permission_key</code> (VARCHAR, UNIQUE, NOT NULL - e.g., 'user:create', 'component:edit', 'template:delete')</li>
             <li><code>description</code> (TEXT)</li>
           </ul>
         </li>
         <li>
-          <strong>UserRoles</strong> (Junction Table for Users-Roles)
+          <strong>Teams</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>team_id</code> (PK, UUID/Serial)</li>
+            <li><code>team_name</code> (VARCHAR, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+            <li><code>owner_user_id</code> (FK to Users.user_id, NULLABLE - for team creator/admin)</li>
+            <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4 class="text-md font-semibold mt-4 mb-1.5 text-foreground/90">Junction & Relationship Tables:</h4>
+      <ul class="list-disc list-inside space-y-3 text-sm text-foreground/80">
+        <li>
+          <strong>UserRoles</strong> (Links Users to Roles)
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
             <li><code>user_id</code> (FK to Users.user_id, PK)</li>
             <li><code>role_id</code> (FK to Roles.role_id, PK)</li>
+            <li><code>assigned_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
         <li>
-          <strong>RolePermissions</strong> (Junction Table for Roles-Permissions)
+          <strong>RolePermissions</strong> (Links Roles to Permissions)
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
             <li><code>role_id</code> (FK to Roles.role_id, PK)</li>
             <li><code>permission_id</code> (FK to Permissions.permission_id, PK)</li>
           </ul>
         </li>
         <li>
-          <strong>ArchitecturalComponents</strong> (If component data becomes dynamic)
+          <strong>UserTeams</strong> (Links Users to Teams)
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
-            <li><code>component_id</code> (PK, UUID/Serial)</li>
+            <li><code>user_id</code> (FK to Users.user_id, PK)</li>
+            <li><code>team_id</code> (FK to Teams.team_id, PK)</li>
+            <li><code>joined_at</code> (TIMESTAMP)</li>
+            <li><code>team_role</code> (ENUM/VARCHAR - e.g., 'member', 'admin', NULLABLE)</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4 class="text-md font-semibold mt-4 mb-1.5 text-foreground/90">Application Content & Configuration:</h4>
+      <ul class="list-disc list-inside space-y-3 text-sm text-foreground/80">
+        <li>
+          <strong>ArchitecturalComponents</strong> (If component data becomes dynamic, otherwise static in code)
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>component_id</code> (PK, UUID/VARCHAR - e.g., 'anycast-ip')</li>
             <li><code>title</code> (VARCHAR, NOT NULL)</li>
             <li><code>icon_name</code> (VARCHAR)</li>
             <li><code>complexity</code> (ENUM/VARCHAR)</li>
-            <li><code>details_json</code> (JSONB/TEXT - for types, use_cases, examples, etc.)</li>
+            <li><code>eli5_summary</code> (TEXT)</li>
+            <li><code>eli5_details</code> (TEXT)</li>
+            <li><code>details_json</code> (JSONB/TEXT - for types, use_cases, examples, implementation_guidance if structured)</li>
+            <li><code>is_published</code> (BOOLEAN, DEFAULT TRUE)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>SavedArchitectures</strong> (For user-saved profiles and system templates)
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>architecture_id</code> (PK, UUID/Serial)</li>
+            <li><code>name</code> (VARCHAR, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+            <li><code>configuration_json</code> (JSONB, NOT NULL - selected components and their types)</li>
+            <li><code>owner_user_id</code> (FK to Users.user_id, NULLABLE for system templates)</li>
+            <li><code>team_id</code> (FK to Teams.team_id, NULLABLE - for team-owned templates)</li>
+            <li><code>is_template</code> (BOOLEAN, DEFAULT FALSE)</li>
+            <li><code>visibility</code> (ENUM/VARCHAR - e.g., 'private', 'team', 'public', DEFAULT 'private')</li>
+            <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
         <li>
           <strong>SystemConfigurations</strong>
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
-            <li><code>config_key</code> (PK, VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>config_key</code> (PK, VARCHAR, UNIQUE, NOT NULL - e.g., 'AI_MODEL_NAME', 'MAX_LOGIN_ATTEMPTS')</li>
             <li><code>config_value</code> (TEXT/JSONB, NOT NULL)</li>
             <li><code>description</code> (TEXT)</li>
             <li><code>is_sensitive</code> (BOOLEAN, DEFAULT FALSE)</li>
+            <li><code>last_updated_by_user_id</code> (FK to Users.user_id, NULLABLE)</li>
+            <li><code>updated_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
         <li>
@@ -217,34 +264,43 @@ const adminFunctionalityData: AdminFeature[] = [
             <li><code>flag_key</code> (PK, VARCHAR, UNIQUE, NOT NULL)</li>
             <li><code>description</code> (TEXT)</li>
             <li><code>is_enabled</code> (BOOLEAN, DEFAULT FALSE, NOT NULL)</li>
-            <li><code>targeting_rules_json</code> (JSONB)</li>
+            <li><code>targeting_rules_json</code> (JSONB - for more complex rollout rules)</li>
+            <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
+      </ul>
+
+      <h4 class="text-md font-semibold mt-4 mb-1.5 text-foreground/90">Operational & Support Tables:</h4>
+      <ul class="list-disc list-inside space-y-3 text-sm text-foreground/80">
         <li>
           <strong>AuditLogs</strong>
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
             <li><code>log_id</code> (PK, BIGSERIAL/UUID)</li>
-            <li><code>user_id</code> (FK to Users.user_id, NULLABLE)</li>
-            <li><code>action_type</code> (VARCHAR, NOT NULL)</li>
-            <li><code>resource_type</code> (VARCHAR)</li>
-            <li><code>resource_id</code> (VARCHAR)</li>
-            <li><code>details_json</code> (JSONB)</li>
-            <li><code>ip_address</code> (VARCHAR)</li>
+            <li><code>user_id</code> (FK to Users.user_id, NULLABLE - for system actions)</li>
+            <li><code>action_type</code> (VARCHAR, NOT NULL - e.g., 'USER_LOGIN', 'TEMPLATE_CREATE', 'CONFIG_UPDATE')</li>
+            <li><code>resource_type</code> (VARCHAR, NULLABLE - e.g., 'User', 'Template', 'Component')</li>
+            <li><code>resource_id</code> (VARCHAR, NULLABLE)</li>
+            <li><code>details_json</code> (JSONB - for payload, changes, etc.)</li>
+            <li><code>ip_address</code> (VARCHAR, NULLABLE)</li>
+            <li><code>user_agent</code> (TEXT, NULLABLE)</li>
             <li><code>timestamp</code> (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)</li>
           </ul>
         </li>
-         <li>
-          <strong>SavedArchitectures / Templates</strong>
+        <li>
+          <strong>AlertRules</strong>
           <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
-            <li><code>architecture_id</code> (PK, UUID/Serial)</li>
-            <li><code>user_id</code> (FK to Users.user_id, NULLABLE for system templates)</li>
+            <li><code>rule_id</code> (PK, UUID/Serial)</li>
             <li><code>name</code> (VARCHAR, NOT NULL)</li>
             <li><code>description</code> (TEXT)</li>
-            <li><code>configuration_json</code> (JSONB, NOT NULL - selected components and types)</li>
-            <li><code>is_template</code> (BOOLEAN, DEFAULT FALSE)</li>
+            <li><code>trigger_conditions_json</code> (JSONB - e.g., metric thresholds, event patterns)</li>
+            <li><code>notification_channels_json</code> (JSONB - e.g., email lists, webhook URLs)</li>
+            <li><code>is_enabled</code> (BOOLEAN, DEFAULT TRUE)</li>
+            <li><code>created_by_user_id</code> (FK to Users.user_id)</li>
+            <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
           </ul>
         </li>
       </ul>
+      <p class="text-xs mt-4 text-muted-foreground"><strong>Note:</strong> This is a high-level conceptual schema. A real implementation would require further details like indexing strategies, constraints, specific data types based on the chosen RDBMS, and potentially normalization/denormalization decisions based on query patterns.</p>
     `
   }
 ];
@@ -259,11 +315,19 @@ export default function AdminPage() {
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100">
             Admin Panel (Conceptual)
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            This section outlines potential administrative functionalities for Rustik.
-            Implementing these features would require a dedicated backend system, robust authentication/authorization,
-            and typically a <strong>Relational Database</strong> (e.g., PostgreSQL, MySQL) to manage the structured data involved.
-          </p>
+          <Card className="max-w-3xl mx-auto bg-primary/5 border-primary/20 shadow-md">
+            <CardHeader>
+              <CardTitle className="text-primary text-xl">Backend & Database Note</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-md text-muted-foreground">
+                The administrative functionalities outlined below are conceptual. Implementing them in a real-world application
+                would require a dedicated backend system and robust database. Typically, a <strong>Relational Database</strong> (e.g., PostgreSQL, MySQL)
+                is chosen for such tasks due to the structured nature of user data, roles, permissions, and configurations.
+                The schema below provides a high-level blueprint for such a database.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <Accordion type="multiple" className="w-full max-w-4xl mx-auto space-y-6">
