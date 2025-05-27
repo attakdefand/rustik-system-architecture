@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling } from 'lucide-react';
 
 export interface ArchitectureComponent {
   id: string;
@@ -357,6 +357,90 @@ export const architectureComponents: ArchitectureComponent[] = [
       "Implement a consistent tagging strategy for all resources.",
       "Establish a FinOps culture and processes within the organization."
     ]
+  },
+  {
+    id: 'service-discovery-control-plane',
+    title: 'Service Discovery & Control Plane',
+    icon: Settings2,
+    types: ["Consul / etcd / ZooKeeper", "Kubernetes Services", "Istio / Linkerd (Service Mesh)", "Custom Control Plane"],
+    useCases: ["Locating microservices", "Distributing configuration updates", "Managing service health and routing policies", "Orchestrating complex deployments"],
+    realWorldExamples: ["Netflix Eureka for service discovery", "Kubernetes for container orchestration and service exposure", "Envoy/Istio for managing microservice traffic"],
+    eli5Summary: "Detailed Explanation",
+    eli5Details: "This layer helps keep track of which app-nodes exist, where they are, and pushes configuration or health updates to them. Imagine a school directory that tells everyone where each robot teacher is, and the principal's office that sends out new rules to all teachers.",
+    complexity: 'Advanced',
+    implementationGuidance: [
+        "Choose a discovery mechanism (e.g., DNS-based, dedicated tool like Consul).",
+        "Integrate service registration/deregistration into your application lifecycle.",
+        "Define how configuration updates are propagated (e.g., push vs. pull).",
+        "Ensure the control plane itself is highly available and resilient."
+    ]
+  },
+  {
+    id: 'shared-state-data-plane',
+    title: 'Shared State & Data Plane',
+    icon: Archive,
+    types: ["Distributed Caches (Redis, Memcached)", "Relational Databases (PostgreSQL, MySQL)", "NoSQL Databases (MongoDB, Cassandra)", "Message Queues (Kafka, RabbitMQ)", "Object Storage (S3, GCS)"],
+    useCases: ["Storing and retrieving application data", "Caching frequently accessed information", "Enabling asynchronous communication between services", "Persisting large binary objects"],
+    realWorldExamples: ["E-commerce sites using Redis for session and product caching", "Social media apps using Cassandra for user feeds", "Financial systems using Kafka for event streaming"],
+    eli5Summary: "Detailed Explanation",
+    eli5Details: "This represents where your application’s data lives and how it’s replicated. It includes caches, databases, and queues. Think of it as the school's main library, shared toy chests, and message boards – where all important information is kept and shared.",
+    complexity: 'Advanced',
+    implementationGuidance: [
+        "Select appropriate data stores based on consistency, availability, and performance needs (CAP theorem).",
+        "Implement data replication and backup strategies.",
+        "Optimize data access patterns and query performance.",
+        "Consider data partitioning and sharding for scalability."
+    ]
+  },
+  {
+    id: 'observability-ops',
+    title: 'Observability & Operations',
+    icon: Gauge,
+    types: ["Metrics (Prometheus, Grafana)", "Logging (ELK Stack, Splunk)", "Tracing (Jaeger, Zipkin)", "Alerting (PagerDuty, OpsGenie)", "Dashboards"],
+    useCases: ["Monitoring system health and performance", "Diagnosing and troubleshooting issues", "Understanding system behavior under load", "Proactive incident detection and response"],
+    realWorldExamples: ["Sites using Prometheus/Grafana for real-time dashboards", "Companies using Datadog or New Relic for comprehensive APM", "Distributed tracing to follow requests across microservices"],
+    eli5Summary: "Detailed Explanation",
+    eli5Details: "This layer is about understanding your system's health through metrics, logs, tracing, dashboards, and alerting. Imagine the school has cameras (logs), thermometers (metrics), and ways to follow a kid from one room to another (tracing), with alarms if something is wrong.",
+    complexity: 'Intermediate',
+    implementationGuidance: [
+        "Instrument applications to emit structured logs, metrics, and traces.",
+        "Set up centralized collection and analysis tools.",
+        "Define key performance indicators (KPIs) and Service Level Objectives (SLOs).",
+        "Configure actionable alerts for critical issues."
+    ]
+  },
+  {
+    id: 'deployment-cicd',
+    title: 'Deployment & CI/CD',
+    icon: Rocket,
+    types: ["Continuous Integration (Jenkins, GitLab CI, GitHub Actions)", "Continuous Delivery/Deployment", "Infrastructure as Code (Terraform, CloudFormation)", "Automated Testing (Unit, Integration, E2E)"],
+    useCases: ["Automating the software build, test, and release process", "Ensuring consistent and repeatable deployments", "Reducing manual effort and risk of human error", "Enabling faster iteration and delivery of features"],
+    realWorldExamples: ["Tech companies using Jenkins or GitHub Actions to automatically build and deploy every code change", "Using Terraform to define and manage cloud infrastructure"],
+    eli5Summary: "Detailed Explanation",
+    eli5Details: "This encompasses automated build, test, and deploy pipelines for safe and repeatable roll-outs. It's like having an efficient assembly line for making new toys or updating robot teachers, ensuring every change is automatically checked and delivered safely.",
+    complexity: 'Intermediate',
+    implementationGuidance: [
+        "Set up version control (e.g., Git) for all code and configurations.",
+        "Automate build and testing processes in a CI server.",
+        "Implement deployment pipelines with stages (e.g., dev, staging, prod).",
+        "Use Infrastructure as Code for provisioning and managing environments."
+    ]
+  },
+  {
+    id: 'autoscaling-resilience',
+    title: 'Autoscaling & Resilience Patterns',
+    icon: Scaling,
+    types: ["Horizontal Pod Autoscaler (Kubernetes)", "Cloud Provider Autoscaling Groups", "Circuit Breakers", "Rate Limiting", "Retry Mechanisms", "Bulkheads"],
+    useCases: ["Automatically adjusting capacity to meet demand", "Preventing cascading failures", "Gracefully handling service degradation", "Improving system stability and availability"],
+    realWorldExamples: ["E-commerce sites automatically scaling up web servers during holiday sales", "Microservices using circuit breakers to stop calling a failing downstream service", "APIs implementing rate limiting to prevent abuse"],
+    eli5Summary: "Detailed Explanation",
+    eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down.",
+    complexity: 'Advanced',
+    implementationGuidance: [
+        "Define scaling policies based on relevant metrics (e.g., CPU, memory, queue length).",
+        "Implement circuit breakers to isolate failing services.",
+        "Use retries with exponential backoff for transient errors.",
+        "Design services to be idempotent to safely handle retries."
+    ]
   }
 ];
-
