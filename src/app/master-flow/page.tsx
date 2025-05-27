@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -122,7 +122,8 @@ export default function MasterFlowPage() {
           suggestMicroservices(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
         );
       } else {
-        analysisPromises.push(Promise.resolve({ data: null, error: null, notRun: true })); // Placeholder for non-applicable flow
+        // Ensure the promise array has a consistent length for destructuring
+        analysisPromises.push(Promise.resolve({ data: null, error: null, notRun: true }) as Promise<any>); 
       }
       
       const [interactionResult, capacityResult, tierResult, securityResult, microserviceResult] = await Promise.all(analysisPromises);
@@ -159,7 +160,7 @@ export default function MasterFlowPage() {
   const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading;
 
   const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => {
-    if (!state.attempted && !state.isLoading) return null; // Don't render if not attempted and not loading
+    if (!state.attempted && !state.isLoading) return null; 
 
     return (
     <Card className="shadow-xl rounded-xl">
@@ -438,7 +439,7 @@ export default function MasterFlowPage() {
                     });
                   }}
                 >
-                  Explore Plugin & API Ecosystem (Coming Soon)
+                  Explore Plugin &amp; API Ecosystem (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
@@ -463,7 +464,32 @@ export default function MasterFlowPage() {
                     });
                   }}
                 >
-                  Explore Saved Profiles & Templates (Coming Soon)
+                  Explore Saved Profiles &amp; Templates (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <BellRing className="h-6 w-6 mr-3" />
+                  Alerting &amp; Drift Detection (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  If you connect your visual models to live infrastructure (via metrics or Terraform state), detect and notify when real-world topology drifts away from the designed architecture.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Alerting & Drift Detection is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Alerting &amp; Drift Detection (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
@@ -477,3 +503,5 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+
+    
