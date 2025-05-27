@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, BookCopy, Shield, Workflow } from 'lucide-react';
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, Workflow } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
@@ -35,7 +35,6 @@ export default function SystemVisualizerPage() {
   const router = useRouter();
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   
-  // State to track if any analysis has been triggered, to show the overview section
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
   const [generatedDiagramComponents, setGeneratedDiagramComponents] = useState<ArchitectureComponent[]>([]);
   const [snapshotSelectedTypesMap, setSnapshotSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
@@ -71,8 +70,7 @@ export default function SystemVisualizerPage() {
       }
       return newMap;
     });
-    // Reset states if selections change, indicating a new analysis might be needed
-    setAnalysisTriggered(false); // Hide old analysis results
+    setAnalysisTriggered(false); 
     setAiAnalysis(null);
     setAnalysisError(null);
     setSuggestedMicroservicesList(null);
@@ -94,9 +92,8 @@ export default function SystemVisualizerPage() {
   const prepareForAnalysis = () => {
     setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
     setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
-    setAnalysisTriggered(true); // Show the overview card immediately
+    setAnalysisTriggered(true); 
 
-    // Reset all specific analysis sections
     setAiAnalysis(null);
     setAnalysisError(null);
     setSuggestedMicroservicesList(null);
@@ -108,6 +105,7 @@ export default function SystemVisualizerPage() {
   const handleGenerateInteractionAnalysis = async () => {
     prepareForAnalysis();
     setIsAnalyzing(true);
+    setAnalysisError(null);
     const flowInput = getFlowInput();
 
     try {
@@ -124,6 +122,7 @@ export default function SystemVisualizerPage() {
   const handleSuggestMicroservices = async () => {
     prepareForAnalysis();
     setIsSuggestingMicroservices(true);
+    setSuggestMicroservicesError(null);
     const flowInput = getFlowInput();
     
     try {
@@ -140,6 +139,7 @@ export default function SystemVisualizerPage() {
   const handleAnalyzeSecurityPosture = async () => {
     prepareForAnalysis();
     setIsAnalyzingSecurity(true);
+    setSecurityAnalysisError(null);
     const flowInput = getFlowInput();
 
     try {
@@ -157,10 +157,8 @@ export default function SystemVisualizerPage() {
   const handleAnalyzeScalingPotential = () => {
     const flowInput = getFlowInput();
     if (flowInput.components.length === 0) {
-      // Optionally, show a toast or message if nothing is selected
       return;
     }
-    // No need to set analysisTriggered here as it navigates away
     const selectionString = encodeURIComponent(JSON.stringify(flowInput));
     router.push(`/capacity-analyzer?selection=${selectionString}`);
   };
@@ -182,8 +180,6 @@ export default function SystemVisualizerPage() {
     let otherComponentSelected = false;
     selectedTypesMap.forEach((_types, componentId) => {
       const comp = architectureComponents.find(c => c.id === componentId);
-      // Consider a component "infrastructure" if it's not "Microservices Architecture" itself.
-      // This logic might need refinement based on more explicit component categorization.
       if (comp && comp.id !== 'microservices-architecture') {
         otherComponentSelected = true;
       }
@@ -216,25 +212,23 @@ export default function SystemVisualizerPage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
-              <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden">
+              <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
                 <div>
-                  <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4">
-                    <component.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                  <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
+                    <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
                     <div className="flex-grow">
-                      <CardTitle className="text-lg font-semibold leading-tight">{component.title}</CardTitle>
-                      <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs">
+                      <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                      <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
                         {component.complexity}
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-1 pb-3 px-4 text-sm text-foreground/80">
-                    <p className="line-clamp-3">
-                      {component.eli5Details || "No detailed explanation available."}
-                    </p>
+                  <CardContent className="pt-2 pb-3 px-4 text-xs text-muted-foreground">
+                    <p className="line-clamp-2">{component.eli5Details || "No detailed explanation available."}</p>
                   </CardContent>
                 </div>
-                <CardFooter className="pt-3 pb-4 px-4 border-t bg-muted/20 flex-col items-start space-y-3">
-                  <Label className="text-xs font-semibold text-foreground/70 mb-1">Select specific types:</Label>
+                <CardFooter className="pt-3 pb-4 px-4 border-t border-border/50 bg-muted/20 flex-col items-start space-y-2">
+                  <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
                   {component.types && component.types.length > 0 ? (
                     component.types.map((typeDef: TypeDefinition, index) => (
                       <div key={`${component.id}-${typeDef.name}-${index}`} className="flex flex-col w-full">
@@ -255,7 +249,7 @@ export default function SystemVisualizerPage() {
                           </Label>
                         </div>
                         {typeDef.description && (
-                          <p className="text-xs text-muted-foreground pl-6 pt-0.5">
+                          <p className="text-xs text-muted-foreground pl-6 pt-0.5 leading-snug">
                             {typeDef.description}
                           </p>
                         )}
@@ -307,12 +301,12 @@ export default function SystemVisualizerPage() {
               </Button>
             </div>
             {countSelectedTypes() > 0 && !isAnyAnalysisInProgress && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-2">
                 {selectedTypesMap.size} component category(s) with {countSelectedTypes()} type(s) selected. Ready to analyze.
               </p>
             )}
              {countSelectedTypes() === 0 && !isAnyAnalysisInProgress && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-2">
                 Select at least one type for a component to generate an analysis.
               </p>
             )}
@@ -368,13 +362,13 @@ export default function SystemVisualizerPage() {
                      <Workflow className="h-5 w-5 mr-2 text-accent" />
                     Conceptual Diagram Area:
                   </h4>
-                  <div className="p-6 border-2 border-dashed border-border/70 rounded-lg bg-muted/20">
+                  <div className="p-6 border-2 border-dashed border-border/70 rounded-lg bg-muted/20 min-h-[200px] flex flex-col justify-center items-center">
                     {generatedDiagramComponents.length > 0 ? (
                         <>
                             <p className="text-center text-muted-foreground text-sm mb-4">
                                 (This area will display a dynamic diagram - Feature in development. Below is a textual representation of selected components.)
                             </p>
-                            <ul className="space-y-3">
+                            <ul className="space-y-3 w-full max-w-md">
                                 {generatedDiagramComponents.map((comp, index) => (
                                 <li key={`diagram-${comp.id}-${index}`} className="p-3 rounded-md bg-card border shadow-sm">
                                     <div className="flex items-center">
@@ -396,7 +390,7 @@ export default function SystemVisualizerPage() {
                          <>
                             <Workflow className="h-16 w-16 mx-auto mb-4 text-primary/40" />
                             <p className="text-lg font-medium text-center text-muted-foreground">Conceptual Visual Diagram</p>
-                            <p className="text-sm text-center text-muted-foreground">(This area will display a dynamic diagram based on your selections - Feature in development)</p>
+                            <p className="text-sm text-center text-muted-foreground">(Select components and trigger an analysis to see a textual representation here. Graphical diagram feature is in development.)</p>
                         </>
                     )}
                   </div>
@@ -560,5 +554,3 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
-
-    
