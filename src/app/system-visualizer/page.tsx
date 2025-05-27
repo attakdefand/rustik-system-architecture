@@ -11,9 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle, Scaling } from 'lucide-react';
+import { DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, BookCopy } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput } from '@/ai/flows/analyze-system-flow';
+import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -40,6 +41,10 @@ export default function SystemVisualizerPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
+  const [suggestedMicroservicesList, setSuggestedMicroservicesList] = useState<SuggestMicroservicesOutput['suggestedServices'] | null>(null);
+  const [isSuggestingMicroservices, setIsSuggestingMicroservices] = useState(false);
+  const [suggestMicroservicesError, setSuggestMicroservicesError] = useState<string | null>(null);
+
 
   const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -59,11 +64,12 @@ export default function SystemVisualizerPage() {
       }
       return newMap;
     });
-    if (diagramGenerated) {
-      setDiagramGenerated(false);
-      setAiAnalysis(null);
-      setAnalysisError(null);
-    }
+    // Reset states if selections change
+    setDiagramGenerated(false);
+    setAiAnalysis(null);
+    setAnalysisError(null);
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
   };
 
   const getFlowInput = (): AnalyzeSystemInput => {
@@ -80,10 +86,14 @@ export default function SystemVisualizerPage() {
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setAnalysisError(null);
+    // Reset microservice suggestions when generating main analysis
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
+
 
     const flowInput = getFlowInput();
     setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
-    setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Take snapshot for display
     setDiagramGenerated(true);
 
     try {
@@ -97,10 +107,34 @@ export default function SystemVisualizerPage() {
     }
   };
 
+  const handleSuggestMicroservices = async () => {
+    setIsSuggestingMicroservices(true);
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
+    setDiagramGenerated(true); // Keep the diagram section visible or ensure it is if not already
+    
+    const flowInput = getFlowInput();
+     // Ensure the snapshot is up-to-date if "Analyze Interactions" hasn't been clicked recently
+    if (!diagramGenerated || snapshotSelectedTypesMap.size === 0) {
+      setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
+      setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
+    }
+
+
+    try {
+      const result = await suggestMicroservices(flowInput);
+      setSuggestedMicroservicesList(result.suggestedServices);
+    } catch (error) {
+      console.error("AI Microservice Suggestion Error:", error);
+      setSuggestMicroservicesError(error instanceof Error ? error.message : "An unknown error occurred during AI microservice suggestion.");
+    } finally {
+      setIsSuggestingMicroservices(false);
+    }
+  };
+
   const handleAnalyzeScalingPotential = () => {
     const flowInput = getFlowInput();
     if (flowInput.components.length === 0) {
-      // Optionally, show a toast or alert if nothing is selected
       return;
     }
     const selectionString = encodeURIComponent(JSON.stringify(flowInput));
@@ -119,7 +153,23 @@ export default function SystemVisualizerPage() {
     return count;
   };
 
-  const isDisabled = countSelectedTypes() === 0 || isAnalyzing;
+  const isMicroservicesArchitectureSelected = () => {
+    const microservicesComp = architectureComponents.find(c => c.id === 'microservices-architecture');
+    return microservicesComp ? selectedTypesMap.has(microservicesComp.id) : false;
+  };
+  
+  const hasOtherComponentsSelected = () => {
+    let otherComponentSelected = false;
+    selectedTypesMap.forEach((_types, componentId) => {
+      if (componentId !== 'microservices-architecture') {
+        otherComponentSelected = true;
+      }
+    });
+    return otherComponentSelected;
+  };
+
+  const isAnalysisDisabled = countSelectedTypes() === 0 || isAnalyzing;
+  const isSuggestMicroservicesDisabled = !isMicroservicesArchitectureSelected() || !hasOtherComponentsSelected() || isSuggestingMicroservices || isAnalyzing;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -131,13 +181,13 @@ export default function SystemVisualizerPage() {
             System Visualizer
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions and scaling capabilities.
+            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions, scaling capabilities, and even suggested microservices.
           </p>
         </div>
 
         <div className="mt-8 w-full max-w-6xl">
           <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100">
-            Choose Your Architectural Components & Types
+            1. Choose Your Architectural Components & Types
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
@@ -194,33 +244,47 @@ export default function SystemVisualizerPage() {
             ))}
           </div>
           <div className="mt-12 text-center space-y-4">
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center flex-wrap gap-4">
               <Button 
                 size="lg" 
-                disabled={isDisabled}
+                disabled={isAnalysisDisabled}
                 onClick={handleGenerateDiagramAndAnalysis}
               >
-                <DraftingCompass className="mr-2 h-5 w-5" />
+                <BrainCircuit className="mr-2 h-5 w-5" />
                 {isAnalyzing ? "Analyzing Interactions..." : "Analyze Interactions"}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                disabled={isDisabled}
+                disabled={isSuggestMicroservicesDisabled}
+                onClick={handleSuggestMicroservices}
+              >
+                <Cpu className="mr-2 h-5 w-5" />
+                {isSuggestingMicroservices ? "Suggesting Microservices..." : "Suggest Potential Microservices"}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                disabled={isAnalysisDisabled} // Can use the same disable logic as analyze interactions
                 onClick={handleAnalyzeScalingPotential}
               >
                 <Scaling className="mr-2 h-5 w-5" />
                 Analyze Scaling Potential
               </Button>
             </div>
-            {countSelectedTypes() > 0 && !isAnalyzing && (
+            {countSelectedTypes() > 0 && !isAnalyzing && !isSuggestingMicroservices && (
               <p className="text-sm text-muted-foreground">
-                {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected.
+                {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected. Ready to analyze.
               </p>
             )}
-             {countSelectedTypes() === 0 && !isAnalyzing && (
+             {countSelectedTypes() === 0 && !isAnalyzing && !isSuggestingMicroservices &&(
               <p className="text-sm text-muted-foreground">
                 Select at least one type for a component to generate an analysis.
+              </p>
+            )}
+            {isMicroservicesArchitectureSelected() && !hasOtherComponentsSelected() && !isSuggestingMicroservices && !isAnalyzing && (
+              <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
+                To suggest microservices, please select at least one other infrastructure component type.
               </p>
             )}
           </div>
@@ -230,10 +294,10 @@ export default function SystemVisualizerPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold text-primary flex items-center">
                   <Network className="mr-3 h-7 w-7" />
-                  Conceptual System Overview
+                  Conceptual System Overview & Analysis
                 </CardTitle>
                 <CardDescription className="pt-1">
-                  Based on your selections, here's a high-level look at the chosen components and their potential roles, along with an AI-powered interaction analysis.
+                  Based on your selections, here's a high-level look at the chosen components and AI-powered insights.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-2">
@@ -276,38 +340,86 @@ export default function SystemVisualizerPage() {
                     <p className="text-sm">(This area will display a dynamic diagram based on your selections - Feature in development)</p>
                   </div>
                 </div>
-                <Separator />
-                <div>
-                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
-                    AI-Powered Interaction Analysis:
-                  </h4>
-                  <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4 prose prose-sm dark:prose-invert max-w-none">
-                    {isAnalyzing && (
-                      <>
-                        <Skeleton className="h-4 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <Skeleton className="h-4 w-5/6 mb-2" />
-                        <Skeleton className="h-4 w-full" />
-                      </>
-                    )}
-                    {analysisError && !isAnalyzing && (
-                      <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center">
-                        <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold">Analysis Failed</p>
-                          <p className="text-xs">{analysisError}</p>
-                        </div>
+                
+                {/* AI-Powered Interaction Analysis Section */}
+                {(aiAnalysis || isAnalyzing || analysisError) && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                        <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
+                        AI-Powered Interaction Analysis:
+                      </h4>
+                      <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4 prose prose-sm dark:prose-invert max-w-none">
+                        {isAnalyzing && (
+                          <>
+                            <Skeleton className="h-4 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-full mb-2" />
+                            <Skeleton className="h-4 w-5/6 mb-2" />
+                            <Skeleton className="h-4 w-full" />
+                          </>
+                        )}
+                        {analysisError && !isAnalyzing && (
+                          <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center">
+                            <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold">Interaction Analysis Failed</p>
+                              <p className="text-xs">{analysisError}</p>
+                            </div>
+                          </div>
+                        )}
+                        {aiAnalysis && !isAnalyzing && !analysisError && (
+                          <div dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\n/g, '<br />') }} />
+                        )}
                       </div>
-                    )}
-                    {aiAnalysis && !isAnalyzing && !analysisError && (
-                      <div dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\n/g, '<br />') }} />
-                    )}
-                    {!aiAnalysis && !isAnalyzing && !analysisError && (
-                       <p className="text-muted-foreground">Click "Analyze Interactions" to see an AI-powered explanation of potential interactions, benefits, and considerations for your selected components.</p>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
+
+                {/* AI-Suggested Microservices Section */}
+                {(suggestedMicroservicesList || isSuggestingMicroservices || suggestMicroservicesError) && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                        <Cpu className="h-5 w-5 mr-2 text-accent" /> {/* Using Cpu icon for microservices */}
+                        AI-Suggested Potential Microservices:
+                      </h4>
+                      <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
+                        {isSuggestingMicroservices && (
+                           <>
+                            <Skeleton className="h-4 w-1/2 mb-3" />
+                            <Skeleton className="h-3 w-full mb-1" />
+                            <Skeleton className="h-3 w-5/6 mb-4" />
+                            <Skeleton className="h-4 w-1/2 mb-3" />
+                            <Skeleton className="h-3 w-full mb-1" />
+                            <Skeleton className="h-3 w-5/6" />
+                          </>
+                        )}
+                        {suggestMicroservicesError && !isSuggestingMicroservices && (
+                          <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center">
+                            <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold">Microservice Suggestion Failed</p>
+                              <p className="text-xs">{suggestMicroservicesError}</p>
+                            </div>
+                          </div>
+                        )}
+                        {suggestedMicroservicesList && !isSuggestingMicroservices && !suggestMicroservicesError && (
+                          <ul className="space-y-5">
+                            {suggestedMicroservicesList.map((service, index) => (
+                              <li key={index} className="p-3 border-l-4 border-primary/50 bg-muted/30 rounded-r-md">
+                                <p className="font-semibold text-md text-primary">{service.name}</p>
+                                <p className="text-sm text-foreground/80 mt-1">{service.rationale}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
               </CardContent>
             </Card>
           )}
@@ -325,4 +437,3 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
-
