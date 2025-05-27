@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { LockKeyhole } from 'lucide-react'; // Added for Admin link
+import { LockKeyhole } from 'lucide-react'; // Icon was for Admin link
 
 // A-style/Compass-style logo
 const RustikArchitectLogo = () => (
@@ -33,8 +33,8 @@ export function AppHeader() {
 
   const dotColors = [
     'bg-red-500',
-    'bg-orange-400', // Adjusted orange for better visibility
-    'bg-yellow-400', // Adjusted yellow for better visibility
+    'bg-orange-400',
+    'bg-yellow-400',
     'bg-green-500',
     'bg-blue-500',
     'bg-indigo-500',
@@ -57,7 +57,7 @@ export function AppHeader() {
     { href: "/", label: "Components" },
     { href: "/system-builder-challenges", label: "Builder Insights" },
     { href: "/system-visualizer", label: "Visualizer" },
-    { href: "/admin", label: "Admin Panel", icon: LockKeyhole }, // Added Admin link
+    // { href: "/admin", label: "Admin Panel", icon: LockKeyhole }, // Admin link REMOVED
   ];
 
   return (
@@ -83,7 +83,7 @@ export function AppHeader() {
               </span>
             </div>
 
-            <div className="flex items-baseline space-x-1 text-xs text-muted-foreground mt-2 italic">
+             <div className="flex items-baseline space-x-1 text-xs text-muted-foreground mt-2 italic">
               <TooltipProvider>
                 {mottoWords.map((word, index) => (
                   <Tooltip key={word}>
@@ -93,7 +93,7 @@ export function AppHeader() {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {mottoTooltips[index]}
+                      <p>{mottoTooltips[index]}</p>
                     </TooltipContent>
                   </Tooltip>
                 ))}
