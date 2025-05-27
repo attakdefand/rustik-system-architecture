@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +38,11 @@ interface AnalysisState<T> {
   attempted: boolean; // To track if this analysis was even attempted
 }
 
+interface CategorizedComponents {
+  category: string;
+  components: ArchitectureComponent[];
+}
+
 export default function MasterFlowPage() {
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   const { toast } = useToast();
@@ -55,6 +61,35 @@ export default function MasterFlowPage() {
   const [analysesTriggered, setAnalysesTriggered] = useState(false);
   const [currentFlowInput, setCurrentFlowInput] = useState<AnalyzeSystemInput | null>(null);
 
+
+  const categorizedComponents: CategorizedComponents[] = [
+    {
+      category: 'Networking & Connectivity',
+      components: architectureComponents.filter(c => ['anycast-ip', 'load-balancers', 'api-gateway', 'network-infra-strategies'].includes(c.id)),
+    },
+    {
+      category: 'Application & Compute Logic',
+      components: architectureComponents.filter(c => ['rust-app-nodes', 'microservices-architecture', 'async-io', 'per-core-socket', 'api-design-styles', 'app-design-principles'].includes(c.id)),
+    },
+    {
+      category: 'Data Management & Storage',
+      components: architectureComponents.filter(c => ['database-strategies', 'caching-strategies', 'shared-state-data-plane'].includes(c.id)),
+    },
+    {
+      category: 'Operations, Scaling & Security',
+      components: architectureComponents.filter(c => ['service-discovery-control-plane', 'observability-ops', 'deployment-cicd', 'autoscaling-resilience', 'security-architecture-principles', 'cost-management'].includes(c.id)),
+    },
+  ];
+
+  const allCategorizedIds = categorizedComponents.flatMap(cat => cat.components.map(c => c.id));
+  const uncategorizedComponents = architectureComponents.filter(c => !allCategorizedIds.includes(c.id));
+
+  if (uncategorizedComponents.length > 0) {
+    categorizedComponents.push({
+        category: 'Other Components',
+        components: uncategorizedComponents
+    });
+  }
 
   const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -277,7 +312,6 @@ export default function MasterFlowPage() {
 
   const getComponentIcon = (title: string) => {
     const component = architectureComponents.find(c => c.title === title);
-    // Fallback to a generic icon if not found, though this shouldn't happen
     return component ? component.icon : Layers; 
   };
 
@@ -300,48 +334,68 @@ export default function MasterFlowPage() {
           <h3 className="text-2xl font-semibold tracking-tight mb-6 text-center text-primary">
             1. Choose Your Architectural Blueprint
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {architectureComponents.map((component) => (
-              <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
-                <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
-                  <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
-                  <div className="flex-grow">
-                    <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
-                    <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
-                      {component.complexity}
-                    </Badge>
+          <div className="space-y-12">
+            {categorizedComponents.map(categoryGroup => (
+              categoryGroup.components.length > 0 && (
+                <section key={categoryGroup.category}>
+                  <h4 className="text-xl font-semibold tracking-tight mb-6 text-center text-gray-700 dark:text-gray-200 border-b-2 border-primary/20 pb-2">
+                    {categoryGroup.category}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {categoryGroup.components.map((component) => (
+                      <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
+                        <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
+                          <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
+                          <div className="flex-grow">
+                            <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                            <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
+                              {component.complexity}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardFooter className="pt-3 pb-4 px-2 border-t border-border/50 bg-muted/20 flex-col items-start">
+                          {component.types && component.types.length > 0 ? (
+                             <Accordion type="single" collapsible className="w-full">
+                              <AccordionItem value={`item-${component.id}`} className="border-b-0">
+                                <AccordionTrigger className="py-2 px-2 text-xs font-medium text-foreground/80 hover:no-underline">
+                                  Select Types ({component.types.length})
+                                </AccordionTrigger>
+                                <AccordionContent className="pt-1 pb-2 px-2 space-y-2">
+                                  {component.types.map((typeDef: TypeDefinition, index) => (
+                                    <div key={`${component.id}-${typeDef.name.replace(/\s+/g, '-')}-${index}`} className="flex flex-col w-full">
+                                      <div className="flex items-center space-x-2 w-full">
+                                        <Checkbox
+                                          id={`master-select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                          checked={selectedTypesMap.get(component.id)?.has(typeDef.name) ?? false}
+                                          onCheckedChange={(checked) => handleTypeSelection(component.id, typeDef.name, !!checked)}
+                                          aria-label={`Select type ${typeDef.name} for ${component.title}`}
+                                        />
+                                        <Label
+                                          htmlFor={`master-select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
+                                        >
+                                          {typeDef.name}
+                                        </Label>
+                                      </div>
+                                      {typeDef.description && <p className="text-xs text-muted-foreground pl-6 pt-0.5 leading-snug">{typeDef.description}</p>}
+                                    </div>
+                                  ))}
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          ) : (
+                            <p className="text-xs text-muted-foreground px-2 py-3">No specific types listed for this component.</p>
+                          )}
+                        </CardFooter>
+                      </Card>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent className="pt-3 pb-4 px-4 border-t border-border/50 bg-muted/20 flex-col items-start space-y-2">
-                  <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
-                  {component.types && component.types.length > 0 ? (
-                    component.types.map((typeDef: TypeDefinition, index) => (
-                      <div key={`${component.id}-${typeDef.name.replace(/\s+/g, '-')}-${index}`} className="flex flex-col w-full">
-                        <div className="flex items-center space-x-2 w-full">
-                          <Checkbox
-                            id={`master-select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
-                            checked={selectedTypesMap.get(component.id)?.has(typeDef.name) ?? false}
-                            onCheckedChange={(checked) => handleTypeSelection(component.id, typeDef.name, !!checked)}
-                            aria-label={`Select type ${typeDef.name} for ${component.title}`}
-                          />
-                          <Label
-                            htmlFor={`master-select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
-                            className="text-xs font-normal leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
-                          >
-                            {typeDef.name}
-                          </Label>
-                        </div>
-                        {typeDef.description && <p className="text-xs text-muted-foreground pl-6 pt-0.5 leading-snug">{typeDef.description}</p>}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground">No specific types listed.</p>
-                  )}
-                </CardContent>
-              </Card>
+                </section>
+              )
             ))}
           </div>
         </div>
+
 
         <div className="w-full max-w-6xl text-center mb-16 p-6 bg-card rounded-xl shadow-lg">
             <h3 className="text-2xl font-semibold tracking-tight mb-6 text-center text-primary">
