@@ -100,3 +100,23 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes blink-opacity {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .animate-blink-red {
+    animation: blink-opacity 1.8s infinite;
+    animation-delay: 0s;
+  }
+  .animate-blink-yellow {
+    animation: blink-opacity 1.8s infinite;
+    animation-delay: 0.6s;
+  }
+  .animate-blink-green {
+    animation: blink-opacity 1.8s infinite;
+    animation-delay: 1.2s;
+  }
+}

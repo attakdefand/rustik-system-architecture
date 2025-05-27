@@ -20,7 +20,14 @@ export function AppHeader() {
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
-            <Link href="/master-flow">Master-Flow</Link>
+            <Link href="/master-flow" className="flex flex-col items-center">
+              <span>Master-Flow</span>
+              <div className="flex space-x-1 mt-0.5" aria-hidden="true">
+                <span className="h-1.5 w-1.5 bg-red-500 rounded-full animate-blink-red"></span>
+                <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
+                <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
+              </div>
+            </Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/">Components</Link>
