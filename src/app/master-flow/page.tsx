@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -381,11 +381,38 @@ export default function MasterFlowPage() {
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
-                      description: "Cost &amp; Performance Simulation is coming soon!",
+                      description: "Cost & Performance Simulation is coming soon!",
                     });
                   }}
                 >
-                  Explore Cost &amp; Performance Simulation (Coming Soon)
+                  Explore Cost & Performance Simulation (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <ShieldAlert className="h-6 w-6 mr-3" />
+                  Advanced Security Assessment (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Build in a rule-based or AI-powered security auditor that flags missing mTLS, 
+                  weak isolation zones, or single points of failure—turning your visual model 
+                  into a living threat-model.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Advanced Security Assessment is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Advanced Security Assessment (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
