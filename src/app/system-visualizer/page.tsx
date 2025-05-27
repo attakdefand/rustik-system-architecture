@@ -2,7 +2,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Eye, Construction } from 'lucide-react';
+import { Construction } from 'lucide-react';
 
 export default function SystemVisualizerPage() {
   return (
