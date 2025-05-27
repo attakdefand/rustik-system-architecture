@@ -11,10 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, BookCopy } from 'lucide-react';
+import { DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, BookCopy, Shield } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
-import { analyzeSystem, type AnalyzeSystemInput } from '@/ai/flows/analyze-system-flow';
+import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
+import { analyzeSecurityPosture, type AnalyzeSecurityPostureInput, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -45,6 +46,10 @@ export default function SystemVisualizerPage() {
   const [isSuggestingMicroservices, setIsSuggestingMicroservices] = useState(false);
   const [suggestMicroservicesError, setSuggestMicroservicesError] = useState<string | null>(null);
 
+  const [securityPostureResult, setSecurityPostureResult] = useState<AnalyzeSecurityPostureOutput | null>(null);
+  const [isAnalyzingSecurity, setIsAnalyzingSecurity] = useState(false);
+  const [securityAnalysisError, setSecurityAnalysisError] = useState<string | null>(null);
+
 
   const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -70,6 +75,8 @@ export default function SystemVisualizerPage() {
     setAnalysisError(null);
     setSuggestedMicroservicesList(null);
     setSuggestMicroservicesError(null);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
   };
 
   const getFlowInput = (): AnalyzeSystemInput => {
@@ -82,26 +89,28 @@ export default function SystemVisualizerPage() {
     };
   };
 
-  const handleGenerateDiagramAndAnalysis = async () => {
+  const handleGenerateInteractionAnalysis = async () => {
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setAnalysisError(null);
-    // Reset microservice suggestions when generating main analysis
+    // Reset other analyses when generating interaction analysis for clarity
     setSuggestedMicroservicesList(null);
     setSuggestMicroservicesError(null);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
 
 
     const flowInput = getFlowInput();
     setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
-    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Take snapshot for display
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); 
     setDiagramGenerated(true);
 
     try {
       const result = await analyzeSystem(flowInput);
       setAiAnalysis(result.analysis);
     } catch (error) {
-      console.error("AI Analysis Error:", error);
-      setAnalysisError(error instanceof Error ? error.message : "An unknown error occurred during AI analysis.");
+      console.error("AI Interaction Analysis Error:", error);
+      setAnalysisError(error instanceof Error ? error.message : "An unknown error occurred during AI interaction analysis.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -111,15 +120,18 @@ export default function SystemVisualizerPage() {
     setIsSuggestingMicroservices(true);
     setSuggestedMicroservicesList(null);
     setSuggestMicroservicesError(null);
-    setDiagramGenerated(true); // Keep the diagram section visible or ensure it is if not already
+    // Reset other analyses
+    setAiAnalysis(null);
+    setAnalysisError(null);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
     
     const flowInput = getFlowInput();
-     // Ensure the snapshot is up-to-date if "Analyze Interactions" hasn't been clicked recently
     if (!diagramGenerated || snapshotSelectedTypesMap.size === 0) {
       setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
       setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
+      setDiagramGenerated(true);
     }
-
 
     try {
       const result = await suggestMicroservices(flowInput);
@@ -131,6 +143,35 @@ export default function SystemVisualizerPage() {
       setIsSuggestingMicroservices(false);
     }
   };
+  
+  const handleAnalyzeSecurityPosture = async () => {
+    setIsAnalyzingSecurity(true);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
+    // Reset other analyses
+    setAiAnalysis(null);
+    setAnalysisError(null);
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
+
+    const flowInput = getFlowInput();
+     if (!diagramGenerated || snapshotSelectedTypesMap.size === 0) {
+      setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
+      setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
+      setDiagramGenerated(true);
+    }
+
+    try {
+      const result = await analyzeSecurityPosture(flowInput as AnalyzeSecurityPostureInput);
+      setSecurityPostureResult(result);
+    } catch (error) {
+      console.error("AI Security Posture Analysis Error:", error);
+      setSecurityAnalysisError(error instanceof Error ? error.message : "An unknown error occurred during AI security analysis.");
+    } finally {
+      setIsAnalyzingSecurity(false);
+    }
+  };
+
 
   const handleAnalyzeScalingPotential = () => {
     const flowInput = getFlowInput();
@@ -168,8 +209,8 @@ export default function SystemVisualizerPage() {
     return otherComponentSelected;
   };
 
-  const isAnalysisDisabled = countSelectedTypes() === 0 || isAnalyzing;
-  const isSuggestMicroservicesDisabled = !isMicroservicesArchitectureSelected() || !hasOtherComponentsSelected() || isSuggestingMicroservices || isAnalyzing;
+  const isAnyAnalysisButtonDisabled = countSelectedTypes() === 0 || isAnalyzing || isSuggestingMicroservices || isAnalyzingSecurity;
+  const isSuggestMicroservicesButtonDisabled = !isMicroservicesArchitectureSelected() || !hasOtherComponentsSelected() || isAnyAnalysisButtonDisabled;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -181,7 +222,7 @@ export default function SystemVisualizerPage() {
             System Visualizer
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions, scaling capabilities, and even suggested microservices.
+            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions, scaling capabilities, security posture, and even suggested microservices.
           </p>
         </div>
 
@@ -247,8 +288,8 @@ export default function SystemVisualizerPage() {
             <div className="flex flex-col sm:flex-row justify-center items-center flex-wrap gap-4">
               <Button 
                 size="lg" 
-                disabled={isAnalysisDisabled}
-                onClick={handleGenerateDiagramAndAnalysis}
+                disabled={isAnyAnalysisButtonDisabled}
+                onClick={handleGenerateInteractionAnalysis}
               >
                 <BrainCircuit className="mr-2 h-5 w-5" />
                 {isAnalyzing ? "Analyzing Interactions..." : "Analyze Interactions"}
@@ -256,33 +297,42 @@ export default function SystemVisualizerPage() {
               <Button
                 size="lg"
                 variant="outline"
-                disabled={isSuggestMicroservicesDisabled}
+                disabled={isSuggestMicroservicesButtonDisabled}
                 onClick={handleSuggestMicroservices}
               >
                 <Cpu className="mr-2 h-5 w-5" />
                 {isSuggestingMicroservices ? "Suggesting Microservices..." : "Suggest Potential Microservices"}
               </Button>
+               <Button
+                size="lg"
+                variant="outline"
+                disabled={isAnyAnalysisButtonDisabled}
+                onClick={handleAnalyzeSecurityPosture}
+              >
+                <Shield className="mr-2 h-5 w-5" />
+                {isAnalyzingSecurity ? "Analyzing Security..." : "Analyze Security Posture"}
+              </Button>
               <Button
                 size="lg"
                 variant="outline"
-                disabled={isAnalysisDisabled} // Can use the same disable logic as analyze interactions
+                disabled={isAnyAnalysisButtonDisabled} 
                 onClick={handleAnalyzeScalingPotential}
               >
                 <Scaling className="mr-2 h-5 w-5" />
                 Analyze Scaling Potential
               </Button>
             </div>
-            {countSelectedTypes() > 0 && !isAnalyzing && !isSuggestingMicroservices && (
+            {countSelectedTypes() > 0 && !isAnalyzing && !isSuggestingMicroservices && !isAnalyzingSecurity && (
               <p className="text-sm text-muted-foreground">
                 {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected. Ready to analyze.
               </p>
             )}
-             {countSelectedTypes() === 0 && !isAnalyzing && !isSuggestingMicroservices &&(
+             {countSelectedTypes() === 0 && !isAnalyzing && !isSuggestingMicroservices && !isAnalyzingSecurity && (
               <p className="text-sm text-muted-foreground">
                 Select at least one type for a component to generate an analysis.
               </p>
             )}
-            {isMicroservicesArchitectureSelected() && !hasOtherComponentsSelected() && !isSuggestingMicroservices && !isAnalyzing && (
+            {isMicroservicesArchitectureSelected() && !hasOtherComponentsSelected() && !isSuggestingMicroservices && !isAnalyzing && !isAnalyzingSecurity && (
               <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
                 To suggest microservices, please select at least one other infrastructure component type.
               </p>
@@ -341,7 +391,6 @@ export default function SystemVisualizerPage() {
                   </div>
                 </div>
                 
-                {/* AI-Powered Interaction Analysis Section */}
                 {(aiAnalysis || isAnalyzing || analysisError) && (
                   <>
                     <Separator />
@@ -376,13 +425,12 @@ export default function SystemVisualizerPage() {
                   </>
                 )}
 
-                {/* AI-Suggested Microservices Section */}
                 {(suggestedMicroservicesList || isSuggestingMicroservices || suggestMicroservicesError) && (
                   <>
                     <Separator />
                     <div>
                       <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                        <Cpu className="h-5 w-5 mr-2 text-accent" /> {/* Using Cpu icon for microservices */}
+                        <Cpu className="h-5 w-5 mr-2 text-accent" />
                         AI-Suggested Potential Microservices:
                       </h4>
                       <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
@@ -420,6 +468,70 @@ export default function SystemVisualizerPage() {
                   </>
                 )}
 
+                {(securityPostureResult || isAnalyzingSecurity || securityAnalysisError) && (
+                  <>
+                    <Separator />
+                     <div>
+                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
+                        <Shield className="h-5 w-5 mr-2 text-accent" />
+                        Conceptual Security Posture Analysis:
+                      </h4>
+                      <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
+                        {isAnalyzingSecurity && (
+                          <>
+                            <Skeleton className="h-4 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-full mb-2" />
+                            <Skeleton className="h-4 w-5/6 mb-2" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-1/2" />
+                          </>
+                        )}
+                        {securityAnalysisError && !isAnalyzingSecurity && (
+                          <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center">
+                            <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold">Security Analysis Failed</p>
+                              <p className="text-xs">{securityAnalysisError}</p>
+                            </div>
+                          </div>
+                        )}
+                        {securityPostureResult && !isAnalyzingSecurity && !securityAnalysisError && (
+                          <div>
+                            <h5 className="font-semibold text-md mb-2 text-primary">{securityPostureResult.overallConceptualAssessment}</h5>
+                            
+                            {securityPostureResult.positiveSecurityAspects && securityPostureResult.positiveSecurityAspects.length > 0 && (
+                              <div className="mt-3 p-3 bg-green-500/5 rounded-md border border-green-500/20">
+                                <h6 className="font-medium text-green-700 dark:text-green-400 mb-1">Positive Security Aspects:</h6>
+                                <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                                  {securityPostureResult.positiveSecurityAspects.map((aspect, i) => <li key={`positive-${i}`}>{aspect}</li>)}
+                                </ul>
+                              </div>
+                            )}
+
+                            {securityPostureResult.potentialVulnerabilitiesOrConcerns && securityPostureResult.potentialVulnerabilitiesOrConcerns.length > 0 && (
+                              <div className="mt-3 p-3 bg-yellow-500/5 rounded-md border border-yellow-500/20">
+                                <h6 className="font-medium text-yellow-700 dark:text-yellow-400 mb-1">Potential Vulnerabilities/Concerns:</h6>
+                                <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                                  {securityPostureResult.potentialVulnerabilitiesOrConcerns.map((concern, i) => <li key={`concern-${i}`}>{concern}</li>)}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {securityPostureResult.keySecurityRecommendations && securityPostureResult.keySecurityRecommendations.length > 0 && (
+                              <div className="mt-3 p-3 bg-blue-500/5 rounded-md border border-blue-500/20">
+                                <h6 className="font-medium text-blue-700 dark:text-blue-400 mb-1">Key Security Recommendations:</h6>
+                                <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                                  {securityPostureResult.keySecurityRecommendations.map((rec, i) => <li key={`rec-${i}`}>{rec}</li>)}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
               </CardContent>
             </Card>
           )}
@@ -437,3 +549,6 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
+
+
+    
