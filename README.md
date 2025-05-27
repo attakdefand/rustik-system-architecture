@@ -30,14 +30,8 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
     *   If "Microservices Architecture" and other relevant infrastructure are selected, click "Suggest Potential Microservices" for AI-based service suggestions.
     *   Click "Analyze Conceptual Security Posture" for an AI-driven security overview of your selections.
 
-    <!--
-    **Screenshot Placeholder for System Visualizer:**
-    To add a screenshot here:
-    1. Take a screenshot of the System Visualizer page in action.
-    2. Save the image (e.g., as `system-visualizer-screenshot.png`) in a directory like `docs/images/` within your project.
-    3. Uncomment and update the following Markdown line:
+    **System Visualizer Screenshot:**
     ![System Visualizer Screenshot](./docs/images/system-visualizer-screenshot.png)
-    -->
 
 3.  **Analyze Scaling Potential**: From the Visualizer, after selecting components, click "Analyze Scaling Potential". This will take you to the **Capacity Analyzer** page, showing an AI's conceptual take on how your selections might scale and handle large user loads.
 4.  **Comprehensive Architectural Profile (Master-Flow)**: Use the **Master-Flow** tab.
