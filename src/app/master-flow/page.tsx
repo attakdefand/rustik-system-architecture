@@ -17,7 +17,7 @@ import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from
 import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows/analyze-capacity-flow';
 import { suggestCapacityTier, type SuggestCapacityTierOutput } from '@/ai/flows/suggest-capacity-tier-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
-import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
+import { suggestMicroservices, type SuggestMicroservicesInput, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
 import { generateDocument, type GenerateDocumentOutput } from '@/ai/flows/generate-document-flow';
 
 
@@ -134,7 +134,7 @@ export default function MasterFlowPage() {
 
       if (microservicesApplicable) {
         analysisPromises.push(
-          suggestMicroservices(flowInput).then(data => ({key: 'microservices', data, error: null })).catch(error => ({ key: 'microservices', data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
+          suggestMicroservices(flowInput as SuggestMicroservicesInput).then(data => ({key: 'microservices', data, error: null })).catch(error => ({ key: 'microservices', data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
         );
       }
       
@@ -237,7 +237,7 @@ export default function MasterFlowPage() {
 
   const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading);
 
-  const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => {
+  const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode, description?: string) => {
     if (!state.attempted && !state.isLoading && !analysesTriggered) return null; 
 
     return (
@@ -247,6 +247,7 @@ export default function MasterFlowPage() {
           {React.createElement(icon, { className: "h-6 w-6 mr-3" })}
           {title}
         </CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent className="prose prose-sm dark:prose-invert max-w-none p-6 bg-muted/10 border rounded-lg shadow-inner text-foreground/90 space-y-4 min-h-[100px]">
         {state.isLoading && (
@@ -430,11 +431,11 @@ export default function MasterFlowPage() {
 
             {renderAnalysisSection<AnalyzeSystemOutput>("Interaction Analysis", Layers, interactionAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
-            ))}
+            ), "Explores how selected components might work together, including a conceptual data flow if applicable.")}
 
             {renderAnalysisSection<AnalyzeCapacityOutput>("Conceptual Scaling Potential", Scaling, capacityAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
-            ))}
+            ), "Analyzes how the selected components contribute to handling large user loads and overall system scalability.")}
 
             {renderAnalysisSection<SuggestCapacityTierOutput>("Suggested Capacity Tier & Reasoning", Zap, tierSuggestion, (data) => (
               <div>
@@ -459,7 +460,7 @@ export default function MasterFlowPage() {
                   </div>
                 )}
               </div>
-            ))}
+            ), "Suggests a conceptual user capacity tier the system might be suitable for, with detailed reasoning.")}
 
             {renderAnalysisSection<AnalyzeSecurityPostureOutput>("Conceptual Security Posture", Shield, securityPostureAnalysis, (data) => (
               <div>
@@ -492,7 +493,7 @@ export default function MasterFlowPage() {
                   </div>
                 )}
               </div>
-            ))}
+            ), "Provides a high-level AI assessment of security strengths, vulnerabilities, and recommendations.")}
 
             {microserviceSuggestions.attempted && isMicroservicesFlowApplicable(currentFlowInput) && renderAnalysisSection<SuggestMicroservicesOutput>("AI-Suggested Potential Microservices", Cpu, microserviceSuggestions, (data) => (
                data.suggestedServices && data.suggestedServices.length > 0 && data.suggestedServices[0].name !== "Context Needed" ? (
@@ -507,7 +508,7 @@ export default function MasterFlowPage() {
               ) : (
                  <p className="text-muted-foreground">Microservice suggestions were not applicable for the current selection, or no specific suggestions could be generated. Ensure 'Microservices Architecture' and other relevant infrastructure components are selected.</p>
               )
-            ))}
+            ), "If 'Microservices Architecture' is selected with relevant infra, suggests potential application-level microservices.")}
             
             <Card className="shadow-xl rounded-xl">
               <CardHeader>
@@ -775,6 +776,3 @@ export default function MasterFlowPage() {
     </div>
   );
 }
-    
-
-    

@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput } from 'lucide-react';
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput, FileText } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
@@ -415,10 +415,15 @@ export default function SystemVisualizerPage() {
                   <>
                     <Separator />
                     <div>
-                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                        <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
-                        AI-Powered Interaction Analysis:
-                      </h4>
+                      <CardHeader className="px-0 py-4">
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
+                            <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
+                            AI-Powered Interaction Analysis:
+                        </CardTitle>
+                        <CardDescription className="pt-1">
+                          Based on your selections, here's a high-level look at potential interactions, benefits, considerations, and a conceptual sequential flow if applicable.
+                        </CardDescription>
+                      </CardHeader>
                       <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4 prose prose-sm dark:prose-invert max-w-none">
                         {isAnalyzing && (
                           <>
@@ -449,10 +454,15 @@ export default function SystemVisualizerPage() {
                   <>
                     <Separator />
                     <div>
-                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                        <Cpu className="h-5 w-5 mr-2 text-accent" />
-                        AI-Suggested Potential Microservices:
-                      </h4>
+                      <CardHeader className="px-0 py-4">
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
+                            <Cpu className="h-5 w-5 mr-2 text-accent" />
+                            AI-Suggested Potential Microservices:
+                        </CardTitle>
+                        <CardDescription className="pt-1">
+                           If &quot;Microservices Architecture&quot; and relevant infrastructure are selected, the AI suggests potential application-level microservices.
+                        </CardDescription>
+                      </CardHeader>
                       <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
                         {isSuggestingMicroservices && (
                            <>
@@ -492,10 +502,15 @@ export default function SystemVisualizerPage() {
                   <>
                     <Separator />
                      <div>
-                      <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                        <Shield className="h-5 w-5 mr-2 text-accent" />
-                        Conceptual Security Posture Analysis:
-                      </h4>
+                      <CardHeader className="px-0 py-4">
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
+                          <Shield className="h-5 w-5 mr-2 text-accent" />
+                          Conceptual Security Posture Analysis:
+                        </CardTitle>
+                        <CardDescription className="pt-1">
+                           A high-level AI assessment of potential security strengths, vulnerabilities, and recommendations for your selected components.
+                        </CardDescription>
+                      </CardHeader>
                       <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
                         {isAnalyzingSecurity && (
                           <>
@@ -559,16 +574,16 @@ export default function SystemVisualizerPage() {
                   </h4>
                   <div className="flex flex-wrap gap-3">
                     <Button variant="outline" onClick={() => handleExportClick("PlantUML")}>
-                      <FileOutput className="mr-2 h-4 w-4" /> Export PlantUML
+                      <FileText className="mr-2 h-4 w-4" /> Export PlantUML
                     </Button>
                     <Button variant="outline" onClick={() => handleExportClick("SVG/PNG Diagram")}>
-                      <FileOutput className="mr-2 h-4 w-4" /> Export SVG/PNG
+                      <FileText className="mr-2 h-4 w-4" /> Export SVG/PNG
                     </Button>
                     <Button variant="outline" onClick={() => handleExportClick("Terraform Stubs")}>
-                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (Terraform)
+                      <FileText className="mr-2 h-4 w-4" /> Export IaC (Terraform)
                     </Button>
                      <Button variant="outline" onClick={() => handleExportClick("CloudFormation Stubs")}>
-                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (CloudFormation)
+                      <FileText className="mr-2 h-4 w-4" /> Export IaC (CloudFormation)
                     </Button>
                   </div>
                 </div>
@@ -589,5 +604,3 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
-
-    
