@@ -9,13 +9,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows/analyze-capacity-flow';
 import { suggestCapacityTier, type SuggestCapacityTierOutput } from '@/ai/flows/suggest-capacity-tier-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
+import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
 
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -31,15 +32,18 @@ interface AnalysisState<T> {
   data: T | null;
   isLoading: boolean;
   error: string | null;
+  attempted: boolean; // To track if this analysis was even attempted
 }
 
 export default function MasterFlowPage() {
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   
-  const [interactionAnalysis, setInteractionAnalysis] = useState<AnalysisState<AnalyzeSystemOutput>>({ data: null, isLoading: false, error: null });
-  const [capacityAnalysis, setCapacityAnalysis] = useState<AnalysisState<AnalyzeCapacityOutput>>({ data: null, isLoading: false, error: null });
-  const [tierSuggestion, setTierSuggestion] = useState<AnalysisState<SuggestCapacityTierOutput>>({ data: null, isLoading: false, error: null });
-  const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>({ data: null, isLoading: false, error: null });
+  const initialAnalysisState = { data: null, isLoading: false, error: null, attempted: false };
+  const [interactionAnalysis, setInteractionAnalysis] = useState<AnalysisState<AnalyzeSystemOutput>>(initialAnalysisState);
+  const [capacityAnalysis, setCapacityAnalysis] = useState<AnalysisState<AnalyzeCapacityOutput>>(initialAnalysisState);
+  const [tierSuggestion, setTierSuggestion] = useState<AnalysisState<SuggestCapacityTierOutput>>(initialAnalysisState);
+  const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>(initialAnalysisState);
+  const [microserviceSuggestions, setMicroserviceSuggestions] = useState<AnalysisState<SuggestMicroservicesOutput>>(initialAnalysisState);
 
   const [analysesTriggered, setAnalysesTriggered] = useState(false);
 
@@ -66,44 +70,81 @@ export default function MasterFlowPage() {
     };
   };
 
+  const isMicroservicesFlowApplicable = (flowInput: AnalyzeSystemInput): boolean => {
+    const microservicesCompSelected = flowInput.components.some(
+      (c) => c.componentTitle === "Microservices Architecture"
+    );
+    const otherInfraSelected = flowInput.components.some(
+      (c) => c.componentTitle !== "Microservices Architecture" && c.selectedTypes.length > 0
+    );
+    return microservicesCompSelected && otherInfraSelected;
+  };
+
+
   const handleAnalyzeProfile = async () => {
     const flowInput = getFlowInput();
     if (flowInput.components.length === 0) {
       const errorMsg = "Please select at least one component type to analyze.";
-      setInteractionAnalysis({ data: null, isLoading: false, error: errorMsg });
-      setCapacityAnalysis({ data: null, isLoading: false, error: errorMsg });
-      setTierSuggestion({ data: null, isLoading: false, error: errorMsg });
-      setSecurityPostureAnalysis({ data: null, isLoading: false, error: errorMsg });
+      setInteractionAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
+      setCapacityAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
+      setTierSuggestion({ data: null, isLoading: false, error: errorMsg, attempted: true });
+      setSecurityPostureAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
+      setMicroserviceSuggestions({ data: null, isLoading: false, error: errorMsg, attempted: false }); // Not attempted if no components
       setAnalysesTriggered(true);
       return;
     }
 
     setAnalysesTriggered(true);
-    setInteractionAnalysis({ data: null, isLoading: true, error: null });
-    setCapacityAnalysis({ data: null, isLoading: true, error: null });
-    setTierSuggestion({ data: null, isLoading: true, error: null });
-    setSecurityPostureAnalysis({ data: null, isLoading: true, error: null });
+    setInteractionAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
+    setCapacityAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
+    setTierSuggestion({ ...initialAnalysisState, isLoading: true, attempted: true });
+    setSecurityPostureAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
+
+    const microservicesApplicable = isMicroservicesFlowApplicable(flowInput);
+    if (microservicesApplicable) {
+      setMicroserviceSuggestions({ ...initialAnalysisState, isLoading: true, attempted: true });
+    } else {
+      setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false });
+    }
 
     try {
-      const [interactionResult, capacityResult, tierResult, securityResult] = await Promise.all([
+      const analysisPromises = [
         analyzeSystem(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Interaction analysis failed." })),
         analyzeCapacityPotential(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Capacity analysis failed." })),
         suggestCapacityTier(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Tier suggestion failed." })),
         analyzeSecurityPosture(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Security posture analysis failed." })),
-      ]);
+      ];
 
-      setInteractionAnalysis({ data: interactionResult.data, isLoading: false, error: interactionResult.error });
-      setCapacityAnalysis({ data: capacityResult.data, isLoading: false, error: capacityResult.error });
-      setTierSuggestion({ data: tierResult.data, isLoading: false, error: tierResult.error });
-      setSecurityPostureAnalysis({ data: securityResult.data, isLoading: false, error: securityResult.error });
+      if (microservicesApplicable) {
+        analysisPromises.push(
+          suggestMicroservices(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
+        );
+      } else {
+        analysisPromises.push(Promise.resolve({ data: null, error: null, notRun: true })); // Placeholder for non-applicable flow
+      }
+      
+      const [interactionResult, capacityResult, tierResult, securityResult, microserviceResult] = await Promise.all(analysisPromises);
+
+      setInteractionAnalysis({ data: interactionResult.data, isLoading: false, error: interactionResult.error, attempted: true });
+      setCapacityAnalysis({ data: capacityResult.data, isLoading: false, error: capacityResult.error, attempted: true });
+      setTierSuggestion({ data: tierResult.data, isLoading: false, error: tierResult.error, attempted: true });
+      setSecurityPostureAnalysis({ data: securityResult.data, isLoading: false, error: securityResult.error, attempted: true });
+      
+      if (microservicesApplicable) {
+        setMicroserviceSuggestions({ data: microserviceResult.data, isLoading: false, error: microserviceResult.error, attempted: true });
+      }
+
 
     } catch (error) {
       console.error("Master Flow Analysis Orchestration Error:", error);
       const generalError = "An unexpected error occurred while orchestrating analyses.";
-      if (!interactionAnalysis.data && !interactionAnalysis.error) setInteractionAnalysis({ data:null, isLoading: false, error: generalError});
-      if (!capacityAnalysis.data && !capacityAnalysis.error) setCapacityAnalysis({ data:null, isLoading: false, error: generalError});
-      if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({ data:null, isLoading: false, error: generalError});
-      if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading:false, error: generalError});
+      if (!interactionAnalysis.data && !interactionAnalysis.error) setInteractionAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
+      if (!capacityAnalysis.data && !capacityAnalysis.error) setCapacityAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
+      if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({data:null, isLoading: false, error: generalError, attempted: true});
+      if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading:false, error: generalError, attempted: true});
+      if (microservicesApplicable && !microserviceSuggestions.data && !microserviceSuggestions.error) {
+        setMicroserviceSuggestions({data:null, isLoading: false, error: generalError, attempted: true});
+      }
     }
   };
   
@@ -113,9 +154,12 @@ export default function MasterFlowPage() {
     return count;
   };
 
-  const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading;
+  const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading;
 
-  const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => (
+  const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => {
+    if (!state.attempted && !state.isLoading) return null; // Don't render if not attempted and not loading
+
+    return (
     <Card className="shadow-xl rounded-xl">
       <CardHeader>
         <CardTitle className="text-xl font-semibold text-primary flex items-center">
@@ -141,9 +185,13 @@ export default function MasterFlowPage() {
           </div>
         )}
         {state.data && !state.isLoading && !state.error && contentRenderer(state.data)}
+         {!state.data && !state.isLoading && !state.error && state.attempted && (
+            <p className="text-muted-foreground">Analysis was not applicable or did not yield results for the current selection.</p>
+        )}
       </CardContent>
     </Card>
-  );
+   );
+  };
 
 
   return (
@@ -218,7 +266,7 @@ export default function MasterFlowPage() {
             </h3>
           <Button size="lg" disabled={isAnalysisButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
             <Maximize className="mr-2 h-5 w-5" />
-            {interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
+            {isAnalysisButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
           {countSelectedTypes() > 0 && !isAnalysisButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
@@ -303,6 +351,21 @@ export default function MasterFlowPage() {
               </div>
             ))}
 
+            {microserviceSuggestions.attempted && renderAnalysisSection<SuggestMicroservicesOutput>("AI-Suggested Potential Microservices", Cpu, microserviceSuggestions, (data) => (
+               data.suggestedServices && data.suggestedServices.length > 0 && data.suggestedServices[0].name !== "Context Needed" ? (
+                <ul className="space-y-5">
+                  {data.suggestedServices.map((service, index) => (
+                    <li key={`ms-sugg-${index}`} className="p-3 border-l-4 border-primary/50 bg-muted/30 rounded-r-md">
+                      <p className="font-semibold text-md text-primary">{service.name}</p>
+                      <p className="text-sm text-foreground/80 mt-1">{service.rationale}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                 <p className="text-muted-foreground">Microservice suggestions were not applicable for the current selection, or no specific suggestions could be generated. Ensure 'Microservices Architecture' and other relevant infrastructure components are selected.</p>
+              )
+            ))}
+
           </div>
         )}
       </main>
@@ -312,3 +375,5 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+
+
