@@ -103,7 +103,7 @@ export default function MasterFlowPage() {
       setCapacityAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
       setTierSuggestion({ data: null, isLoading: false, error: errorMsg, attempted: true });
       setSecurityPostureAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
-      setMicroserviceSuggestions({ data: null, isLoading: false, error: errorMsg, attempted: false }); 
+      setMicroserviceSuggestions({ ...initialAnalysisState, data: {suggestedServices: []}, attempted: false }); 
       setAnalysesTriggered(true);
       return;
     }
@@ -180,7 +180,7 @@ export default function MasterFlowPage() {
         toast({ title: "Cannot Generate Document", description: "Please analyze a profile first.", variant: "destructive" });
         return;
     }
-    if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) {
+    if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading) ) {
         toast({ title: "Cannot Generate Document", description: "Please wait for all analyses to complete.", variant: "destructive" });
         return;
     }
@@ -234,7 +234,7 @@ export default function MasterFlowPage() {
     (!isMicroservicesFlowApplicable(getFlowInput()) || (microserviceSuggestions.attempted && !microserviceSuggestions.isLoading));
 
 
-  const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading;
+  const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading);
 
   const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => {
     if (!state.attempted && !state.isLoading && !analysesTriggered) return null; 
@@ -341,7 +341,7 @@ export default function MasterFlowPage() {
             </h3>
           <Button size="lg" disabled={isAnalyzeButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
             <Maximize className="mr-2 h-5 w-5" />
-            {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
+            {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(getFlowInput()) && microserviceSuggestions.isLoading)) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
           {countSelectedTypes() > 0 && !isAnalyzeButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
@@ -573,23 +573,23 @@ export default function MasterFlowPage() {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-primary flex items-center">
                   <BellRing className="h-6 w-6 mr-3" />
-                  Alerting &amp; Drift Detection (Conceptual)
+                  Anomaly &amp; Drift Detection (Conceptual)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 text-foreground/90 space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  If you connect your visual models to live infrastructure (via metrics or Terraform state), detect and notify when real-world topology drifts away from the designed architecture.
+                  Connect Rustik to your real-world telemetry (e.g., Prometheus, Terraform state, AWS Config) and get alerts when live infra drifts from the modeled architecture or exhibits unusual behavior.
                 </p>
                 <Button 
                   variant="outline"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
-                      description: "Alerting & Drift Detection is coming soon!",
+                      description: "Anomaly & Drift Detection is coming soon!",
                     });
                   }}
                 >
-                  Explore Alerting &amp; Drift Detection (Coming Soon)
+                  Explore Anomaly &amp; Drift Detection (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
@@ -655,3 +655,5 @@ export default function MasterFlowPage() {
     </div>
   );
 }
+
+    
