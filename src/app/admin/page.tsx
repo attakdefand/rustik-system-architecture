@@ -3,7 +3,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Users, Shield, Library, LayoutTemplate, Settings, ToggleRight, ScrollText, LineChart, BellCog, UserCog, LockKeyholeIcon, Settings2, ListChecks, FolderGit2, DatabaseZap, Workflow, Landmark, FlaskConical, Info, PackageSearch
+  Users, Shield, Library, LayoutTemplate, Settings, ToggleRight, ScrollText, LineChart, BellPlus, UserCog, LockKeyholeIcon, Settings2, ListChecks, FolderGit2, DatabaseZap, Workflow, Landmark, FlaskConical, Info, PackageSearch
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -120,7 +120,7 @@ const adminFunctionalityData: AdminFeature[] = [
   {
     feature: "Notification & Alert Settings",
     description: "Configure email/webhook alerts for threshold breaches, drift detection, and pipeline failures.",
-    icon: BellCog,
+    icon: BellPlus, // Changed from BellCog to BellPlus
     keyActions: ["List alert rules", "Create new alert", "Update alert rule", "Remove alert"],
     endpoints: [
       { method: "GET",    path: "/admin/alerts",           action: "List alert rules" },
