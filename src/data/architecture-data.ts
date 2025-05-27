@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Cpu, Database, RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, Route, ShieldAlert, Gavel } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu, Database, Router as RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, ShieldAlert, Gavel } from 'lucide-react';
 
 export interface TypeDefinition {
   name: string;
@@ -81,9 +81,9 @@ export const architectureComponents: ArchitectureComponent[] = [
   {
     id: 'api-gateway',
     title: 'API Gateway',
-    icon: Route,
+    icon: RouterIcon,
     types: [
-        { name: 'Request Routing & Composition', description: 'Directs incoming API requests to appropriate backend microservices, potentially aggregating results.' },
+        { name: 'Request Routing & Composition', description: 'Directs incoming API requests to appropriate backend microservices, potentially aggregating results from multiple services (Aggregator Pattern).' },
         { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
         { name: 'Rate Limiting & Quotas', description: 'Protects backend services from overload by controlling the number of requests allowed.' },
         { name: 'Request/Response Transformation', description: 'Modifies request or response payloads to match backend service expectations or client needs.' },
@@ -93,7 +93,7 @@ export const architectureComponents: ArchitectureComponent[] = [
         'Providing a single, unified entry point for a microservices backend.',
         'Enforcing security policies like authentication and authorization consistently.',
         'Managing API traffic, quotas, and throttling to protect backend services.',
-        'Simplifying client interaction by abstracting backend complexity.'
+        'Simplifying client interaction by abstracting backend complexity and composing responses.'
     ],
     realWorldExamples: [
         'Amazon API Gateway for serverless and containerized backends.',
@@ -101,7 +101,7 @@ export const architectureComponents: ArchitectureComponent[] = [
         'Apigee (Google Cloud) for enterprise API management.'
     ],
     eli5Summary: 'Detailed Explanation',
-    eli5Details: "Imagine a very organized main reception desk for a huge office building with many different departments (your microservices). This desk takes all incoming calls (API requests), checks who is calling and if they're allowed (auth), directs them to the correct department, and makes sure no single department gets too many calls at once.",
+    eli5Details: "Imagine a very organized main reception desk for a huge office building with many different departments (your microservices). This desk takes all incoming calls (API requests), checks who is calling and if they're allowed (auth), directs them to the correct department, sometimes gathers info from a few departments before replying, and makes sure no single department gets too many calls at once.",
     complexity: 'Intermediate',
     implementationGuidance: [
         'Choose a managed cloud service (AWS API Gateway, Azure API Management, Google Apigee) or self-host (Kong, Tyk).',
@@ -142,17 +142,21 @@ export const architectureComponents: ArchitectureComponent[] = [
   {
     id: 'microservices-architecture',
     title: 'Microservices Architecture',
-    icon: Layers, // Using Layers to represent multiple distinct services
+    icon: Layers,
     types: [
       { name: 'Independent Service Decomposition', description: 'Breaking down large applications into smaller, self-contained, and independently deployable services.' },
       { name: 'API-Driven Communication (e.g., REST, gRPC)', description: 'Services communicate via well-defined APIs, promoting loose coupling.' },
-      { name: 'Decentralized Data Management', description: 'Each microservice typically owns its own database to ensure autonomy.' },
+      { name: 'Decentralized Data Management', description: 'Each microservice typically owns its own database to ensure autonomy and independent evolution.' },
       { name: 'Containerization & Orchestration (e.g., Kubernetes)', description: 'Commonly used for deploying, scaling, and managing microservices.' },
+      { name: "Database per Service Principle", description: "Each microservice owns and manages its own database schema and data, ensuring loose coupling and independent evolution." },
+      { name: "Saga Pattern", description: "Manages data consistency across multiple services in distributed transactions using a sequence of local transactions and compensating actions." },
+      { name: "Sidecar Pattern", description: "Deploys auxiliary components (e.g., proxies, logging agents, monitoring agents) alongside a main application in a separate process or container to augment its functionality." },
     ],
     useCases: [
       'Building large, complex applications that require high scalability and agility.',
       'Enabling independent development, deployment, and scaling of different application parts.',
       'Allowing different technology stacks for different services if needed.',
+      'Improving fault isolation between different functionalities.'
     ],
     realWorldExamples: [
       'Netflix: A pioneer of microservices, using them to handle massive streaming and backend operations.',
@@ -168,7 +172,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Implement service discovery to allow services to find each other dynamically.',
       'Set up comprehensive monitoring, logging, and distributed tracing for observability across services.',
       'Invest in mature CI/CD pipelines for automated testing and independent deployment of services.',
-      'Address challenges like data consistency across services and managing distributed transactions if needed.'
+      'Address challenges like data consistency across services (e.g., using Sagas) and managing distributed transactions if needed.'
     ],
   },
   {
@@ -239,28 +243,33 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Read Replicas for Read Scalability", description: "Creates copies of the database to handle read requests, reducing load on the primary." },
       { name: "NoSQL Databases (Key-Value, Document, Columnar)", description: "Flexible schema databases optimized for specific data models and scale needs." },
       { name: "Database Caching (e.g., Redis, Memcached)", description: "Stores frequently accessed data in fast memory to reduce database hits." },
-      { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." }
+      { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." },
+      { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models and often different data stores, optimizing each path for performance, scalability, and complexity." },
+      { name: "Event Sourcing", description: "Persists the state of a business entity as a sequence of immutable state-changing events, providing a full audit log and enabling temporal queries." },
     ],
     useCases: [
       "Scaling applications with large datasets and high transaction volumes.",
       "Improving read performance for data-intensive applications.",
       "Handling unstructured or semi-structured data at scale.",
-      "Reducing database load and improving response times for frequently accessed data."
+      "Reducing database load and improving response times for frequently accessed data.",
+      "Optimizing systems with different read and write patterns (CQRS)."
     ],
     realWorldExamples: [
       "Facebook shards its user database to manage billions of profiles.",
       "Wikipedia uses read replicas to serve high volumes of article views.",
       "Twitter (X) uses various NoSQL solutions like Manhattan for different data needs.",
-      "Many e-commerce sites use Redis to cache product details and user sessions."
+      "Many e-commerce sites use Redis to cache product details and user sessions.",
+      "Complex domain systems use Event Sourcing for auditability and state reconstruction."
     ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "How we make sure our 'toy box' (database) can hold all the toys for 1 billion friends and find them quickly. We might have many toy boxes (sharding), copies of popular toy lists (read replicas), special super-fast toy boxes for certain toys (NoSQL), or remember where recently used toys are (caching).",
+    eli5Details: "How we make sure our 'toy box' (database) can hold all the toys for 1 billion friends and find them quickly. We might have many toy boxes (sharding), copies of popular toy lists (read replicas), special super-fast toy boxes for certain toys (NoSQL), remember where recently used toys are (caching), or even have separate lists for 'toys we are playing with now' vs 'all toys we own' (CQRS/Event Sourcing).",
     complexity: "Advanced",
     implementationGuidance: [
       "Analyze data access patterns to choose the right sharding key or NoSQL model.",
       "Implement robust data replication and synchronization for read replicas.",
       "Evaluate consistency models (e.g., eventual, strong) for NoSQL databases.",
-      "Develop a clear caching strategy, including cache invalidation mechanisms."
+      "Develop a clear caching strategy, including cache invalidation mechanisms.",
+      "For CQRS/Event Sourcing, carefully model commands, events, and queries."
     ]
   },
   {
@@ -370,7 +379,9 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Automated Alerting & Incident Response", description: "Notifies teams of issues and helps manage responses automatically." },
       { name: "Automated Scaling (Horizontal & Vertical)", description: "Adjusts system capacity automatically based on demand." },
       { name: "Safe Deployment Strategies", description: "Blue/Green, Canary, Rolling releases for minimal risk software updates." },
-      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations via code for consistency." }
+      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations via code for consistency." },
+      { name: "Centralized Logging", description: "Collecting all logs from various services into a central system for analysis and troubleshooting." },
+      { name: "Distributed Tracing", description: "Tracking requests as they flow through multiple services to identify bottlenecks and debug issues in distributed systems." }
     ],
     useCases: [
       "Proactively identifying and resolving issues before user impact.",
@@ -385,10 +396,11 @@ export const architectureComponents: ArchitectureComponent[] = [
       "Tools like Terraform and Ansible are widely used for IaC and configuration management."
     ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response).",
+    eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response), and can track where any kid has been all day (tracing).",
     complexity: "Advanced",
     implementationGuidance: [
-      "Implement centralized logging and metrics (e.g., ELK stack, Prometheus, Grafana).",
+      "Implement centralized logging (e.g., ELK stack, Loki) and metrics (e.g., Prometheus, Grafana).",
+      "Utilize distributed tracing tools (e.g., Jaeger, OpenTelemetry).",
       "Define clear Service Level Objectives (SLOs) and set up alerts.",
       "Automate infrastructure provisioning and deployment processes.",
       "Regularly test failover and disaster recovery procedures."
@@ -624,5 +636,4 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   }
 ];
-
     
