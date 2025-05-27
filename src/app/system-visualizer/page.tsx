@@ -10,8 +10,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Construction, DraftingCompass, Network, ImageIcon, ListChecks } from 'lucide-react';
+import { Construction, DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
+import { analyzeSystem, type AnalyzeSystemInput } from '@/ai/flows/analyze-system-flow';
+import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 
 // Helper function for complexity badge styling
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -33,6 +35,10 @@ export default function SystemVisualizerPage() {
   const [generatedDiagramComponents, setGeneratedDiagramComponents] = useState<ArchitectureComponent[]>([]);
   const [snapshotSelectedTypesMap, setSnapshotSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
 
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
 
   const handleTypeSelection = (componentId: string, type: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -52,20 +58,52 @@ export default function SystemVisualizerPage() {
       }
       return newMap;
     });
-    if (diagramGenerated) {
+    if (diagramGenerated) { // Reset diagram if selections change
       setDiagramGenerated(false);
+      setAiAnalysis(null);
+      setAnalysisError(null);
     }
   };
 
-  const handleGenerateDiagram = () => {
+  const handleGenerateDiagram = async () => {
+    setIsAnalyzing(true);
+    setAiAnalysis(null);
+    setAnalysisError(null);
+
     const currentSelectedComponents = architectureComponents.filter(comp => selectedTypesMap.has(comp.id));
     setGeneratedDiagramComponents(currentSelectedComponents);
-    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Store a snapshot of selections for the diagram
+    const currentSnapshotSelectedTypesMap = new Map(selectedTypesMap);
+    setSnapshotSelectedTypesMap(currentSnapshotSelectedTypesMap);
     setDiagramGenerated(true);
+
+    const flowInput: AnalyzeSystemInput = {
+      components: currentSelectedComponents.map(comp => ({
+        componentTitle: comp.title,
+        selectedTypes: Array.from(currentSnapshotSelectedTypesMap.get(comp.id) || []),
+      })),
+    };
+
+    try {
+      const result = await analyzeSystem(flowInput);
+      setAiAnalysis(result.analysis);
+    } catch (error) {
+      console.error("AI Analysis Error:", error);
+      setAnalysisError(error instanceof Error ? error.message : "An unknown error occurred during AI analysis.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
   
   const countSelectedComponents = () => {
     return selectedTypesMap.size;
+  };
+  
+  const countSelectedTypes = () => {
+    let count = 0;
+    selectedTypesMap.forEach(typesSet => {
+      count += typesSet.size;
+    });
+    return count;
   };
 
   return (
@@ -73,24 +111,13 @@ export default function SystemVisualizerPage() {
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 py-10 sm:py-16 flex flex-col items-center">
         <div className="text-center w-full max-w-3xl">
-          <Construction className="h-24 w-24 text-primary mb-8 mx-auto" />
+          <DraftingCompass className="h-24 w-24 text-primary mb-8 mx-auto" />
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-gray-800 dark:text-gray-100">
-            System Visualizer - Coming Soon!
+            System Visualizer
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            This is where the System Visualizer will live. Imagine a tool where you can select architectural components and see them come together in a conceptual diagram, helping you understand potential system structures.
+            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions.
           </p>
-          <div className="space-y-4 mb-12 bg-card p-6 rounded-lg shadow">
-              <p className="text-md text-foreground/90 font-semibold">
-                  We're envisioning features like:
-              </p>
-              <ul className="list-disc list-inside text-left max-w-md mx-auto text-foreground/70 space-y-2">
-                  <li>Selecting components from our library.</li>
-                  <li>Viewing a dynamic, high-level diagram of chosen components.</li>
-                  <li>Getting AI-powered explanations of how selected components might interact.</li>
-                  <li>Exploring common architectural patterns.</li>
-              </ul>
-          </div>
         </div>
 
         <div className="mt-8 w-full max-w-6xl">
@@ -147,15 +174,20 @@ export default function SystemVisualizerPage() {
           <div className="mt-12 text-center">
             <Button 
               size="lg" 
-              disabled={selectedTypesMap.size === 0}
+              disabled={countSelectedTypes() === 0 || isAnalyzing}
               onClick={handleGenerateDiagram}
             >
               <DraftingCompass className="mr-2 h-5 w-5" />
-              Generate Diagram (Conceptual)
+              {isAnalyzing ? "Generating Analysis..." : "Generate Diagram & Analysis"}
             </Button>
-            {selectedTypesMap.size > 0 && (
+            {countSelectedTypes() > 0 && !isAnalyzing && (
               <p className="text-sm text-muted-foreground mt-4">
-                {countSelectedComponents()} component(s) with selected types. Click generate to see a conceptual overview.
+                {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected. Click generate for an overview and AI analysis.
+              </p>
+            )}
+             {countSelectedTypes() === 0 && !isAnalyzing && (
+              <p className="text-sm text-muted-foreground mt-4">
+                Select at least one type for a component to generate an analysis.
               </p>
             )}
           </div>
@@ -168,7 +200,7 @@ export default function SystemVisualizerPage() {
                   Conceptual System Overview
                 </CardTitle>
                 <CardDescription className="pt-1">
-                  Based on your selections, here's a high-level look at the chosen components and their potential roles.
+                  Based on your selections, here's a high-level look at the chosen components and their potential roles, along with an AI-powered interaction analysis.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-2">
@@ -214,17 +246,33 @@ export default function SystemVisualizerPage() {
                 <Separator />
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <Construction className="h-5 w-5 mr-2 text-accent" />
+                    <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
                     AI-Powered Interaction Analysis:
                   </h4>
-                  <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4">
-                    <p className="font-medium">
-                      An AI-powered explanation would describe potential interactions, benefits, and considerations for combining these selected components and their types.
-                    </p>
-                    <blockquote className="pl-4 border-l-4 border-primary/60 italic text-sm bg-primary/5 p-3 rounded-md">
-                      <strong>Example:</strong> "If you've selected <strong>Anycast IP (Global Anycast)</strong>, <strong>Load Balancers (Layer-7)</strong>, and <strong>Rust App Nodes (Containerized)</strong>, a typical pattern involves Global Anycast routing users to the nearest regional PoP. Within each region, Layer-7 Load Balancers distribute HTTP/S traffic across a cluster of containerized Rust App Nodes, enabling advanced routing and efficient scaling..."
-                    </blockquote>
-                    <p className="text-sm text-muted-foreground text-right mt-2">(This AI-driven analysis is a future enhancement.)</p>
+                  <div className="p-6 bg-card border rounded-lg shadow-inner text-foreground/90 space-y-4 prose prose-sm dark:prose-invert max-w-none">
+                    {isAnalyzing && (
+                      <>
+                        <Skeleton className="h-4 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-5/6 mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                      </>
+                    )}
+                    {analysisError && !isAnalyzing && (
+                      <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center">
+                        <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold">Analysis Failed</p>
+                          <p className="text-xs">{analysisError}</p>
+                        </div>
+                      </div>
+                    )}
+                    {aiAnalysis && !isAnalyzing && !analysisError && (
+                      <div dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\n/g, '<br />') }} />
+                    )}
+                    {!aiAnalysis && !isAnalyzing && !analysisError && (
+                       <p className="text-muted-foreground">Click "Generate Diagram & Analysis" to see an AI-powered explanation of potential interactions, benefits, and considerations for your selected components.</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
