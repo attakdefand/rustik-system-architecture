@@ -47,9 +47,12 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
 
 ## Future Enhancements (Potential Ideas)
 
-*   **Interactive Diagrams in the Visualizer**: Visually represent how selected components connect.
-*   **Conceptual Cost Estimation Flows**: AI-driven estimation of cost factors.
-*   **User Accounts & Saved Configurations**: Allow users to save and revisit their architectural explorations.
+*   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections.
+*   **Conceptual Cost Estimation Flows**: AI-driven estimation of high-level cost factors associated with selected architectural components (e.g., "compute-intensive," "storage-heavy").
+*   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later.
+*   **AI-Driven Architectural Pattern Recommendation Engine**: Users describe a high-level problem or goal, and the AI suggests suitable architectural components and patterns.
+*   **Conceptual Scalability Simulation ("What-if" Scenarios)**: AI analyzes how a selected architecture might conceptually respond to different load levels or failure scenarios.
+*   **Automated Conceptual Architectural Document Generation**: AI generates a high-level architectural design document (Markdown) based on user selections and analysis results.
 
 ## Cloning and Running Locally
 
