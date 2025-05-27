@@ -52,6 +52,10 @@ Here are some advanced directions Rustik could explore in the future to become a
 
 *   **Collaboration & Versioning**:
     Add real-time multi-user editing with change history so teams can co-design, comment on, and roll back architectural changes—just like a Google Doc for infra diagrams.
+    *   **A Robust Backend System**: We'd need a backend to handle user authentication, manage real-time data synchronization (e.g., using WebSockets), and store the architectural designs, their versions, and comments in a database.
+    *   **Real-time Collaboration Logic**: Technologies like Conflict-free Replicated Data Types (CRDTs) or operational transforms would likely be needed to manage simultaneous edits from multiple users smoothly.
+    *   **Significant UI/UX Overhaul**: The current interface would need to be substantially redesigned to incorporate editing tools, comment threads, version history viewers, etc.
+    *   **Database Integration**: A database (SQL or NoSQL) would be essential for persisting all this collaborative data.
 *   **Diagram Export & Codegen**:
     Enable one-click exports to PlantUML/C4 notation, SVG/PNG, or even Terraform/CloudFormation stubs so your conceptual designs can flow straight into IaC pipelines.
 *   **Cost & Performance Simulation**:
