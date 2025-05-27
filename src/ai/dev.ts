@@ -5,4 +5,5 @@ import './flows/analyze-capacity-flow';
 import './flows/suggest-capacity-tier-flow';
 import './flows/analyze-security-posture-flow';
 import './flows/suggest-microservices-flow';
+import './flows/generate-document-flow';
 

@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +18,7 @@ import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows
 import { suggestCapacityTier, type SuggestCapacityTierOutput } from '@/ai/flows/suggest-capacity-tier-flow';
 import { analyzeSecurityPosture, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
+import { generateDocument, type GenerateDocumentOutput } from '@/ai/flows/generate-document-flow';
 
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
@@ -47,7 +48,12 @@ export default function MasterFlowPage() {
   const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>(initialAnalysisState);
   const [microserviceSuggestions, setMicroserviceSuggestions] = useState<AnalysisState<SuggestMicroservicesOutput>>(initialAnalysisState);
 
+  const [isGeneratingDocument, setIsGeneratingDocument] = useState(false);
+  const [documentGenerationError, setDocumentGenerationError] = useState<string | null>(null);
+
   const [analysesTriggered, setAnalysesTriggered] = useState(false);
+  const [currentFlowInput, setCurrentFlowInput] = useState<AnalyzeSystemInput | null>(null);
+
 
   const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -59,7 +65,10 @@ export default function MasterFlowPage() {
       else newMap.delete(componentId);
       return newMap;
     });
-    if (analysesTriggered) setAnalysesTriggered(false); 
+    if (analysesTriggered) {
+        setAnalysesTriggered(false);
+        setCurrentFlowInput(null); // Reset current flow input if selections change
+    }
   };
 
   const getFlowInput = (): AnalyzeSystemInput => {
@@ -85,13 +94,16 @@ export default function MasterFlowPage() {
 
   const handleAnalyzeProfile = async () => {
     const flowInput = getFlowInput();
+    setCurrentFlowInput(flowInput); // Store the input for document generation later
+
     if (flowInput.components.length === 0) {
       const errorMsg = "Please select at least one component type to analyze.";
+      toast({ title: "Selection Required", description: errorMsg, variant: "destructive" });
       setInteractionAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
       setCapacityAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
       setTierSuggestion({ data: null, isLoading: false, error: errorMsg, attempted: true });
       setSecurityPostureAnalysis({ data: null, isLoading: false, error: errorMsg, attempted: true });
-      setMicroserviceSuggestions({ data: null, isLoading: false, error: errorMsg, attempted: false }); // Not attempted if no components
+      setMicroserviceSuggestions({ data: null, isLoading: false, error: errorMsg, attempted: false }); 
       setAnalysesTriggered(true);
       return;
     }
@@ -101,46 +113,58 @@ export default function MasterFlowPage() {
     setCapacityAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
     setTierSuggestion({ ...initialAnalysisState, isLoading: true, attempted: true });
     setSecurityPostureAnalysis({ ...initialAnalysisState, isLoading: true, attempted: true });
+    setDocumentGenerationError(null); // Reset document error
 
     const microservicesApplicable = isMicroservicesFlowApplicable(flowInput);
     if (microservicesApplicable) {
       setMicroserviceSuggestions({ ...initialAnalysisState, isLoading: true, attempted: true });
     } else {
-      setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false });
+      setMicroserviceSuggestions({ ...initialAnalysisState, attempted: false, data: {suggestedServices: []} }); // Set to false but provide default data
     }
 
     try {
       const analysisPromises = [
-        analyzeSystem(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Interaction analysis failed." })),
-        analyzeCapacityPotential(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Capacity analysis failed." })),
-        suggestCapacityTier(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Tier suggestion failed." })),
-        analyzeSecurityPosture(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Security posture analysis failed." })),
+        analyzeSystem(flowInput).then(data => ({ key: 'interaction', data, error: null })).catch(error => ({ key: 'interaction', data: null, error: error instanceof Error ? error.message : "Interaction analysis failed." })),
+        analyzeCapacityPotential(flowInput).then(data => ({ key: 'capacity', data, error: null })).catch(error => ({ key: 'capacity', data: null, error: error instanceof Error ? error.message : "Capacity analysis failed." })),
+        suggestCapacityTier(flowInput).then(data => ({ key: 'tier', data, error: null })).catch(error => ({ key: 'tier', data: null, error: error instanceof Error ? error.message : "Tier suggestion failed." })),
+        analyzeSecurityPosture(flowInput).then(data => ({ key: 'security', data, error: null })).catch(error => ({ key: 'security', data: null, error: error instanceof Error ? error.message : "Security posture analysis failed." })),
       ];
 
       if (microservicesApplicable) {
         analysisPromises.push(
-          suggestMicroservices(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
+          suggestMicroservices(flowInput).then(data => ({key: 'microservices', data, error: null })).catch(error => ({ key: 'microservices', data: null, error: error instanceof Error ? error.message : "Microservice suggestion failed." }))
         );
-      } else {
-        // Ensure the promise array has a consistent length for destructuring
-        analysisPromises.push(Promise.resolve({ data: null, error: null, notRun: true }) as Promise<any>); 
       }
       
-      const [interactionResult, capacityResult, tierResult, securityResult, microserviceResult] = await Promise.all(analysisPromises);
+      const results = await Promise.all(analysisPromises);
 
-      setInteractionAnalysis({ data: interactionResult.data, isLoading: false, error: interactionResult.error, attempted: true });
-      setCapacityAnalysis({ data: capacityResult.data, isLoading: false, error: capacityResult.error, attempted: true });
-      setTierSuggestion({ data: tierResult.data, isLoading: false, error: tierResult.error, attempted: true });
-      setSecurityPostureAnalysis({ data: securityResult.data, isLoading: false, error: securityResult.error, attempted: true });
-      
-      if (microservicesApplicable) {
-        setMicroserviceSuggestions({ data: microserviceResult.data, isLoading: false, error: microserviceResult.error, attempted: true });
-      }
+      results.forEach(result => {
+        switch (result.key) {
+          case 'interaction':
+            setInteractionAnalysis({ data: result.data, isLoading: false, error: result.error, attempted: true });
+            break;
+          case 'capacity':
+            setCapacityAnalysis({ data: result.data, isLoading: false, error: result.error, attempted: true });
+            break;
+          case 'tier':
+            setTierSuggestion({ data: result.data, isLoading: false, error: result.error, attempted: true });
+            break;
+          case 'security':
+            setSecurityPostureAnalysis({ data: result.data, isLoading: false, error: result.error, attempted: true });
+            break;
+          case 'microservices':
+             if (microservicesApplicable) {
+                setMicroserviceSuggestions({ data: result.data, isLoading: false, error: result.error, attempted: true });
+            }
+            break;
+        }
+      });
 
 
     } catch (error) {
       console.error("Master Flow Analysis Orchestration Error:", error);
       const generalError = "An unexpected error occurred while orchestrating analyses.";
+      toast({ title: "Analysis Error", description: generalError, variant: "destructive"});
       if (!interactionAnalysis.data && !interactionAnalysis.error) setInteractionAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (!capacityAnalysis.data && !capacityAnalysis.error) setCapacityAnalysis({data:null, isLoading: false, error: generalError, attempted: true});
       if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({data:null, isLoading: false, error: generalError, attempted: true});
@@ -151,16 +175,69 @@ export default function MasterFlowPage() {
     }
   };
   
+  const handleGenerateDocument = async () => {
+    if (!currentFlowInput || currentFlowInput.components.length === 0) {
+        toast({ title: "Cannot Generate Document", description: "Please analyze a profile first.", variant: "destructive" });
+        return;
+    }
+    if (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) {
+        toast({ title: "Cannot Generate Document", description: "Please wait for all analyses to complete.", variant: "destructive" });
+        return;
+    }
+
+    setIsGeneratingDocument(true);
+    setDocumentGenerationError(null);
+
+    try {
+        const result = await generateDocument(currentFlowInput);
+        const markdownDocument = result.markdownDocument;
+
+        // Trigger download
+        const filename = 'conceptual_architecture_rustik.md';
+        const blob = new Blob([markdownDocument], { type: 'text/markdown;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            toast({ title: "Document Generated", description: `${filename} has been downloaded.` });
+        } else {
+            throw new Error("Browser does not support automatic download.");
+        }
+    } catch (error) {
+        console.error("Document Generation Error:", error);
+        const errMsg = error instanceof Error ? error.message : "An unknown error occurred during document generation.";
+        setDocumentGenerationError(errMsg);
+        toast({ title: "Document Generation Failed", description: errMsg, variant: "destructive" });
+    } finally {
+        setIsGeneratingDocument(false);
+    }
+  };
+
+
   const countSelectedTypes = () => {
     let count = 0;
     selectedTypesMap.forEach(typesSet => count += typesSet.size);
     return count;
   };
 
-  const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading;
+  const allAnalysesAttemptedAndNotLoading = 
+    interactionAnalysis.attempted && !interactionAnalysis.isLoading &&
+    capacityAnalysis.attempted && !capacityAnalysis.isLoading &&
+    tierSuggestion.attempted && !tierSuggestion.isLoading &&
+    securityPostureAnalysis.attempted && !securityPostureAnalysis.isLoading &&
+    (!isMicroservicesFlowApplicable(getFlowInput()) || (microserviceSuggestions.attempted && !microserviceSuggestions.isLoading));
+
+
+  const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading;
 
   const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => {
-    if (!state.attempted && !state.isLoading) return null; 
+    if (!state.attempted && !state.isLoading && !analysesTriggered) return null; 
 
     return (
     <Card className="shadow-xl rounded-xl">
@@ -170,7 +247,7 @@ export default function MasterFlowPage() {
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="prose prose-sm dark:prose-invert max-w-none p-6 bg-muted/10 border rounded-lg shadow-inner text-foreground/90 space-y-4">
+      <CardContent className="prose prose-sm dark:prose-invert max-w-none p-6 bg-muted/10 border rounded-lg shadow-inner text-foreground/90 space-y-4 min-h-[100px]">
         {state.isLoading && (
           <>
             <Skeleton className="h-4 w-3/4 mb-2" />
@@ -189,7 +266,7 @@ export default function MasterFlowPage() {
         )}
         {state.data && !state.isLoading && !state.error && contentRenderer(state.data)}
          {!state.data && !state.isLoading && !state.error && state.attempted && (
-            <p className="text-muted-foreground">Analysis was not applicable or did not yield results for the current selection.</p>
+            <p className="text-muted-foreground">No data available for this analysis. Please ensure components are selected and try again.</p>
         )}
       </CardContent>
     </Card>
@@ -231,7 +308,7 @@ export default function MasterFlowPage() {
                   <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
                   {component.types && component.types.length > 0 ? (
                     component.types.map((typeDef: TypeDefinition, index) => (
-                      <div key={index} className="flex flex-col w-full">
+                      <div key={`${component.id}-${typeDef.name.replace(/\s+/g, '-')}-${index}`} className="flex flex-col w-full">
                         <div className="flex items-center space-x-2 w-full">
                           <Checkbox
                             id={`master-select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
@@ -262,16 +339,16 @@ export default function MasterFlowPage() {
             <h3 className="text-2xl font-semibold tracking-tight mb-6 text-center text-primary">
               2. Generate Comprehensive Analysis
             </h3>
-          <Button size="lg" disabled={isAnalysisButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
+          <Button size="lg" disabled={isAnalyzeButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
             <Maximize className="mr-2 h-5 w-5" />
-            {isAnalysisButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
+            {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || microserviceSuggestions.isLoading) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
-          {countSelectedTypes() > 0 && !isAnalysisButtonDisabled && (
+          {countSelectedTypes() > 0 && !isAnalyzeButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
               {selectedTypesMap.size} component category(s) with {countSelectedTypes()} type(s) selected.
             </p>
           )}
-          {countSelectedTypes() === 0 && !isAnalysisButtonDisabled && (
+          {countSelectedTypes() === 0 && !isAnalyzeButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
               Select at least one type for a component to generate an analysis.
             </p>
@@ -280,9 +357,32 @@ export default function MasterFlowPage() {
 
         {analysesTriggered && (
           <div className="w-full max-w-5xl mx-auto space-y-10">
-             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100">
-              3. AI-Powered Architectural Insights
-            </h3>
+             <div className="flex justify-between items-center mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-800 dark:text-gray-100">
+                3. AI-Powered Architectural Insights
+                </h3>
+                {allAnalysesAttemptedAndNotLoading && countSelectedTypes() > 0 && (
+                    <Button
+                        onClick={handleGenerateDocument}
+                        disabled={isGeneratingDocument}
+                        variant="outline"
+                        size="lg"
+                    >
+                        <FileText className="mr-2 h-5 w-5" />
+                        {isGeneratingDocument ? "Generating Document..." : "Download Conceptual Document"}
+                    </Button>
+                )}
+             </div>
+             {documentGenerationError && (
+                <div className="p-4 rounded-md bg-destructive/10 text-destructive flex items-center mb-4">
+                    <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
+                    <div>
+                    <p className="font-semibold">Document Generation Failed</p>
+                    <p className="text-xs">{documentGenerationError}</p>
+                    </div>
+                </div>
+            )}
+
             {renderAnalysisSection<AnalyzeSystemOutput>("Interaction Analysis", Layers, interactionAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
             ))}
@@ -555,7 +655,3 @@ export default function MasterFlowPage() {
     </div>
   );
 }
-
-    
-
-    
