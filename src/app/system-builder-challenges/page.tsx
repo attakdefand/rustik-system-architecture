@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, 
   Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert,
-  DatabaseZap, Waypoints, Zap, Workflow, TrendingUp, Landmark, FlaskConical 
+  DatabaseZap, Waypoints, Zap, Workflow, TrendingUp, Landmark, FlaskConical,
+  Shield, CloudLightning, Binary, BrainCircuit, ActivitySquare, ShieldLock, CloudCog, FunctionSquare
 } from 'lucide-react';
 
 export default function SystemBuilderChallengesPage() {
@@ -143,6 +144,54 @@ export default function SystemBuilderChallengesPage() {
     },
   ];
 
+  const advancedArchitecturalConcepts = [
+    {
+      icon: Shield,
+      title: 'Service Mesh & mTLS',
+      description: 'Add Envoy- or Linkerd-based sidecar proxies for zero-trust service-to-service encryption, dynamic traffic splitting, circuit breaking, and fine-grained policy enforcement.',
+    },
+    {
+      icon: CloudLightning,
+      title: 'Edge-Native & Wasm',
+      description: 'Push compute to the edge with WebAssembly (Wasm) runtimes (e.g. Fastly Compute@Edge, Cloudflare Workers) for ultra-low latency custom logic next to users or IoT devices.',
+    },
+    {
+      icon: Binary,
+      title: 'Programmable Data Planes',
+      description: 'Leverage eBPF (e.g. Cilium) or P4 programmable switches to offload load-balancing, observability, and security enforcement straight into the operating system or networking hardware.',
+    },
+    {
+      icon: BrainCircuit,
+      title: 'Autoscaling with AI/ML',
+      description: 'Integrate predictive autoscalers that use machine-learning models on metrics (latency, queue lengths, custom business KPIs) rather than simple CPU/RAM thresholds.',
+    },
+    {
+      icon: FlaskConical, // Re-using, but fitting for experimentation
+      title: 'Chaos Engineering',
+      description: 'Inject failures in a controlled way (e.g. using Chaos Mesh or Gremlin) to validate resiliency across every layer—network, compute, storage, and service dependencies.',
+    },
+    {
+      icon: ActivitySquare,
+      title: 'Unified Observability',
+      description: 'Instrument every component with OpenTelemetry and aggregate traces/logs/metrics into a single dashboard (e.g. Grafana Tempo + Loki + Prometheus) for end-to-end visibility.',
+    },
+    {
+      icon: ShieldLock,
+      title: 'Zero-Trust Network Access (ZTNA)',
+      description: 'Replace or augment VPNs with identity-based access proxies that grant least-privilege connectivity per-application, per-user.',
+    },
+    {
+      icon: CloudCog,
+      title: 'Multi-Cloud & Hybrid Cloud',
+      description: 'Extend your topology across multiple public clouds and on-prem clusters, using consistent control planes (e.g. Crossplane, Anthos) and global service meshes.',
+    },
+    {
+      icon: FunctionSquare,
+      title: 'Serverless & FaaS Patterns',
+      description: 'For bursts of unpredictable traffic, fold in functions-as-a-service (e.g. AWS Lambda, Azure Functions, OpenFaaS) behind the same load-balancers.',
+    },
+  ];
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -234,6 +283,29 @@ export default function SystemBuilderChallengesPage() {
           ))}
         </div>
 
+        <div className="text-center my-16 sm:my-20">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100">
+            Frontiers of Hyperscale: Advanced Architectural Concepts
+          </h2>
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+            For those pushing the boundaries, here are some cutting-edge concepts that define modern, extreme-scale systems:
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {advancedArchitecturalConcepts.map((concept, index) => (
+            <Card key={`advanced-${index}`} className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
+              <CardHeader className="flex flex-row items-center gap-4 pb-4">
+                <concept.icon className="h-8 w-8 text-primary" />
+                <CardTitle className="text-xl font-semibold text-primary">{concept.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-foreground/80">{concept.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
 
         <div className="text-center mb-12 sm:mb-16 p-8 bg-card rounded-xl shadow-lg">
           <h3 className="text-3xl font-bold tracking-tight mb-6 text-gray-800 dark:text-gray-100">
@@ -253,5 +325,6 @@ export default function SystemBuilderChallengesPage() {
     </div>
   );
 }
+    
 
     
