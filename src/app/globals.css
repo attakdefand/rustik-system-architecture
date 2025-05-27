@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -126,5 +127,49 @@ body {
   }
   .animate-fade-in-fast {
     animation: fade-in-fast 0.3s ease-out forwards;
+  }
+
+  /* New animations for orbiting/blinking dots */
+  @keyframes orbit-blink-animation {
+    0%, 100% {
+      opacity: 0.3;
+      transform: rotate(0deg) translateX(28px) rotate(0deg) scale(0.8);
+    }
+    25% {
+        opacity: 1;
+        transform: rotate(90deg) translateX(28px) rotate(-90deg) scale(1.2);
+    }
+    50% {
+      opacity: 0.3;
+      transform: rotate(180deg) translateX(28px) rotate(-180deg) scale(0.8);
+    }
+    75% {
+        opacity: 1;
+        transform: rotate(270deg) translateX(28px) rotate(-270deg) scale(1.2);
+    }
+  }
+
+  .animate-orbit-blink {
+    animation: orbit-blink-animation 3.5s linear infinite; /* 7 dots * 0.5s delay factor */
+    transform-origin: center center; /* Ensure dots orbit around the center of their parent */
+  }
+
+  /* Animation for cycling text */
+  @keyframes slide-in-out-text-animation {
+    0%, 100% {
+      opacity: 0;
+      transform: translateY(10px) translateX(-50%);
+    }
+    10%, 90% { /* Hold text for a duration */
+      opacity: 1;
+      transform: translateY(0) translateX(-50%);
+    }
+    95% {
+      opacity: 0;
+      transform: translateY(-10px) translateX(-50%);
+    }
+  }
+  .animate-slide-in-out-text {
+    animation: slide-in-out-text-animation 29.5s ease-in-out infinite; /* Slightly less than text change interval */
   }
 }

@@ -1,88 +1,68 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-// Updated, more modern R-like SVG icon for Rustik
-const RustikLogoIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor" className="h-10 w-10 text-primary">
-    <path d="M25 15 H45 V35 H70 C80 35 85 42.5 85 50 C85 57.5 80 65 70 65 H45 V85 H25 V15 Z M45 50 H68 C73 50 73 55 68 55 H45 V50 Z" />
+// New A-style/Compass-style logo
+const RustikArchitectLogo = () => (
+  <svg viewBox="0 0 100 100" fill="currentColor" className="h-12 w-12 text-primary relative z-10">
+    {/* A-shape legs */}
+    <path d="M50 10 L20 90 L35 90 L50 40 L65 90 L80 90 L50 10 Z" />
+    {/* Arc/crossbar */}
+    <path d="M30 65 Q50 55 70 65" stroke="currentColor" strokeWidth="6" fill="none" strokeLinecap="round" />
   </svg>
 );
 
-
 export function AppHeader() {
-  const [showMottoSuffix, setShowMottoSuffix] = useState(false);
+  const mottoTexts = ["Dream", "Click", "Architect", "Built with Rustik"];
+  const [currentMottoIndex, setCurrentMottoIndex] = useState(0);
 
-  const handleMottoWordClick = () => {
-    setShowMottoSuffix(true);
-  };
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentMottoIndex((prevIndex) => (prevIndex + 1) % mottoTexts.length);
+    }, 30000); // Change text every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [mottoTexts.length]);
+
+  const dotColors = [
+    'bg-red-500',
+    'bg-orange-500',
+    'bg-yellow-500',
+    'bg-green-500',
+    'bg-blue-500',
+    'bg-indigo-500',
+    'bg-purple-500',
+  ];
 
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto flex items-center justify-between py-4 px-4 sm:px-6">
-        <Link href="/" className="flex flex-col items-center">
-          <div className="flex items-center gap-3">
-            <RustikLogoIcon />
-            <h1 className="text-3xl font-bold text-primary tracking-tight">Rustik</h1>
-          </div>
-          <div className="flex space-x-1 mt-0.5" aria-hidden="true">
-            <span className="h-1.5 w-1.5 bg-red-500 rounded-full animate-blink-red"></span>
-            <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
-            <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
-          </div>
-          <div className="text-xs text-muted-foreground mt-1 italic flex items-baseline space-x-1">
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild onClick={handleMottoWordClick}>
-                  <span className="cursor-pointer hover:text-primary transition-colors">Dream.</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Got an idea? Start visualizing your system here.
-                </TooltipContent>
-              </Tooltip>
-              {' '}
-              <Tooltip>
-                <TooltipTrigger asChild onClick={handleMottoWordClick}>
-                  <span className="cursor-pointer hover:text-primary transition-colors">Click.</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Select components and see how they interact.
-                </TooltipContent>
-              </Tooltip>
-              {' '}
-              <Tooltip>
-                <TooltipTrigger asChild onClick={handleMottoWordClick}>
-                  <span className="cursor-pointer hover:text-primary transition-colors">Architect.</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Design and understand complex architectures conceptually.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {showMottoSuffix && (
-              <span className="ml-1 animate-fade-in-fast font-semibold text-primary">
-                 Do it with Rustik!
+      <div className="container mx-auto flex items-center justify-between py-3 px-4 sm:px-6">
+        <Link href="/" className="flex flex-col items-center group">
+          <div className="relative flex flex-col items-center">
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <RustikArchitectLogo />
+              {dotColors.map((color, index) => (
+                <span
+                  key={index}
+                  className={`absolute w-2 h-2 rounded-full animate-orbit-blink ${color}`}
+                  style={{ animationDelay: `${index * 0.5}s` }}
+                />
+              ))}
+            </div>
+            <h1 className="text-3xl font-bold text-primary tracking-tight mt-1">Rustik</h1>
+            <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] overflow-hidden">
+              <span className="animate-slide-in-out-text absolute left-1/2 -translate-x-1/2">
+                {mottoTexts[currentMottoIndex]}
               </span>
-            )}
+            </div>
           </div>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" asChild>
             <Link href="/master-flow" className="flex flex-col items-center">
               <span>Master-Flow</span>
-              <div className="flex space-x-1 mt-0.5" aria-hidden="true">
-                <span className="h-1.5 w-1.5 bg-red-500 rounded-full animate-blink-red"></span>
-                <span className="h-1.5 w-1.5 bg-yellow-400 rounded-full animate-blink-yellow"></span>
-                <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-blink-green"></span>
-              </div>
             </Link>
           </Button>
           <Button variant="ghost" asChild>
