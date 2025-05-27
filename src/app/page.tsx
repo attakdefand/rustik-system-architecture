@@ -2,6 +2,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import ArchitectureBlock from '@/components/architecture-block';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface CategorizedComponents {
   category: string;
@@ -59,26 +60,28 @@ export default function Home() {
             The Backbone of <span className="text-primary">Modern Systems</span>
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Discover the core architectural components that empower robust, high-performance applications. Each element detailed below is a vital piece in constructing globally distributed and resilient services.
+            Discover the core architectural components that empower robust, high-performance applications. Each element detailed below is a vital piece in constructing globally distributed and resilient services. Explore categories to learn more.
           </p>
         </div>
         
-        <div className="space-y-16">
-          {categorizedComponents.map(categoryGroup => (
+        <Accordion type="multiple" className="w-full max-w-6xl mx-auto space-y-6">
+          {categorizedComponents.map((categoryGroup, index) => (
             categoryGroup.components.length > 0 && (
-              <section key={categoryGroup.category}>
-                <h3 className="text-3xl font-bold tracking-tight mb-8 text-center text-gray-700 dark:text-gray-200 border-b-2 border-primary/30 pb-3">
-                  {categoryGroup.category}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {categoryGroup.components.map((component) => (
-                    <ArchitectureBlock key={component.id} {...component} />
-                  ))}
-                </div>
-              </section>
+              <AccordionItem value={`category-${index}`} key={categoryGroup.category} className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+                <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
+                  <span className="text-gray-700 dark:text-gray-200 text-left">{categoryGroup.category}</span>
+                </AccordionTrigger>
+                <AccordionContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {categoryGroup.components.map((component) => (
+                      <ArchitectureBlock key={component.id} {...component} />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             )
           ))}
-        </div>
+        </Accordion>
       </main>
       <footer className="py-8 text-center text-muted-foreground border-t border-border/50 mt-16">
         <p>&copy; {new Date().getFullYear()} Rustik. Illustrating powerful backend architectures.</p>
