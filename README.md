@@ -73,6 +73,12 @@ Here are some advanced directions Rustik could explore in the future to become a
 *   **AI-Driven Architectural Pattern Recommendation Engine**: Users describe a high-level problem or goal, and the AI suggests suitable architectural components and patterns.
 *   **Conceptual Scalability Simulation / "What-if" Scenarios (Advanced)**: AI analyzes how a selected architecture might conceptually respond to different load levels or failure scenarios in more detail.
 *   **Automated Conceptual Architectural Document Generation**: AI generates a more comprehensive high-level architectural design document (Markdown) based on user selections and analysis results.
+*   **Digital Twin & “What-If” Simulator**:
+    Spin up a sandboxed, code-generated replica of your design (e.g. in Docker or Kubernetes) and run synthetic load tests to validate performance and failure modes before you build.
+    *   **Advanced Code Generation**: Would require sophisticated capabilities to generate functional code for various components and their interactions based on user selections.
+    *   **Infrastructure Orchestration Integration**: Needs to interface with tools like Docker or Kubernetes to dynamically create and manage sandboxed environments.
+    *   **Load Testing Framework Integration**: Would need to integrate with synthetic load testing tools to apply workloads to the simulated environment.
+    *   **Performance Monitoring in Sandbox**: Requires mechanisms to collect, aggregate, and analyze performance metrics from the temporary "digital twin."
 *   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later. (Note: This would require significant backend changes).
 *   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections. (Note: Requires a client-side diagramming library).
 
