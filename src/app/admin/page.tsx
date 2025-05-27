@@ -3,7 +3,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Users, Shield, Library, LayoutTemplate, Settings, ToggleRight, ScrollText, LineChart, BellPlus, UserCog, LockKeyholeIcon, Settings2, ListChecks, FolderGit2, DatabaseZap, Workflow, Landmark, FlaskConical, Info, PackageSearch
+  Users, Shield, Library, LayoutTemplate, Settings, ToggleRight, ScrollText, LineChart, BellPlus, UserCog, LockKeyholeIcon, Settings2, ListChecks, FolderGit2, DatabaseZap, Workflow, Landmark, FlaskConical, Info, PackageSearch, DatabaseIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -16,9 +16,10 @@ interface AdminEndpoint {
 interface AdminFeature {
   feature: string;
   description: string;
-  endpoints: AdminEndpoint[];
+  endpoints?: AdminEndpoint[]; // Made optional for schema section
   icon: LucideIcon;
   keyActions: string[];
+  schemaDetails?: string; // New field for schema
 }
 
 const adminFunctionalityData: AdminFeature[] = [
@@ -120,7 +121,7 @@ const adminFunctionalityData: AdminFeature[] = [
   {
     feature: "Notification & Alert Settings",
     description: "Configure email/webhook alerts for threshold breaches, drift detection, and pipeline failures.",
-    icon: BellPlus, // Changed from BellCog to BellPlus
+    icon: BellPlus,
     keyActions: ["List alert rules", "Create new alert", "Update alert rule", "Remove alert"],
     endpoints: [
       { method: "GET",    path: "/admin/alerts",           action: "List alert rules" },
@@ -141,6 +142,110 @@ const adminFunctionalityData: AdminFeature[] = [
       { method: "DELETE", path: "/admin/teams/:id",        action: "Delete a team" },
       { method: "POST",   path: "/admin/teams/:id/users",  action: "Add user to team" }
     ]
+  },
+  {
+    feature: "Conceptual Database Schema (Relational)",
+    description: "This outlines a conceptual relational database schema to support the admin functionalities described. PK denotes Primary Key, FK denotes Foreign Key.",
+    icon: DatabaseIcon,
+    keyActions: ["Review table structures", "Understand data relationships", "Identify key entities"],
+    schemaDetails: `
+      <h4 class="text-md font-semibold mt-3 mb-1.5 text-foreground/90">Key Tables & Core Attributes:</h4>
+      <ul class="list-disc list-inside space-y-3 text-sm text-foreground/80">
+        <li>
+          <strong>Users</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>user_id</code> (PK, UUID/Serial)</li>
+            <li><code>username</code> (VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>email</code> (VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>hashed_password</code> (VARCHAR, NOT NULL)</li>
+            <li><code>status</code> (ENUM/VARCHAR - e.g., 'active', 'inactive', NOT NULL)</li>
+            <li><code>created_at</code>, <code>updated_at</code> (TIMESTAMP)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Roles</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>role_id</code> (PK, UUID/Serial)</li>
+            <li><code>role_name</code> (VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Permissions</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>permission_id</code> (PK, UUID/Serial)</li>
+            <li><code>permission_key</code> (VARCHAR, UNIQUE, NOT NULL - e.g., 'user:create', 'component:edit')</li>
+            <li><code>description</code> (TEXT)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>UserRoles</strong> (Junction Table for Users-Roles)
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>user_id</code> (FK to Users.user_id, PK)</li>
+            <li><code>role_id</code> (FK to Roles.role_id, PK)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>RolePermissions</strong> (Junction Table for Roles-Permissions)
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>role_id</code> (FK to Roles.role_id, PK)</li>
+            <li><code>permission_id</code> (FK to Permissions.permission_id, PK)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>ArchitecturalComponents</strong> (If component data becomes dynamic)
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>component_id</code> (PK, UUID/Serial)</li>
+            <li><code>title</code> (VARCHAR, NOT NULL)</li>
+            <li><code>icon_name</code> (VARCHAR)</li>
+            <li><code>complexity</code> (ENUM/VARCHAR)</li>
+            <li><code>details_json</code> (JSONB/TEXT - for types, use_cases, examples, etc.)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>SystemConfigurations</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>config_key</code> (PK, VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>config_value</code> (TEXT/JSONB, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+            <li><code>is_sensitive</code> (BOOLEAN, DEFAULT FALSE)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>FeatureFlags</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>flag_key</code> (PK, VARCHAR, UNIQUE, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+            <li><code>is_enabled</code> (BOOLEAN, DEFAULT FALSE, NOT NULL)</li>
+            <li><code>targeting_rules_json</code> (JSONB)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>AuditLogs</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>log_id</code> (PK, BIGSERIAL/UUID)</li>
+            <li><code>user_id</code> (FK to Users.user_id, NULLABLE)</li>
+            <li><code>action_type</code> (VARCHAR, NOT NULL)</li>
+            <li><code>resource_type</code> (VARCHAR)</li>
+            <li><code>resource_id</code> (VARCHAR)</li>
+            <li><code>details_json</code> (JSONB)</li>
+            <li><code>ip_address</code> (VARCHAR)</li>
+            <li><code>timestamp</code> (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)</li>
+          </ul>
+        </li>
+         <li>
+          <strong>SavedArchitectures / Templates</strong>
+          <ul class="list-circle list-inside pl-4 mt-1 space-y-0.5 text-xs">
+            <li><code>architecture_id</code> (PK, UUID/Serial)</li>
+            <li><code>user_id</code> (FK to Users.user_id, NULLABLE for system templates)</li>
+            <li><code>name</code> (VARCHAR, NOT NULL)</li>
+            <li><code>description</code> (TEXT)</li>
+            <li><code>configuration_json</code> (JSONB, NOT NULL - selected components and types)</li>
+            <li><code>is_template</code> (BOOLEAN, DEFAULT FALSE)</li>
+          </ul>
+        </li>
+      </ul>
+    `
   }
 ];
 
@@ -156,8 +261,8 @@ export default function AdminPage() {
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
             This section outlines potential administrative functionalities for Rustik.
-            Implementing these features would require a dedicated backend system, database,
-            and robust authentication/authorization mechanisms.
+            Implementing these features would require a dedicated backend system, robust authentication/authorization,
+            and typically a <strong>Relational Database</strong> (e.g., PostgreSQL, MySQL) to manage the structured data involved.
           </p>
         </div>
 
@@ -178,20 +283,23 @@ export default function AdminPage() {
                     {item.keyActions.map(action => <li key={action}>{action}</li>)}
                   </ul>
                 </div>
-                {/* 
-                <div className="mt-4">
-                  <h4 className="text-sm font-semibold text-foreground mb-1.5">Conceptual API Endpoints:</h4>
-                  <ul className="space-y-1 text-xs text-foreground/70">
-                    {item.endpoints.map(endpoint => (
-                      <li key={`${endpoint.method}-${endpoint.path}`}>
-                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded-md mr-2 text-primary/80">{endpoint.method}</span>
-                        <span className="font-mono text-muted-foreground">{endpoint.path}</span>
-                        <span className="italic"> - {endpoint.action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                */}
+                {item.endpoints && item.endpoints.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-1.5">Conceptual API Endpoints:</h4>
+                    <ul className="space-y-1 text-xs text-foreground/70">
+                      {item.endpoints.map(endpoint => (
+                        <li key={`${endpoint.method}-${endpoint.path}`}>
+                          <span className="font-mono bg-muted px-1.5 py-0.5 rounded-md mr-2 text-primary/80">{endpoint.method}</span>
+                          <span className="font-mono text-muted-foreground">{endpoint.path}</span>
+                          <span className="italic"> - {endpoint.action}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {item.schemaDetails && (
+                  <div className="mt-4 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: item.schemaDetails }} />
+                )}
               </AccordionContent>
             </AccordionItem>
           ))}
