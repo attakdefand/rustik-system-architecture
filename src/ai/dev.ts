@@ -1,3 +1,5 @@
 // Flows will be imported for their side effects in this file.
 import './flows/analyze-system-flow';
 import './flows/analyze-capacity-flow';
+import './flows/suggest-capacity-tier-flow';
+
