@@ -22,7 +22,7 @@ const AnalyzeSystemInputSchema = z.object({
 export type AnalyzeSystemInput = z.infer<typeof AnalyzeSystemInputSchema>;
 
 const AnalyzeSystemOutputSchema = z.object({
-  analysis: z.string().describe('The AI-generated analysis of the system components, explaining interactions, benefits, and considerations.'),
+  analysis: z.string().describe('The AI-generated analysis of the system components, explaining interactions, benefits, considerations, and a conceptual sequential flow.'),
 });
 export type AnalyzeSystemOutput = z.infer<typeof AnalyzeSystemOutputSchema>;
 
@@ -40,7 +40,8 @@ Your analysis should:
 1.  Explain potential positive interactions and synergies between the selected components/types. If only one component is selected, focus on its role and considerations.
 2.  Highlight key benefits of using this combination (or single component) for a system.
 3.  Mention any important considerations, trade-offs, or potential challenges when implementing these components together (or the single component).
-4.  Structure your response in a clear, informative, and easy-to-understand manner. Keep it concise yet comprehensive. Format the output using markdown for readability (e.g., headings, bullet points).
+4.  If a logical sequence or data flow can be inferred from the selected components (e.g., from user ingress through to backend processing or data storage), attempt to describe this conceptual flow. For instance, 'User requests might first hit an Anycast IP, then be routed by a Layer-7 Load Balancer to available Rust App Nodes, which then query a sharded Database.' Emphasize this is a conceptual high-level flow.
+5.  Structure your response in a clear, informative, and easy-to-understand manner. Keep it concise yet comprehensive. Format the output using markdown for readability (e.g., headings, bullet points).
 
 Selected Components and Types:
 {{#if components.length}}
@@ -76,3 +77,4 @@ const analyzeSystemFlow = ai.defineFlow(
     return output;
   }
 );
+
