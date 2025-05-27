@@ -29,6 +29,16 @@ Welcome to Rustik, an interactive web application designed to help you explore, 
     *   Click "Analyze Interactions" to get an AI-generated analysis of how your chosen components might work together.
     *   If "Microservices Architecture" and other relevant infrastructure are selected, click "Suggest Potential Microservices" for AI-based service suggestions.
     *   Click "Analyze Conceptual Security Posture" for an AI-driven security overview of your selections.
+
+    <!--
+    **Screenshot Placeholder for System Visualizer:**
+    To add a screenshot here:
+    1. Take a screenshot of the System Visualizer page in action.
+    2. Save the image (e.g., as `system-visualizer-screenshot.png`) in a directory like `docs/images/` within your project.
+    3. Uncomment and update the following Markdown line:
+    ![System Visualizer Screenshot](./docs/images/system-visualizer-screenshot.png)
+    -->
+
 3.  **Analyze Scaling Potential**: From the Visualizer, after selecting components, click "Analyze Scaling Potential". This will take you to the **Capacity Analyzer** page, showing an AI's conceptual take on how your selections might scale and handle large user loads.
 4.  **Comprehensive Architectural Profile (Master-Flow)**: Use the **Master-Flow** tab.
     *   Select your desired architectural components and their specific types.
@@ -59,11 +69,12 @@ To clone and run Rustik on your local machine, follow these steps:
 ### Setup Instructions
 
 1.  **Clone the Repository**:
-    Open your terminal and run the following command to clone the project. If the repository URL is not `https://github.com/your-username/your-repository-name.git`, please replace it with the actual URL.
+    Open your terminal and run the following command to clone the project.
     ```bash
-    git clone https://github.com/your-username/your-repository-name.git rustik-app
+    git clone <YOUR_REPOSITORY_URL_HERE> rustik-app
     cd rustik-app
     ```
+    Replace `<YOUR_REPOSITORY_URL_HERE>` with the actual URL of your Git repository.
 
 2.  **Install Dependencies**:
     Install the project dependencies using either npm or yarn:
