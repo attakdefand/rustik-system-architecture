@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Cpu, Database, Router as RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, ShieldAlert, Gavel, MessageSquare } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu, Database, Router as RouterIcon, Lightbulb, Layers, ShieldCheck, DollarSign, Settings2, Archive, Gauge, Rocket, Scaling, ShieldAlert, Gavel, MessageSquare, Route } from 'lucide-react';
 
 export interface TypeDefinition {
   name: string;
@@ -81,7 +81,7 @@ export const architectureComponents: ArchitectureComponent[] = [
   {
     id: 'api-gateway',
     title: 'API Gateway',
-    icon: RouterIcon,
+    icon: Route,
     types: [
         { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services (Aggregator Pattern).' },
         { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
@@ -187,6 +187,8 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Database per Service Principle", description: "Each microservice owns and manages its own database schema and data, ensuring loose coupling and independent evolution." },
       { name: "Saga Pattern", description: "Manages data consistency across multiple services in distributed transactions using a sequence of local transactions and compensating actions." },
       { name: "Sidecar Pattern", description: "Deploys auxiliary components (e.g., proxies, logging agents) alongside a main application in a separate process or container." },
+      { name: 'Event-Driven Architecture (EDA)', description: 'Services communicate asynchronously through events, promoting loose coupling, scalability, and resilience. Often utilizes message brokers.' },
+      { name: 'Serverless Functions (FaaS)', description: 'Implementing services as stateless functions that scale automatically, managed by a cloud provider (e.g., AWS Lambda, Google Cloud Functions). Ideal for event-driven or intermittent workloads.' },
     ],
     useCases: [
       'Building large, complex applications that require high scalability and agility.',
@@ -204,11 +206,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     complexity: 'Advanced',
     implementationGuidance: [
       'Carefully define service boundaries based on business capabilities (Domain-Driven Design can help).',
-      'Establish robust inter-service communication mechanisms (synchronous like REST/gRPC, or asynchronous via message queues).',
+      'Establish robust inter-service communication mechanisms (synchronous like REST/gRPC, or asynchronous via message queues/event streams for EDA).',
       'Implement service discovery to allow services to find each other dynamically.',
       'Set up comprehensive monitoring, logging, and distributed tracing for observability across services.',
       'Invest in mature CI/CD pipelines for automated testing and independent deployment of services.',
-      'Address challenges like data consistency across services (e.g., using Sagas) and managing distributed transactions if needed.'
+      'Address challenges like data consistency across services (e.g., using Sagas or eventual consistency with EDA) and managing distributed transactions if needed.',
+      'For FaaS, design functions to be stateless and idempotent, and manage cold starts if latency is critical.'
     ],
   },
   {
@@ -279,7 +282,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Read Replicas for Read Scalability", description: "Creates copies of the database to handle read requests, reducing load on the primary." },
       { name: "NoSQL Databases (Key-Value, Document, Columnar)", description: "Flexible schema databases optimized for specific data models and scale needs." },
       { name: "Database Caching (e.g., Redis, Memcached)", description: "Stores frequently accessed data in fast memory to reduce database hits." },
-      { name: "Connection Pooling", description: "Manages a pool of database connections to improve efficiency and performance." },
+      { name: "Connection Pooling", description: "Manages a pool of pre-established database connections to improve efficiency and performance by reusing connections." },
       { name: "Command Query Responsibility Segregation (CQRS)", description: "Separates read (queries) and write (commands) operations into different models/data stores, optimizing each path." },
       { name: "Event Sourcing", description: "Persists entity state as a sequence of immutable state-changing events, providing a full audit log and enabling temporal queries." },
     ],
@@ -417,8 +420,6 @@ export const architectureComponents: ArchitectureComponent[] = [
       { name: "Automated Scaling (Horizontal & Vertical)", description: "Adjusts system capacity automatically based on demand." },
       { name: "Safe Deployment Strategies", description: "Blue/Green, Canary, Rolling releases for minimal risk software updates." },
       { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations via code for consistency." },
-      { name: "Centralized Logging", description: "Collecting all logs from various services into a central system for analysis and troubleshooting." },
-      { name: "Distributed Tracing", description: "Tracking requests as they flow through multiple services to identify bottlenecks and debug issues in distributed systems." }
     ],
     useCases: [
       "Proactively identifying and resolving issues before user impact.",
@@ -433,7 +434,7 @@ export const architectureComponents: ArchitectureComponent[] = [
       "Tools like Terraform and Ansible are widely used for IaC and configuration management."
     ],
     eli5Summary: "Detailed Explanation",
-    eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response), and can track where any kid has been all day (tracing).",
+    eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response).",
     complexity: "Advanced",
     implementationGuidance: [
       "Implement centralized logging (e.g., ELK stack, Loki) and metrics (e.g., Prometheus, Grafana).",
@@ -580,8 +581,8 @@ export const architectureComponents: ArchitectureComponent[] = [
     icon: Gauge,
     types: [
         { name: "Metrics (Prometheus, Grafana, Datadog)", description: "Numerical data (e.g., request counts, latency, error rates) visualized in dashboards to track performance and health." },
-        { name: "Logging (ELK Stack, Splunk, Loki)", description: "Collecting, searching, and analyzing text-based event logs from all parts of the system." },
-        { name: "Distributed Tracing (Jaeger, Zipkin, OpenTelemetry)", description: "Following a single request's journey through multiple services to identify bottlenecks and debug issues." },
+        { name: "Logging (ELK Stack, Splunk, Loki)", description: "Collecting, searching, and analyzing text-based event logs from all parts of the system for debugging and auditing." },
+        { name: "Distributed Tracing (Jaeger, Zipkin, OpenTelemetry)", description: "Following a single request's journey through multiple services to identify bottlenecks and debug issues in distributed systems." },
         { name: "Alerting (PagerDuty, OpsGenie, Alertmanager)", description: "Automatically notifying engineers when critical problems or predefined thresholds are detected." },
         { name: "Dashboards & Visualization", description: "Visual displays combining metrics, logs, and traces to give a comprehensive overview of system health and behavior." }
     ],
@@ -649,28 +650,31 @@ export const architectureComponents: ArchitectureComponent[] = [
         { name: "Circuit Breakers", description: "Prevents an application from repeatedly trying an operation that's likely to fail, allowing the failing service time to recover." },
         { name: "Rate Limiting & Throttling", description: "Controls the amount of traffic sent or received to prevent overload and ensure fair usage." },
         { name: "Retry Mechanisms with Exponential Backoff", description: "Automatically re-attempts failed operations with increasing delays to handle transient errors." },
-        { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function without being affected." }
+        { name: "Bulkheads", description: "Isolates elements of an application into pools so that if one fails, others continue to function without being affected." },
+        { name: "Chaos Engineering (Gremlin, Chaos Monkey)", description: "Proactively injecting failures into a system to test its resilience and identify weaknesses." }
     ],
     useCases: [
         "Automatically adjusting system capacity to meet fluctuating demand, optimizing cost and performance.",
         "Preventing cascading failures and improving system stability during partial outages.",
         "Gracefully handling service degradation and ensuring a better user experience during failures.",
-        "Protecting services from being overwhelmed by excessive traffic or misbehaving clients."
+        "Protecting services from being overwhelmed by excessive traffic or misbehaving clients.",
+        "Validating system resilience and uncovering hidden dependencies or failure points."
     ],
     realWorldExamples: [
         "AWS’s Application Auto Scaling adjusts EC2 instances, ECS tasks, or DynamoDB capacity based on CloudWatch alarms.",
-        "Netflix's Hystrix library popularized the circuit breaker pattern.",
+        "Netflix's Hystrix library popularized the circuit breaker pattern, and they actively use Chaos Monkey.",
         "API gateways often implement rate limiting to protect backend services."
     ],
     eli5Summary: 'Detailed Explanation',
-    eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down.",
+    eli5Details: "These are algorithms and controllers that decide when to scale up/down capacity, handle failures, perform canary deployments, etc. 'Autoscaling' is like magic: if lots of kids show up, more swings appear! 'Resilience' means if one swing breaks, the playground can handle problems without shutting down. 'Chaos Engineering' is like sometimes turning off a random robot teacher for a minute just to make sure the other teachers can handle the class.",
     complexity: 'Advanced',
     implementationGuidance: [
         "Define clear scaling policies based on relevant performance metrics (e.g., CPU utilization, memory usage, request queue length, custom application metrics).",
         "Implement circuit breakers in inter-service communication to isolate failing services and prevent cascading failures.",
         "Use retries with exponential backoff and jitter for transient network errors or temporary service unavailability.",
         "Design services to be idempotent to safely handle retries without unintended side effects.",
-        "Consider bulkhead patterns to limit the blast radius of failures within your application components."
+        "Consider bulkhead patterns to limit the blast radius of failures within your application components.",
+        "Start with simple chaos experiments in non-production environments and gradually increase complexity."
     ]
   }
 ];
