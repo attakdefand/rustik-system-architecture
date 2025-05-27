@@ -474,7 +474,8 @@ export const architectureComponents: ArchitectureComponent[] = [
         "Implement robust IAM policies and regularly review access rights.",
         "Use strong encryption for all sensitive data, both in transit and at rest.",
         "Deploy WAF and DDoS mitigation services at the network edge.",
-        "Develop an incident response plan for security breaches."
+        "Develop an incident response plan for security breaches.",
+        "Regularly review and address common web application vulnerabilities, referencing frameworks like the OWASP Top 10, to ensure chosen principles are effectively mitigating these risks."
     ]
   },
   {

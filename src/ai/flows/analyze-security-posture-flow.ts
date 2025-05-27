@@ -20,10 +20,10 @@ const AnalyzeSecurityPostureOutputSchema = z.object({
     'A list of positive security aspects or strengths derived from the selected components.'
   ),
   potentialVulnerabilitiesOrConcerns: z.array(z.string()).describe(
-    'A list of potential vulnerabilities, misconfiguration risks, or security concerns associated with the selected components or their interactions.'
+    'A list of potential vulnerabilities, misconfiguration risks, or security concerns associated with the selected components or their interactions. Consider common web application risks (e.g., OWASP Top 10 categories like Injection, Broken Access Control, etc.) where relevant to the architecture.'
   ),
   keySecurityRecommendations: z.array(z.string()).describe(
-    'A list of 2-4 key actionable security recommendations for the selected architectural setup.'
+    'A list of 2-4 key actionable security recommendations for the selected architectural setup. These should aim to mitigate identified concerns and promote best practices.'
   ),
   overallConceptualAssessment: z.string().describe(
     'A brief, high-level qualitative summary of the conceptual security posture. This is not a formal audit.'
@@ -52,7 +52,7 @@ No components selected. Please describe general principles for securing distribu
 
 Based on this selection, provide a conceptual security posture analysis. Your response MUST include:
 1.  **positiveSecurityAspects**: List 2-3 inherent security strengths or positive contributions to security that these components (and their types) offer. For example, "Anycast IP can help mitigate DDoS attacks by distributing traffic."
-2.  **potentialVulnerabilitiesOrConcerns**: List 2-4 potential vulnerabilities, common misconfiguration risks, or security concerns specifically related to the chosen components or how they might interact. For example, "If Layer-7 Load Balancer rules are too permissive, they might expose internal services not intended for public access." or "Lack of robust IAM policies for cloud-native LBs could lead to unauthorized administrative access."
+2.  **potentialVulnerabilitiesOrConcerns**: List 2-4 potential vulnerabilities, common misconfiguration risks, or security concerns specifically related to the chosen components or how they might interact. For example, "If Layer-7 Load Balancer rules are too permissive, they might expose internal services not intended for public access." or "Lack of robust IAM policies for cloud-native LBs could lead to unauthorized administrative access." Consider how the selected architecture might be susceptible to, or help defend against, common web application vulnerabilities like those in the OWASP Top 10 (e.g., Injection, Broken Access Control, Security Misconfiguration, Cryptographic Failures).
 3.  **keySecurityRecommendations**: Provide 2-4 high-level, actionable security recommendations pertinent to this architectural setup. Focus on best practices. For example, "Implement strict network segmentation and firewall rules between all component layers." or "Ensure end-to-end encryption for all data in transit, even between internal services."
 4.  **overallConceptualAssessment**: A brief (1-2 sentences) qualitative summary of the conceptual security posture. This should clearly state that it's a high-level conceptual analysis and not a formal security audit or penetration test result.
 
@@ -84,11 +84,13 @@ const analyzeSecurityPostureFlow = ai.defineFlow(
         potentialVulnerabilitiesOrConcerns: [
           "General Concern: Insufficient network segmentation can increase blast radius.",
           "General Concern: Lack of regular patching and vulnerability management.",
+          "General Consideration: Always be mindful of common web vulnerabilities like the OWASP Top 10.",
         ],
         keySecurityRecommendations: [
           "Recommendation: Implement strong identity and access management (IAM) policies.",
           "Recommendation: Ensure comprehensive logging and monitoring for security events.",
           "Recommendation: Encrypt all sensitive data, both in transit and at rest.",
+          "Recommendation: Regularly assess and test for OWASP Top 10 vulnerabilities."
         ],
         overallConceptualAssessment: "No components selected. The above are general security principles. Select components for a specific analysis. This is a high-level conceptual analysis, not a formal security audit.",
       };
@@ -101,3 +103,4 @@ const analyzeSecurityPostureFlow = ai.defineFlow(
     return output;
   }
 );
+
