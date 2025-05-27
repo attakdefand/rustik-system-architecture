@@ -79,6 +79,8 @@ Here are some advanced directions Rustik could explore in the future to become a
     *   **Infrastructure Orchestration Integration**: Needs to interface with tools like Docker or Kubernetes to dynamically create and manage sandboxed environments.
     *   **Load Testing Framework Integration**: Would need to integrate with synthetic load testing tools to apply workloads to the simulated environment.
     *   **Performance Monitoring in Sandbox**: Requires mechanisms to collect, aggregate, and analyze performance metrics from the temporary "digital twin."
+*   **Policy-as-Code Enforcement**:
+    Define organizational rules (e.g. “all traffic between regions must use mTLS” or “no single-AZ database”) in a declarative language, then block or flag any design that violates them.
 *   **User Accounts & Saved Configurations**: Allow users to create accounts, save their architectural explorations, and revisit them later. (Note: This would require significant backend changes).
 *   **Interactive Diagram Rendering in Visualizer**: Dynamically generate a visual (graphical) diagram of selected components and their conceptual connections. (Note: Requires a client-side diagramming library).
 
