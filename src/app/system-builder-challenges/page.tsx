@@ -7,7 +7,7 @@ import {
   Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, 
   Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert,
   DatabaseZap, Waypoints, Zap, Workflow, TrendingUp, Landmark, FlaskConical,
-  Shield, CloudLightning, Binary, BrainCircuit, ActivitySquare, ShieldLock, CloudCog, FunctionSquare
+  Shield, CloudLightning, Binary, BrainCircuit, ActivitySquare, LockKeyhole, CloudCog, FunctionSquare
 } from 'lucide-react';
 
 export default function SystemBuilderChallengesPage() {
@@ -46,7 +46,7 @@ export default function SystemBuilderChallengesPage() {
       description: 'This is often the biggest challenge. Your database layer must also be able to handle this scale. This typically involves techniques like database sharding (splitting data across multiple databases), read replicas, using highly scalable NoSQL databases (e.g., Cassandra, ScyllaDB, DynamoDB), and robust caching strategies. The Rustik app currently doesn\'t detail database components, but they are critical.',
     },
     {
-      icon: Server, // Representing network infrastructure/servers
+      icon: Server, 
       title: 'Network Infrastructure for Scale',
       description: 'You need massive bandwidth, robust peering arrangements with ISPs, and sufficient capacity at each Point of Presence (PoP).',
     },
@@ -166,7 +166,7 @@ export default function SystemBuilderChallengesPage() {
       description: 'Integrate predictive autoscalers that use machine-learning models on metrics (latency, queue lengths, custom business KPIs) rather than simple CPU/RAM thresholds.',
     },
     {
-      icon: FlaskConical, // Re-using, but fitting for experimentation
+      icon: FlaskConical,
       title: 'Chaos Engineering',
       description: 'Inject failures in a controlled way (e.g. using Chaos Mesh or Gremlin) to validate resiliency across every layer—network, compute, storage, and service dependencies.',
     },
@@ -176,7 +176,7 @@ export default function SystemBuilderChallengesPage() {
       description: 'Instrument every component with OpenTelemetry and aggregate traces/logs/metrics into a single dashboard (e.g. Grafana Tempo + Loki + Prometheus) for end-to-end visibility.',
     },
     {
-      icon: ShieldLock,
+      icon: LockKeyhole, // Replaced ShieldLock
       title: 'Zero-Trust Network Access (ZTNA)',
       description: 'Replace or augment VPNs with identity-based access proxies that grant least-privilege connectivity per-application, per-user.',
     },

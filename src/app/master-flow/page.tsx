@@ -225,9 +225,7 @@ export default function MasterFlowPage() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-2 pb-3 px-4 text-xs text-muted-foreground">
-                    <p className="line-clamp-2">{component.eli5Details || "No detailed explanation available."}</p>
-                  </CardContent>
+                  {/* Removed CardContent with eli5Details here to make cards more compact */}
                 </div>
                 <CardContent className="pt-3 pb-4 px-4 border-t border-border/50 bg-muted/20 flex-col items-start space-y-2">
                   <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
@@ -375,5 +373,4 @@ export default function MasterFlowPage() {
     </div>
   );
 }
-
 

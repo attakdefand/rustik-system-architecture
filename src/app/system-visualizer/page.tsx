@@ -224,11 +224,9 @@ export default function SystemVisualizerPage() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-2 pb-3 px-4 text-xs text-muted-foreground">
-                    <p className="line-clamp-2">{component.eli5Details || "No detailed explanation available."}</p>
-                  </CardContent>
+                  {/* Removed CardContent with eli5Details here to make cards more compact */}
                 </div>
-                <CardFooter className="pt-0 pb-2 px-2 border-t border-border/50 bg-muted/20 flex-col items-start">
+                <CardFooter className="pt-3 pb-4 px-2 border-t border-border/50 bg-muted/20 flex-col items-start">
                   {component.types && component.types.length > 0 ? (
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value={`item-${component.id}`} className="border-b-0">
