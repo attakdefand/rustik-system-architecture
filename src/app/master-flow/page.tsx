@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2 } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -421,7 +421,7 @@ export default function MasterFlowPage() {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-primary flex items-center">
                   <Share2 className="h-6 w-6 mr-3" />
-                  Plugin & API Ecosystem (Conceptual)
+                  Plugin &amp; API Ecosystem (Conceptual)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 text-foreground/90 space-y-4">
@@ -439,6 +439,31 @@ export default function MasterFlowPage() {
                   }}
                 >
                   Explore Plugin & API Ecosystem (Coming Soon)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl rounded-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <Bookmark className="h-6 w-6 mr-3" />
+                  Saved Profiles &amp; Templates (Conceptual)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-foreground/90 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Offer templates for common patterns (e.g., “Global CDN + Multi-Region DB”) and let users snapshot and share “best practice” configurations across projects or orgs. This would likely require user accounts.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    toast({
+                      title: "Feature in Development",
+                      description: "Saved Profiles & Templates feature is coming soon!",
+                    });
+                  }}
+                >
+                  Explore Saved Profiles & Templates (Coming Soon)
                 </Button>
               </CardContent>
             </Card>
