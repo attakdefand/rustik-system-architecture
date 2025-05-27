@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, Workflow } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, Workflow, WorkflowIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
@@ -90,7 +91,7 @@ export default function SystemVisualizerPage() {
   };
   
   const prepareForAnalysis = () => {
-    setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
+    setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id) && (selectedTypesMap.get(comp.id)?.size ?? 0) > 0));
     setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
     setAnalysisTriggered(true); 
 
@@ -173,14 +174,14 @@ export default function SystemVisualizerPage() {
 
   const isMicroservicesArchitectureSelected = () => {
     const microservicesComp = architectureComponents.find(c => c.id === 'microservices-architecture');
-    return microservicesComp ? selectedTypesMap.has(microservicesComp.id) : false;
+    return microservicesComp ? (selectedTypesMap.get(microservicesComp.id)?.size ?? 0) > 0 : false;
   };
   
   const hasOtherInfrastructureComponentsSelected = () => {
     let otherComponentSelected = false;
-    selectedTypesMap.forEach((_types, componentId) => {
+    selectedTypesMap.forEach((types, componentId) => {
       const comp = architectureComponents.find(c => c.id === componentId);
-      if (comp && comp.id !== 'microservices-architecture') {
+      if (comp && comp.id !== 'microservices-architecture' && types.size > 0) {
         otherComponentSelected = true;
       }
     });
@@ -227,36 +228,44 @@ export default function SystemVisualizerPage() {
                     <p className="line-clamp-2">{component.eli5Details || "No detailed explanation available."}</p>
                   </CardContent>
                 </div>
-                <CardFooter className="pt-3 pb-4 px-4 border-t border-border/50 bg-muted/20 flex-col items-start space-y-2">
-                  <Label className="text-xs font-medium text-foreground/80 mb-1 block">Select specific types:</Label>
+                <CardFooter className="pt-0 pb-2 px-2 border-t border-border/50 bg-muted/20 flex-col items-start">
                   {component.types && component.types.length > 0 ? (
-                    component.types.map((typeDef: TypeDefinition, index) => (
-                      <div key={`${component.id}-${typeDef.name}-${index}`} className="flex flex-col w-full">
-                        <div className="flex items-center space-x-2 w-full">
-                          <Checkbox
-                            id={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
-                            checked={selectedTypesMap.get(component.id)?.has(typeDef.name) ?? false}
-                            onCheckedChange={(checked) => {
-                              handleTypeSelection(component.id, typeDef.name, !!checked);
-                            }}
-                            aria-label={`Select type ${typeDef.name} for ${component.title}`}
-                          />
-                          <Label
-                            htmlFor={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
-                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
-                          >
-                            {typeDef.name}
-                          </Label>
-                        </div>
-                        {typeDef.description && (
-                          <p className="text-xs text-muted-foreground pl-6 pt-0.5 leading-snug">
-                            {typeDef.description}
-                          </p>
-                        )}
-                      </div>
-                    ))
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value={`item-${component.id}`} className="border-b-0">
+                        <AccordionTrigger className="py-2 px-2 text-xs font-medium text-foreground/80 hover:no-underline">
+                          Select Types ({component.types.length})
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-1 pb-2 px-2 space-y-2">
+                          {component.types.map((typeDef: TypeDefinition, index) => (
+                            <div key={`${component.id}-${typeDef.name.replace(/\s+/g, '-')}-${index}`} className="flex flex-col w-full">
+                              <div className="flex items-center space-x-2 w-full">
+                                <Checkbox
+                                  id={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                  checked={selectedTypesMap.get(component.id)?.has(typeDef.name) ?? false}
+                                  onCheckedChange={(checked) => {
+                                    handleTypeSelection(component.id, typeDef.name, !!checked);
+                                  }}
+                                  aria-label={`Select type ${typeDef.name} for ${component.title}`}
+                                />
+                                <Label
+                                  htmlFor={`select-${component.id}-${typeDef.name.replace(/\s+/g, '-').toLowerCase()}`}
+                                  className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer hover:text-primary flex-grow"
+                                >
+                                  {typeDef.name}
+                                </Label>
+                              </div>
+                              {typeDef.description && (
+                                <p className="text-xs text-muted-foreground pl-6 pt-0.5 leading-snug">
+                                  {typeDef.description}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No specific types listed for this component.</p>
+                    <p className="text-xs text-muted-foreground px-2 py-3">No specific types listed for this component.</p>
                   )}
                 </CardFooter>
               </Card>
@@ -359,7 +368,7 @@ export default function SystemVisualizerPage() {
                 <Separator />
                 <div>
                   <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                     <Workflow className="h-5 w-5 mr-2 text-accent" />
+                     <WorkflowIcon className="h-5 w-5 mr-2 text-accent" />
                     Conceptual Diagram Area:
                   </h4>
                   <div className="p-6 border-2 border-dashed border-border/70 rounded-lg bg-muted/20 min-h-[200px] flex flex-col justify-center items-center">
@@ -388,7 +397,7 @@ export default function SystemVisualizerPage() {
                         </>
                     ) : (
                          <>
-                            <Workflow className="h-16 w-16 mx-auto mb-4 text-primary/40" />
+                            <WorkflowIcon className="h-16 w-16 mx-auto mb-4 text-primary/40" />
                             <p className="text-lg font-medium text-center text-muted-foreground">Conceptual Visual Diagram</p>
                             <p className="text-sm text-center text-muted-foreground">(Select components and trigger an analysis to see a textual representation here. Graphical diagram feature is in development.)</p>
                         </>
@@ -554,3 +563,4 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
+
