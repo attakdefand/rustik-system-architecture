@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Globe2, Network, ServerCog, Zap, Split, Cpu } from 'lucide-react';
+import { Globe2, Network, ServerCog, Zap, Cpu } from 'lucide-react';
 
 export interface ArchitectureComponent {
   id: string;
@@ -10,6 +10,7 @@ export interface ArchitectureComponent {
   realWorldExamples: string[];
   eli5Summary: string;
   eli5Details: string;
+  complexity: 'Beginner' | 'Intermediate' | 'Advanced';
 }
 
 export const architectureComponents: ArchitectureComponent[] = [
@@ -34,6 +35,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
     eli5Summary: '👶 Explained like you’re 5',
     eli5Details: 'Imagine you have the same toy in lots of playgrounds around the world. When your friend wants to play, they automatically go to the nearest playground and pick up the toy—so they don’t have to travel far and can play quickly. If one playground is closed, they just go to the next nearest one without even noticing.',
+    complexity: 'Intermediate',
   },
   {
     id: 'load-balancers',
@@ -55,6 +57,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
     eli5Summary: '👶 Explained like you’re 5',
     eli5Details: 'Think of a teacher at the door who sends each new kid to an empty classroom. If one classroom is full or the teacher sees a problem inside, they send the next kid to a different room—so no room gets too crowded.',
+    complexity: 'Intermediate',
   },
   {
     id: 'rust-app-nodes',
@@ -76,6 +79,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
     eli5Summary: '👶 Explained like you’re 5',
     eli5Details: 'Imagine each classroom has a super-smart robot teacher (Rust app). That robot can talk to lots and lots of kids all at once really fast and never gets tired or makes silly mistakes.',
+    complexity: 'Advanced',
   },
   {
     id: 'async-io',
@@ -97,11 +101,12 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
     eli5Summary: '👶 Explained like you’re 5',
     eli5Details: 'Picture a mail sorter who doesn’t deliver every letter one by one but instead watches lots of mailboxes at once and only goes to the ones that have new mail. That mail sorter never stands idle or gets stuck waiting.',
+    complexity: 'Advanced',
   },
   {
     id: 'per-core-socket',
     title: 'Per-core Socket Accept + Sharding',
-    icon: Cpu, // Using CPU icon as Split is not available in lucide-react directly, or 'Share2' for sharding aspect
+    icon: Cpu,
     types: [
       'SO_REUSEPORT: all threads bind the same port and the kernel load-balances accepts.',
       'Single-acceptor + handoff: one thread accepts and then passes sockets to workers (less common at high scale).',
@@ -116,5 +121,6 @@ export const architectureComponents: ArchitectureComponent[] = [
     ],
     eli5Summary: '👶 Explained like you’re 5',
     eli5Details: 'Imagine each robot teacher has its own door to the playground. When a new kid arrives, whichever robot’s door the kid walks up to is ready to let them in—so no single door gets a big line.',
+    complexity: 'Advanced',
   },
 ];

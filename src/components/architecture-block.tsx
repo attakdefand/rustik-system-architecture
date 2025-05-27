@@ -13,16 +13,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge'; // Added Badge import
+import type { ArchitectureComponent } from '@/data/architecture-data'; // Ensure this type is imported
 
-interface ArchitectureBlockProps {
-  title: string;
-  icon: LucideIcon;
-  types: string[];
-  useCases: string[];
-  realWorldExamples: string[];
-  eli5Summary: string;
-  eli5Details: string;
-}
+interface ArchitectureBlockProps extends ArchitectureComponent {} // Use the imported type
 
 const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   title,
@@ -32,13 +26,32 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   realWorldExamples,
   eli5Summary,
   eli5Details,
+  complexity, // Added complexity
 }) => {
+  const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
+    switch (complexityLevel) {
+      case 'Beginner':
+        return 'default'; // Or 'secondary' if default is too strong
+      case 'Intermediate':
+        return 'secondary'; // Or a custom variant if needed
+      case 'Advanced':
+        return 'destructive'; // Or a custom variant for advanced
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <Card className="flex flex-col shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-xl overflow-hidden">
       <CardHeader className="bg-primary/5 dark:bg-primary/10 p-6">
-        <div className="flex items-center gap-4">
-          <Icon className="h-10 w-10 text-primary" />
-          <CardTitle className="text-2xl font-semibold text-primary">{title}</CardTitle>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Icon className="h-10 w-10 text-primary" />
+            <CardTitle className="text-2xl font-semibold text-primary">{title}</CardTitle>
+          </div>
+          <Badge variant={complexityVariant(complexity)} className="whitespace-nowrap">
+            {complexity}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="p-6 flex-grow">
