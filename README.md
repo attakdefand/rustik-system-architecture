@@ -123,11 +123,29 @@ To clone and run Rustik on your local machine, follow these steps:
 
 ## Automated Workflows with GitHub Actions
 
-This project uses GitHub Actions to automate several quality checks:
+This project uses GitHub Actions to automate several quality checks and can be extended for more advanced CI/CD capabilities:
 
 *   **Linting and Type Checking**: Automatically checks your code for style issues (ESLint) and type errors (TypeScript) on every push or pull request. This helps catch common mistakes early. (See: `.github/workflows/lint-typecheck.yml`)
 *   **Build Check**: Ensures your Next.js application successfully builds whenever changes are made. This prevents merging code that breaks the production build. (See: `.github/workflows/build-check.yml`)
     *   **Note on Build Check**: The build process might require a `GOOGLE_API_KEY`. For CI, you can set a dummy key as a GitHub repository secret named `DUMMY_GOOGLE_API_KEY_FOR_BUILD`. If the build doesn't require it, this can be omitted from the workflow file.
-*   **(Future) Automated Testing**: If automated tests (unit, integration, end-to-end) are added to the project, GitHub Actions can be configured to run them automatically to verify the application's functionality.
+
+### Further GitHub Actions Capabilities (Potential Future Setup)
+
+*   **Automated Testing**:
+    *   **Unit Tests**: If you write unit tests (e.g., with Jest or Vitest), you can have a workflow run these on every push to ensure individual functions and components work as expected.
+    *   **Integration Tests**: For testing how different parts of your application interact.
+    *   **End-to-End (E2E) Tests**: Using tools like Cypress or Playwright, you can automate browser interactions to test user flows. This is very powerful for catching regressions in the UI and overall application behavior.
+*   **Deployment Automation (CI/CD)**:
+    *   **Deploy to Staging/Preview**: Automatically deploy your application to a staging or preview environment (like Vercel, Netlify, Firebase App Hosting, or your own cloud infrastructure) whenever you push to a specific branch (e.g., `develop` or feature branches).
+    *   **Deploy to Production**: Set up a workflow to deploy to your production environment when you merge to `main` or create a release tag. This often includes steps like building the optimized production version of your app.
+*   **Security Scanning**:
+    *   **Static Analysis Security Testing (SAST)**: Tools that scan your code for potential security vulnerabilities.
+    *   **Dependency Scanning**: Tools like GitHub's Dependabot or Snyk can automatically check your project's dependencies for known vulnerabilities and even create pull requests to update them.
+*   **Code Coverage Reporting**:
+    *   After running tests, you can have a workflow that calculates code coverage (what percentage of your code is covered by tests) and uploads the report (e.g., to Codecov or Coveralls).
+*   **Automated Dependency Updates**:
+    *   Use tools like Dependabot (natively integrated with GitHub) to automatically create pull requests when your dependencies have updates available.
+*   **Release Management**:
+    *   Automate the process of creating release notes, tagging releases, and publishing packages (if your project becomes a library).
 
 We hope you find Rustik insightful for exploring the fascinating world of hyperscale system architecture!
