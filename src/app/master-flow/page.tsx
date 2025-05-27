@@ -9,12 +9,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { analyzeCapacityPotential, type AnalyzeCapacityOutput } from '@/ai/flows/analyze-capacity-flow';
 import { suggestCapacityTier, type SuggestCapacityTierOutput } from '@/ai/flows/suggest-capacity-tier-flow';
+import { analyzeSecurityPosture, type AnalyzeSecurityPostureOutput } from '@/ai/flows/analyze-security-posture-flow';
+
 
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
   switch (complexityLevel) {
@@ -37,6 +39,7 @@ export default function MasterFlowPage() {
   const [interactionAnalysis, setInteractionAnalysis] = useState<AnalysisState<AnalyzeSystemOutput>>({ data: null, isLoading: false, error: null });
   const [capacityAnalysis, setCapacityAnalysis] = useState<AnalysisState<AnalyzeCapacityOutput>>({ data: null, isLoading: false, error: null });
   const [tierSuggestion, setTierSuggestion] = useState<AnalysisState<SuggestCapacityTierOutput>>({ data: null, isLoading: false, error: null });
+  const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>({ data: null, isLoading: false, error: null });
 
   const [analysesTriggered, setAnalysesTriggered] = useState(false);
 
@@ -66,9 +69,11 @@ export default function MasterFlowPage() {
   const handleAnalyzeProfile = async () => {
     const flowInput = getFlowInput();
     if (flowInput.components.length === 0) {
-      setInteractionAnalysis({ data: null, isLoading: false, error: "Please select at least one component type to analyze." });
-      setCapacityAnalysis({ data: null, isLoading: false, error: "Please select at least one component type to analyze." });
-      setTierSuggestion({ data: null, isLoading: false, error: "Please select at least one component type to analyze." });
+      const errorMsg = "Please select at least one component type to analyze.";
+      setInteractionAnalysis({ data: null, isLoading: false, error: errorMsg });
+      setCapacityAnalysis({ data: null, isLoading: false, error: errorMsg });
+      setTierSuggestion({ data: null, isLoading: false, error: errorMsg });
+      setSecurityPostureAnalysis({ data: null, isLoading: false, error: errorMsg });
       setAnalysesTriggered(true);
       return;
     }
@@ -77,18 +82,20 @@ export default function MasterFlowPage() {
     setInteractionAnalysis({ data: null, isLoading: true, error: null });
     setCapacityAnalysis({ data: null, isLoading: true, error: null });
     setTierSuggestion({ data: null, isLoading: true, error: null });
+    setSecurityPostureAnalysis({ data: null, isLoading: true, error: null });
 
     try {
-      // Promise.allSettled might be better if we want to show partial results even if one flow fails
-      const [interactionResult, capacityResult, tierResult] = await Promise.all([
+      const [interactionResult, capacityResult, tierResult, securityResult] = await Promise.all([
         analyzeSystem(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Interaction analysis failed." })),
         analyzeCapacityPotential(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Capacity analysis failed." })),
         suggestCapacityTier(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Tier suggestion failed." })),
+        analyzeSecurityPosture(flowInput).then(data => ({ data, error: null })).catch(error => ({ data: null, error: error instanceof Error ? error.message : "Security posture analysis failed." })),
       ]);
 
       setInteractionAnalysis({ data: interactionResult.data, isLoading: false, error: interactionResult.error });
       setCapacityAnalysis({ data: capacityResult.data, isLoading: false, error: capacityResult.error });
       setTierSuggestion({ data: tierResult.data, isLoading: false, error: tierResult.error });
+      setSecurityPostureAnalysis({ data: securityResult.data, isLoading: false, error: securityResult.error });
 
     } catch (error) {
       console.error("Master Flow Analysis Orchestration Error:", error);
@@ -96,6 +103,7 @@ export default function MasterFlowPage() {
       if (!interactionAnalysis.data && !interactionAnalysis.error) setInteractionAnalysis({ data:null, isLoading: false, error: generalError});
       if (!capacityAnalysis.data && !capacityAnalysis.error) setCapacityAnalysis({ data:null, isLoading: false, error: generalError});
       if (!tierSuggestion.data && !tierSuggestion.error) setTierSuggestion({ data:null, isLoading: false, error: generalError});
+      if (!securityPostureAnalysis.data && !securityPostureAnalysis.error) setSecurityPostureAnalysis({data:null, isLoading:false, error: generalError});
     }
   };
   
@@ -105,7 +113,7 @@ export default function MasterFlowPage() {
     return count;
   };
 
-  const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading;
+  const isAnalysisButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading;
 
   const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode) => (
     <Card className="shadow-xl rounded-xl">
@@ -210,14 +218,14 @@ export default function MasterFlowPage() {
             </h3>
           <Button size="lg" disabled={isAnalysisButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
             <Maximize className="mr-2 h-5 w-5" />
-            {interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
+            {interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
-          {countSelectedTypes() > 0 && !(interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading) && (
+          {countSelectedTypes() > 0 && !isAnalysisButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
               {selectedTypesMap.size} component category(s) with {countSelectedTypes()} type(s) selected.
             </p>
           )}
-          {countSelectedTypes() === 0 && !(interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading) && (
+          {countSelectedTypes() === 0 && !isAnalysisButtonDisabled && (
             <p className="text-sm text-muted-foreground mt-2">
               Select at least one type for a component to generate an analysis.
             </p>
@@ -261,6 +269,40 @@ export default function MasterFlowPage() {
                 )}
               </div>
             ))}
+
+            {renderAnalysisSection<AnalyzeSecurityPostureOutput>("Conceptual Security Posture", Shield, securityPostureAnalysis, (data) => (
+              <div>
+                <h4 className="font-semibold text-lg mb-3 text-primary">{data.overallConceptualAssessment}</h4>
+                
+                {data.positiveSecurityAspects && data.positiveSecurityAspects.length > 0 && (
+                  <div className="mb-4 p-3 bg-green-500/5 rounded-md border border-green-500/20">
+                    <h5 className="font-semibold text-md mb-1 text-green-700 dark:text-green-400">Positive Security Aspects:</h5>
+                    <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                      {data.positiveSecurityAspects.map((aspect, i) => <li key={`positive-${i}`}>{aspect}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {data.potentialVulnerabilitiesOrConcerns && data.potentialVulnerabilitiesOrConcerns.length > 0 && (
+                  <div className="mb-4 p-3 bg-yellow-500/5 rounded-md border border-yellow-500/20">
+                    <h5 className="font-semibold text-md mb-1 text-yellow-700 dark:text-yellow-400">Potential Vulnerabilities/Concerns:</h5>
+                    <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                      {data.potentialVulnerabilitiesOrConcerns.map((concern, i) => <li key={`concern-${i}`}>{concern}</li>)}
+                    </ul>
+                  </div>
+                )}
+                
+                {data.keySecurityRecommendations && data.keySecurityRecommendations.length > 0 && (
+                  <div className="p-3 bg-blue-500/5 rounded-md border border-blue-500/20">
+                    <h5 className="font-semibold text-md mb-1 text-blue-700 dark:text-blue-400">Key Security Recommendations:</h5>
+                    <ul className="list-disc list-inside space-y-0.5 text-sm text-foreground/75">
+                      {data.keySecurityRecommendations.map((rec, i) => <li key={`rec-${i}`}>{rec}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+
           </div>
         )}
       </main>
