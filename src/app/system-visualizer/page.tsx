@@ -119,7 +119,7 @@ export default function SystemVisualizerPage() {
     return count;
   };
 
-  constisDisabled = countSelectedTypes() === 0 || isAnalyzing;
+  const isDisabled = countSelectedTypes() === 0 || isAnalyzing;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -325,3 +325,4 @@ export default function SystemVisualizerPage() {
     </div>
   );
 }
+
