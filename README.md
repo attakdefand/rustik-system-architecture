@@ -89,8 +89,9 @@ To clone and run Rustik on your local machine, follow these steps:
 
 ## Future Enhancements (Potential Ideas)
 
-*   Dynamic visual diagrams in the System Visualizer.
-*   More detailed AI flows for cost estimation or security posture assessment.
-*   User accounts to save and share architectural configurations.
+*   Interactive Diagrams in the Visualizer
+*   Cost Estimation Flows
+*   Security Posture Analysis
+*   User Accounts & Saved Configurations
 
 We hope you
