@@ -85,6 +85,8 @@ Here are some advanced directions Rustik could explore in the future to become a
     Define organizational rules (e.g. “all traffic between regions must use mTLS” or “no single-AZ database”) in a declarative language, then block or flag any design that violates them.
 *   **Adaptive Blueprint Optimization**:
     Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
+*   **Extensible Plugin Marketplace**:
+    Let users publish and share new component definitions, AI flow templates, compliance policies, or even custom cost-model providers.
 *   **ChatOps & Collaboration Bots**:
     Integrate with Slack/Teams so you can “@rustik analyze this config” or get architecture change notifications in your dev channels.
 *   **Mobile Companion App**:
