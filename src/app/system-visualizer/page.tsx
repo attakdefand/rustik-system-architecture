@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/layout/app-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Construction, DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle } from 'lucide-react';
+import { DraftingCompass, Network, ImageIcon, ListChecks, BrainCircuit, AlertTriangle, Scaling } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput } from '@/ai/flows/analyze-system-flow';
-import { Skeleton } from '@/components/ui/skeleton'; // For loading state
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Helper function for complexity badge styling
 const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
   switch (complexityLevel) {
     case 'Beginner':
@@ -30,6 +30,7 @@ const complexityVariant = (complexityLevel: ArchitectureComponent['complexity'])
 };
 
 export default function SystemVisualizerPage() {
+  const router = useRouter();
   const [selectedTypesMap, setSelectedTypesMap] = useState<Map<string, Set<string>>>(new Map());
   const [diagramGenerated, setDiagramGenerated] = useState(false);
   const [generatedDiagramComponents, setGeneratedDiagramComponents] = useState<ArchitectureComponent[]>([]);
@@ -58,30 +59,32 @@ export default function SystemVisualizerPage() {
       }
       return newMap;
     });
-    if (diagramGenerated) { // Reset diagram if selections change
+    if (diagramGenerated) {
       setDiagramGenerated(false);
       setAiAnalysis(null);
       setAnalysisError(null);
     }
   };
 
-  const handleGenerateDiagram = async () => {
+  const getFlowInput = (): AnalyzeSystemInput => {
+    const currentSelectedComponents = architectureComponents.filter(comp => selectedTypesMap.has(comp.id));
+    return {
+      components: currentSelectedComponents.map(comp => ({
+        componentTitle: comp.title,
+        selectedTypes: Array.from(selectedTypesMap.get(comp.id) || []),
+      })),
+    };
+  };
+
+  const handleGenerateDiagramAndAnalysis = async () => {
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setAnalysisError(null);
 
-    const currentSelectedComponents = architectureComponents.filter(comp => selectedTypesMap.has(comp.id));
-    setGeneratedDiagramComponents(currentSelectedComponents);
-    const currentSnapshotSelectedTypesMap = new Map(selectedTypesMap);
-    setSnapshotSelectedTypesMap(currentSnapshotSelectedTypesMap);
+    const flowInput = getFlowInput();
+    setGeneratedDiagramComponents(architectureComponents.filter(comp => selectedTypesMap.has(comp.id)));
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap));
     setDiagramGenerated(true);
-
-    const flowInput: AnalyzeSystemInput = {
-      components: currentSelectedComponents.map(comp => ({
-        componentTitle: comp.title,
-        selectedTypes: Array.from(currentSnapshotSelectedTypesMap.get(comp.id) || []),
-      })),
-    };
 
     try {
       const result = await analyzeSystem(flowInput);
@@ -92,6 +95,16 @@ export default function SystemVisualizerPage() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleAnalyzeScalingPotential = () => {
+    const flowInput = getFlowInput();
+    if (flowInput.components.length === 0) {
+      // Optionally, show a toast or alert if nothing is selected
+      return;
+    }
+    const selectionString = encodeURIComponent(JSON.stringify(flowInput));
+    router.push(`/capacity-analyzer?selection=${selectionString}`);
   };
   
   const countSelectedComponents = () => {
@@ -106,6 +119,8 @@ export default function SystemVisualizerPage() {
     return count;
   };
 
+  constisDisabled = countSelectedTypes() === 0 || isAnalyzing;
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <AppHeader />
@@ -116,7 +131,7 @@ export default function SystemVisualizerPage() {
             System Visualizer
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions.
+            Select architectural components and their types to generate a conceptual overview and AI-powered analysis of their potential interactions and scaling capabilities.
           </p>
         </div>
 
@@ -164,9 +179,11 @@ export default function SystemVisualizerPage() {
                             {typeDef.name}
                           </Label>
                         </div>
-                        <p className="text-xs text-muted-foreground pl-6 pt-0.5">
-                          {typeDef.description}
-                        </p>
+                        {typeDef.description && (
+                          <p className="text-xs text-muted-foreground pl-6 pt-0.5">
+                            {typeDef.description}
+                          </p>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -176,22 +193,33 @@ export default function SystemVisualizerPage() {
               </Card>
             ))}
           </div>
-          <div className="mt-12 text-center">
-            <Button 
-              size="lg" 
-              disabled={countSelectedTypes() === 0 || isAnalyzing}
-              onClick={handleGenerateDiagram}
-            >
-              <DraftingCompass className="mr-2 h-5 w-5" />
-              {isAnalyzing ? "Generating Analysis..." : "Generate Diagram & Analysis"}
-            </Button>
+          <div className="mt-12 text-center space-y-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <Button 
+                size="lg" 
+                disabled={isDisabled}
+                onClick={handleGenerateDiagramAndAnalysis}
+              >
+                <DraftingCompass className="mr-2 h-5 w-5" />
+                {isAnalyzing ? "Analyzing Interactions..." : "Analyze Interactions"}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                disabled={isDisabled}
+                onClick={handleAnalyzeScalingPotential}
+              >
+                <Scaling className="mr-2 h-5 w-5" />
+                Analyze Scaling Potential
+              </Button>
+            </div>
             {countSelectedTypes() > 0 && !isAnalyzing && (
-              <p className="text-sm text-muted-foreground mt-4">
-                {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected. Click generate for an overview and AI analysis.
+              <p className="text-sm text-muted-foreground">
+                {countSelectedComponents()} component(s) with {countSelectedTypes()} type(s) selected.
               </p>
             )}
              {countSelectedTypes() === 0 && !isAnalyzing && (
-              <p className="text-sm text-muted-foreground mt-4">
+              <p className="text-sm text-muted-foreground">
                 Select at least one type for a component to generate an analysis.
               </p>
             )}
@@ -276,7 +304,7 @@ export default function SystemVisualizerPage() {
                       <div dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\n/g, '<br />') }} />
                     )}
                     {!aiAnalysis && !isAnalyzing && !analysisError && (
-                       <p className="text-muted-foreground">Click "Generate Diagram & Analysis" to see an AI-powered explanation of potential interactions, benefits, and considerations for your selected components.</p>
+                       <p className="text-muted-foreground">Click "Analyze Interactions" to see an AI-powered explanation of potential interactions, benefits, and considerations for your selected components.</p>
                     )}
                   </div>
                 </div>
