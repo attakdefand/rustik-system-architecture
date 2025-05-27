@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Construction, Sitemap } from 'lucide-react';
+import { Construction, DraftingCompass } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
 
 // Helper function for complexity badge styling (similar to ArchitectureBlock)
@@ -112,7 +112,7 @@ export default function SystemVisualizerPage() {
           </div>
           <div className="mt-12 text-center">
             <Button size="lg" disabled>
-              <Sitemap className="mr-2 h-5 w-5" />
+              <DraftingCompass className="mr-2 h-5 w-5" />
               Generate Diagram (Conceptual)
             </Button>
             {selectedComponents.size > 0 && (
