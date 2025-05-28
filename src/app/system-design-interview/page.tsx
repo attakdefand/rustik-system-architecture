@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck
 } from 'lucide-react';
 import type React from 'react';
 
@@ -38,6 +38,8 @@ interface BasicInterviewQuestion {
   keyDifferences?: string[];
   whenToChoose?: string[];
   tradeOffs?: string;
+  verificationProcess?: string;
+  whyNotEncryption?: string;
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
   discussionPoints: string[];
@@ -141,15 +143,16 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
       "AI in Fraud Detection & Personalization: Advanced algorithms for real-time fraud prevention and personalized payment experiences.",
       "Biometric Authentication: Using fingerprints, facial recognition for enhanced security.",
     ],
+    architecturalConsiderations: [
+      "Scalability & Performance: 'Async IO + Epoll + Tokio' and 'Rust App Nodes' for handling high transaction volumes. 'Load Balancers' for distribution.",
+      "Security: 'Security Architecture Principles' are paramount (encryption, IAM, fraud detection layers). 'API Gateway' for secure exposure of payment APIs.",
+      "Modularity & Extensibility: 'Microservices Architecture' to easily integrate new payment methods, compliance modules, or fraud systems.",
+      "Data Management: 'Database Strategies' for robust, auditable transaction logs (potentially Event Sourcing), and managing user payment preferences securely. 'Observability & Ops' for monitoring real-time transaction health and fraud patterns.",
+      "Interoperability: 'API Design Styles & Protocols' to ensure systems can communicate with diverse payment networks and financial institutions.",
+      "Resilience: 'Autoscaling & Resilience Patterns' to ensure payment systems are always available."
+    ],
     relevantRustikComponents: ["API Design Styles & Protocols", "Microservices Architecture", "Security Architecture Principles", "Database Strategies", "Async IO + Epoll + Tokio", "Observability & Ops", "Autoscaling & Resilience Patterns"],
-    rustikRelevanceNote: `Building systems for the future of payments requires leveraging several Rustik architectural concepts:
-- **API Design Styles & Protocols**: Secure, versioned, and potentially standardized APIs (REST for general, gRPC for internal high-speed, specific financial protocols) are crucial for interacting with diverse payment networks, banks, crypto exchanges, and third-party services.
-- **Microservices Architecture**: Allows for modularity. New payment methods (crypto, CBDC, BNPL), fraud detection modules, compliance engines, and regional payment gateways can be added as independent services without overhauling the entire system.
-- **Security Architecture Principles**: Paramount for handling sensitive financial data. This includes end-to-end encryption, tokenization, robust IAM, Zero Trust principles for internal services, and advanced WAF/DDoS protection for public-facing APIs.
-- **Database Strategies**: Need to support high transaction volumes, provide strong consistency for financial ledgers (potentially using Event Sourcing for immutable audit trails), and facilitate complex analytics for fraud detection.
-- **Async IO + Epoll + Tokio & Rust App Nodes**: Essential for building high-throughput, low-latency services to process payment transactions in real-time and handle concurrent API requests from users and partners.
-- **Observability & Ops**: Critical for real-time monitoring of transaction success/failure rates, settlement times, fraud alerts, and overall system health across a complex payment ecosystem.
-- **Autoscaling & Resilience Patterns**: Payment systems must be highly available and scale to handle peak transaction loads (e.g., during holiday sales or market volatility). Circuit breakers, retries, and robust failover mechanisms are vital.`,
+    rustikRelevanceNote: `Building systems for the future of payments requires leveraging several Rustik architectural concepts to address the demands of new technologies like crypto, CBDCs, and RTP, while ensuring security, scalability, and interoperability.`,
     discussionPoints: [
       "The impact of evolving regulations on new payment technologies (e.g., crypto, CBDCs).",
       "Security and privacy challenges associated with digital currencies and real-time payment data.",
@@ -200,6 +203,39 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
       "How does MFA fit into an SSO strategy?",
       "Session management challenges in SSO (e.g., single log-out).",
       "Just-In-Time (JIT) provisioning of user accounts in SPs based on IdP assertions."
+    ]
+  },
+  {
+    id: "password-storage",
+    title: "How to Store Passwords Safely in a Database?",
+    icon: ShieldCheck,
+    explanation: "Storing passwords directly in plaintext in a database is a severe security vulnerability. If the database is compromised, all user passwords become exposed. The standard best practice is to store password hashes, not the passwords themselves.",
+    keyConcepts: [
+      "Hashing: A one-way cryptographic function that transforms input data (password) into a fixed-size string of characters (the hash). It's computationally infeasible to reverse the hash to get the original password.",
+      "Strong Hashing Algorithms: Use modern, robust algorithms designed for password hashing, such as Argon2 (current recommendation), scrypt, bcrypt, or PBKDF2. Avoid outdated algorithms like MD5 or SHA-1.",
+      "Salting: A unique, randomly generated string (the salt) is added to each user's password before hashing. This salt is then stored alongside the hashed password (e.g., in the same database row). Salting prevents attackers from using pre-computed rainbow tables for common passwords, as each password+salt combination will produce a unique hash.",
+      "Iterative Hashing (Work Factor / Cost Factor): The hashing algorithm should be run multiple times (iterations) or configured with a work/cost factor to make it computationally expensive and slow. This significantly hinders brute-force and dictionary attacks, as attackers need more time and resources for each guess.",
+      "Peppering (Optional): A system-wide secret (the pepper) can be added to the password (or hash) before final storage. Unlike salts, the pepper is not stored with the user's data but kept secure in application configuration or a secret manager. It adds another layer of protection if the database (including salts) is compromised, but its management can be complex."
+    ],
+    verificationProcess: `During login:
+1.  The user submits their password.
+2.  Retrieve the user's stored salt from the database.
+3.  Combine the submitted password with the retrieved salt.
+4.  Hash the combined password+salt using the same hashing algorithm and work factor as when the password was originally stored.
+5.  Compare the newly generated hash with the hash stored in the database.
+6.  If they match, the password is correct. If not, it's incorrect.`,
+    whyNotEncryption: "Encryption is a two-way process; encrypted data can be decrypted back to its original form using the correct key. If an attacker gains access to the encryption key, they can decrypt all passwords. Hashing is one-way, making it impossible to recover the original password from the hash, which is much safer for password storage.",
+    relevantRustikComponents: ["Security Architecture Principles", "Database Strategies", "Rust App Nodes"],
+    rustikRelevanceNote: "Secure password storage is a fundamental aspect of the 'Security Architecture Principles' component. Any system built with Rustik components that handles user accounts (e.g., a User Service within a 'Microservices Architecture' or any application running on 'Rust App Nodes' that authenticates users) must implement these best practices. 'Database Strategies' are also relevant, as the chosen database will store these hashed passwords and salts.",
+    discussionPoints: [
+      "Which hashing algorithms are currently considered secure and why?",
+      "How should salts be generated and stored?",
+      "How to determine and update the work factor/cost factor for hashing over time?",
+      "The role of password policies (complexity, length, expiry) in conjunction with secure storage.",
+      "Why is Multi-Factor Authentication (MFA) still important even with secure password storage?",
+      "Pros and cons of using a pepper.",
+      "How to handle password resets securely.",
+      "Defenses against credential stuffing and password spraying attacks."
     ]
   }
 ];
@@ -647,9 +683,9 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
     problemStatement: "Design a highly scalable, available, and performant distributed key-value store. Users should be able to store, retrieve, and delete data based on a unique key.",
     requirements: [
       "Functional Requirements:",
-      "  - \`Put(key, value)\`: Store a value associated with a key.",
-      "  - \`Get(key)\`: Retrieve the value associated with a key.",
-      "  - \`Delete(key)\`: Remove a key and its associated value.",
+      "  - `Put(key, value)`: Store a value associated with a key.",
+      "  - `Get(key)`: Retrieve the value associated with a key.",
+      "  - `Delete(key)`: Remove a key and its associated value.",
       "Non-Functional Requirements:",
       "  - High Availability: The store should remain operational even if some nodes fail.",
       "  - Low Latency: Get/Put/Delete operations should be very fast.",
@@ -817,7 +853,7 @@ Several approaches exist, each with trade-offs:
 2.  **Crawler Workers (Fetchers):**
     *   Multiple distributed workers take URLs from the Frontier.
     *   Perform DNS resolution.
-    *   Fetch \`robots.txt\` for the domain and respect its rules (once per domain, cached).
+    *   Fetch \\\`robots.txt\\\` for the domain and respect its rules (once per domain, cached).
     *   Make HTTP GET requests to download page content.
     *   Handle politeness (e.g., delay between requests to the same server).
 
@@ -836,7 +872,7 @@ Several approaches exist, each with trade-offs:
 
 6.  **Scheduler & Politeness Module:**
     *   Coordinates workers, manages crawl rates per domain/IP address.
-    *   Ensures adherence to \`robots.txt\` and \`Crawl-delay\` directives.
+    *   Ensures adherence to \\\`robots.txt\\\` and \`Crawl-delay\` directives.
 
 7.  **DNS Resolver:**
     *   Resolves domain names to IP addresses. Needs to be scalable and potentially have its own cache.
@@ -1286,6 +1322,30 @@ export default function SystemDesignInterviewPage() {
                         <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
                         <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
                       </div>
+
+                      {question.keyConcepts && question.keyConcepts.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Concepts / Best Practices:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyConcepts.map((concept, index) => <li key={`concept-${question.id}-${index}`}>{concept}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                       {question.verificationProcess && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Verification Process:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.verificationProcess}</p>
+                        </div>
+                      )}
+
+                      {question.whyNotEncryption && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Why Not Just Encryption?</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.whyNotEncryption}</p>
+                        </div>
+                      )}
+
                       {question.purpose && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
@@ -1303,6 +1363,16 @@ export default function SystemDesignInterviewPage() {
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Trends:</h5>
                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
                             {question.keyTrends.map((trend, index) => <li key={`trend-${question.id}-${index}`}>{trend}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {question.architecturalConsiderations && question.architecturalConsiderations.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Architectural Considerations with Rustik Components:</h5>
+                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.architecturalConsiderations.map((item, index) => (
+                              <li key={`arch-cons-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: item.replace(/'([^']*)'/g, '<code class="text-xs bg-muted p-0.5 rounded-sm font-mono">\'$1\'</code>') }} />
+                            ))}
                           </ul>
                         </div>
                       )}
@@ -1573,3 +1643,4 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
