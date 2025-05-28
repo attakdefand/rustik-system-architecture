@@ -3,7 +3,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -335,6 +335,46 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Handling bursty traffic vs. sustained load.",
       "Strategies for different types of clients (e.g., more lenient limits for authenticated users vs. anonymous IPs)."
     ]
+  },
+  {
+    id: "consistent-hashing",
+    title: "Design Consistent Hashing",
+    icon: Shuffle,
+    problemStatement: "Explain the concept of consistent hashing and how it's used to distribute data or requests across a cluster of servers (e.g., for caching, distributed databases, or load balancing). Discuss its advantages over simple modulo hashing, especially when servers are added or removed.",
+    requirements: [
+      "Key Concepts to Explain:",
+      "  - Problem with simple hashing (e.g., `hash(key) % N` servers) when N changes.",
+      "  - Concept of a hash ring or circle.",
+      "  - Mapping keys and servers to points on the ring.",
+      "  - Assigning keys to the next server on the ring.",
+      "  - Minimizing remapping of keys when nodes are added/removed.",
+      "  - Concept of virtual nodes (replicas) for better load distribution and to handle hotspots."
+    ],
+    relevantRustikComponents: [
+      "Database Strategies (Sharding often uses consistent hashing for key distribution).",
+      "Caching Strategies (Distributed caches like Redis Cluster, Memcached use consistent hashing).",
+      "Load Balancer(s) (Some advanced LBs might use forms of consistent hashing for session stickiness or backend selection).",
+      "Rust App Nodes (If implementing a distributed system where nodes need to manage partitioned data)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Motivation:** Start by explaining the problem with naive hashing (modulo N) – massive key remapping when the number of servers (N) changes.
+2.  **The Hash Ring:** Introduce the concept of a fixed-range hash space (e.g., 0 to 2^32 - 1) visualized as a circle.
+3.  **Mapping Servers:** Each server is assigned one or more positions on this ring by hashing its identifier (e.g., IP address or name).
+4.  **Mapping Keys:** To store or retrieve a key, hash the key to get a position on the ring.
+5.  **Assigning Keys to Servers:** The key is assigned to the first server found by moving clockwise (or counter-clockwise, consistently) on the ring from the key's position.
+6.  **Adding a Server:** When a new server is added, it's hashed to a position on the ring. Only the keys that fall between the new server and its clockwise successor need to be remapped.
+7.  **Removing a Server:** When a server is removed, its keys are remapped to its clockwise successor. Again, only a fraction of keys are affected.
+8.  **Virtual Nodes (Replicas):** Explain how each physical server can be mapped to multiple virtual nodes on the ring. This improves load distribution (making it more uniform) and reduces the impact of a single node failure/addition, as keys are distributed more granularly.
+`,
+    discussionPoints: [
+      "Advantages over modulo hashing (minimal remapping).",
+      "How virtual nodes improve load balance and fault tolerance.",
+      "Trade-offs: complexity of implementation, potential for non-uniform distribution without enough virtual nodes.",
+      "Use cases: Distributed caches (Memcached, Redis Cluster), distributed databases (Cassandra, DynamoDB), request routing.",
+      "Handling hotspots or popular keys.",
+      "Data replication strategies in conjunction with consistent hashing.",
+      "Choice of hash function and its impact."
+    ]
   }
 ];
 
@@ -453,7 +493,7 @@ export default function SystemDesignInterviewPage() {
         </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <TrendingUp className="h-7 w-7 text-primary" />
@@ -600,3 +640,4 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
