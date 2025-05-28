@@ -2,7 +2,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, MessageSquare, Server, Database, Network, Scaling, Shield, Layers } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, MessageSquare, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, MapPin } from 'lucide-react';
 
 interface InterviewQuestion {
   id: string;
@@ -36,53 +36,46 @@ const systemDesignQuestions: InterviewQuestion[] = [
       "  - Predictability (optional but good): Short URLs should ideally not be easily guessable sequentially."
     ],
     relevantRustikComponents: [
-      "API Design Styles & Protocols (REST API for shortening, stats; potentially a lightweight redirector not needing full API stack)",
-      "Load Balancer(s) (Layer-7 for API, potentially Layer-4 for high-volume redirection endpoints)",
-      "Rust App Nodes (For API logic, short code generation, and redirection handling)",
-      "Database Strategies (Highly scalable Key-Value store like Redis/DynamoDB for [short_code -> long_URL] mapping; possibly a Relational DB for user accounts/custom URLs if needed, and for analytics aggregation if batch processed)",
-      "Caching Strategies (Aggressively cache popular short_code -> long_URL mappings at various levels: CDN, edge servers, in-memory cache on redirector nodes)",
+      "API Design Styles & Protocols (REST API for shortening/stats; lightweight redirector not needing full API stack)",
+      "Load Balancer(s) (Layer-7 for API, potentially Layer-4 for high-volume redirection)",
+      "Rust App Nodes (For API logic, short code generation, redirection handling)",
+      "Database Strategies (Highly scalable Key-Value store like Redis/DynamoDB for [short_code -> long_URL]; Relational DB for user accounts/custom URLs & analytics aggregation)",
+      "Caching Strategies (Aggressively cache popular short_code -> long_URL mappings at CDN, edge, in-memory on redirectors)",
       "Observability & Ops (Metrics for request rates, redirection latency, error rates, click counts)",
-      "Async IO + Epoll + Tokio (Crucial for redirector nodes to handle massive concurrent connections with low overhead)"
+      "Async IO + Epoll + Tokio (Crucial for redirector nodes to handle massive concurrent connections)"
     ],
     conceptualSolutionOutline: `
 1.  **Shortening Process:**
-    *   User submits a long URL via a REST API (e.g., \`POST /shorten\`).
-    *   The application/Rust App Node generates a unique short code (e.g., 6-8 alphanumeric characters).
-        *   Strategy 1: Base62 encode a globally unique counter (requires a distributed counter service like ZooKeeper/etcd or a dedicated DB sequence).
-        *   Strategy 2: Hash the long URL + salt, take a portion, check for collision. If collision, retry with a different salt or append a small counter.
-        *   Strategy 3: Pre-generate a large pool of unique short codes and store them in a database; pick one when needed.
-    *   Store the mapping \`{short_code: long_URL}\` in a highly scalable, low-latency Key-Value database (e.g., Redis, DynamoDB).
-    *   Optionally, if a custom alias is provided, check its availability and store it.
-    *   Return the short URL (e.g., \`https://your.domain/short_code\`) to the user.
+    *   User submits long URL via REST API (\`POST /shorten\`).
+    *   App Node generates a unique short code (e.g., 6-8 alphanumeric chars via Base62 encoding of a distributed counter, or hashing).
+    *   Store \`{short_code: long_URL}\` mapping in a Key-Value DB (e.g., Redis, DynamoDB).
+    *   Optionally handle custom aliases, check availability.
+    *   Return short URL (e.g., \`https://your.domain/short_code\`).
 
 2.  **Redirection Process:**
     *   User accesses \`https://your.domain/short_code\`.
-    *   Requests hit Load Balancers, routed to a fleet of lightweight redirector services (Rust App Nodes optimized for speed).
-    *   The redirector service first checks an in-memory cache (e.g., LRU cache) for the \`short_code\`.
-    *   If not in local cache, it queries a distributed cache layer (e.g., Redis cluster).
-    *   If not in distributed cache, it queries the primary Key-Value database for the \`long_URL\` associated with the \`short_code\`.
-    *   Once the \`long_URL\` is found, the service issues an HTTP 301 (Permanent Redirect) or 302 (Found/Temporary Redirect) to the client's browser. 301 is good for SEO if permanence is desired.
-    *   The \`long_URL\` is cached at various levels to speed up future requests.
+    *   Request hits Load Balancers, routed to redirector services (optimized Rust App Nodes).
+    *   Redirector checks in-memory cache (LRU) -> distributed cache (Redis) -> primary Key-Value DB for \`long_URL\`.
+    *   Issues HTTP 301 (Permanent) or 302 (Temporary) redirect.
+    *   Cache \`long_URL\` at various levels.
 
 3.  **Analytics Tracking:**
-    *   For each successful redirection, the redirector service logs the click event.
-    *   This can be done asynchronously to avoid impacting redirection latency.
-    *   Logged events (e.g., \`short_code\`, \`timestamp\`, \`user_agent\`) can be sent to a message queue (e.g., Kafka, SQS).
-    *   A separate analytics processing service consumes these events, aggregates click counts, and stores them (e.g., in a data warehouse or a relational database).
-    *   An API endpoint (e.g., \`GET /stats/{short_code}\`) can provide click counts.
+    *   Asynchronously log click events (e.g., \`short_code\`, \`timestamp\`) for each redirection to a message queue (e.g., Kafka, SQS).
+    *   Separate analytics service consumes events, aggregates counts, stores in a data warehouse or relational DB.
+    *   API endpoint (\`GET /stats/{short_code}\`) provides click counts.
 `,
     discussionPoints: [
-      "Algorithm for generating unique short codes: collisions, predictability, length.",
-      "Scalability and choice of database for storing URL mappings (Key-Value store is common).",
-      "Minimizing latency for redirections (caching, lightweight redirector service).",
-      "Handling custom short URLs / vanity URLs: storage and uniqueness checks.",
-      "Rate limiting for API requests (shortening and stats) to prevent abuse.",
-      "Analytics processing: real-time vs. batch, data storage for analytics.",
-      "Database sharding strategy if the primary mapping store grows extremely large.",
-      "Data TTL / URL expiration policy (if any).",
-      "Security considerations: preventing malicious URL submissions, open redirect vulnerabilities.",
-      "How to handle non-existent short codes (404 error).",
-      "CDN integration for caching redirects at the edge."
+      "Algorithm for unique short code generation: collisions, predictability, length.",
+      "Database choice for URL mappings: Scalability (Key-Value store).",
+      "Minimizing redirection latency: Caching strategies, lightweight redirector.",
+      "Handling custom/vanity URLs: Storage, uniqueness checks.",
+      "Rate limiting API requests (shortening, stats).",
+      "Analytics processing: Real-time vs. batch. Storage for analytics data.",
+      "Database sharding for primary mapping store if extremely large.",
+      "URL expiration policy (if any).",
+      "Security: Preventing malicious URL submissions, open redirect vulnerabilities.",
+      "Handling non-existent short codes (404 error).",
+      "CDN integration for caching redirects."
     ]
   },
   {
@@ -95,105 +88,143 @@ const systemDesignQuestions: InterviewQuestion[] = [
       "  - Users can create posts (text, images, videos).",
       "  - Users can follow/unfollow other users.",
       "  - Generate a personalized news feed for each user displaying posts from followed entities.",
-      "  - Feed should be sortable (e.g., by recency, relevance).",
-      "  - (Optional) Users can like/react to posts.",
-      "  - (Optional) Users can comment on posts.",
+      "  - Feed should be sortable (e.g., by recency, relevance/ranking).",
+      "  - Users can like/react to posts.",
+      "  - Users can comment on posts.",
+      "  - (Optional) Real-time feed updates.",
       "Non-Functional Requirements:",
-      "  - High Availability: The feed must be accessible with minimal downtime.",
+      "  - High Availability: Feed must be accessible with minimal downtime.",
       "  - Low Latency: Feed generation should be fast (e.g., <200-500ms).",
-      "  - Scalability: Handle millions of active users, billions of posts, and a very high read-to-write ratio (many more feed views than new posts).",
+      "  - Scalability: Handle millions of active users, billions of posts. High read-to-write ratio.",
       "  - Durability: User posts and interactions must be durably stored.",
-      "  - Eventual Consistency: Acceptable for feed updates; strong consistency might be preferred for follow actions or post creation confirmation."
+      "  - Eventual Consistency: Acceptable for feed updates; strong consistency for follow actions/post creation."
     ],
     relevantRustikComponents: [
-      "Microservices Architecture (e.g., User Service, Post Service, Follow Service, Feed Generation Service, Media Service, Notification Service)",
-      "API Design Styles & Protocols (REST/GraphQL for client fetching feeds/posts; WebSockets for real-time updates; gRPC for internal service communication)",
+      "Microservices Architecture (User Service, Post Service, Follow Service, Feed Generation Service, Media Service, Notification Service, Interaction Service)",
+      "API Design Styles & Protocols (REST/GraphQL for client fetches; WebSockets for real-time updates; gRPC for internal service communication)",
       "Database Strategies:",
-      "  - User/Follow Data: Relational DB (PostgreSQL) or Graph DB (Neo4j) for user profiles and follow relationships.",
+      "  - User/Follow Data: Relational DB (PostgreSQL) or Graph DB (Neo4j) for profiles and social graph.",
       "  - Posts/Content: NoSQL (Cassandra, DynamoDB) for high write throughput and scalability.",
-      "  - Feed/Timeline Data: In-memory Key-Value store (Redis) for storing pre-computed feeds for active users (fan-out on write).",
-      "Caching Strategies (Aggressively cache generated feeds, user profiles, hot posts, media metadata. Use CDNs for static media assets like images/videos).",
-      "Shared State & Data Plane (Message Queues like Kafka or RabbitMQ for asynchronous tasks: post processing, fan-out to follower feeds, notification generation, like/comment aggregation).",
-      "Async IO + Epoll + Tokio (Essential for real-time components like WebSocket servers for live feed updates and for high-concurrency API services).",
-      "Observability & Ops (Critical for monitoring the health, performance, and interactions of numerous distributed services).",
+      "  - Feed/Timeline Data: In-memory Key-Value store (Redis Sorted Sets/Lists) for pre-computed feeds (fan-out on write).",
+      "Caching Strategies (Aggressively cache generated feeds, user profiles, hot posts, media metadata. CDNs for static media assets).",
+      "Shared State & Data Plane (Message Queues like Kafka/RabbitMQ for async tasks: post processing, fan-out, notifications, like/comment aggregation).",
+      "Async IO + Epoll + Tokio (Essential for real-time components like WebSockets and high-concurrency API services).",
+      "Observability & Ops (Critical for monitoring health, performance, and interactions of numerous distributed services).",
       "Load Balancer(s) & API Gateway (To manage traffic to various microservices and provide a unified client entry point)."
     ],
     conceptualSolutionOutline: `
-Core Idea: Decouple post creation from feed generation and delivery. Often uses a hybrid of push (fan-out-on-write) and pull (fan-out-on-load) models.
+Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-write) and pull (fan-out-on-load) models.
 
-1.  **Services:**
-    *   **User Service:** Manages user accounts, profiles, authentication.
-    *   **Post Service:** Handles creation, storage (e.g., in Cassandra), and retrieval of posts. Publishes new post events to a Message Queue (e.g., Kafka).
-    *   **Follow Service:** Manages user follow relationships (e.g., in a Graph DB or Relational DB).
+1.  **Services (Microservices Architecture):**
+    *   **User Service:** Manages user accounts, profiles, auth. (Relational DB or Graph DB)
+    *   **Post Service:** Handles post creation, storage (e.g., NoSQL like Cassandra), retrieval. Publishes new post events to Message Queue (e.g., Kafka).
+    *   **Follow Service:** Manages user follow relationships. (Graph DB or Relational DB)
     *   **Feed Generation Service (or Worker Pool):**
-        *   **Fan-out on Write (Push):** Consumes new post events from Kafka. For each post, retrieves the author's followers from Follow Service. For each follower, injects the new post (or a reference) into their respective feed/timeline (e.g., a Redis sorted set or list keyed by user ID). This is good for active users.
-        *   **Fan-out on Load (Pull):** When a less active user requests their feed, or for a "cold start," this service queries the Post Service for recent posts from users they follow, aggregates, ranks, and returns.
-    *   **Media Service:** Handles image/video uploads (to Object Storage like S3), processing (thumbnails, transcoding), and provides URLs for CDN delivery.
-    *   **Notification Service:** Generates notifications for likes, comments, new posts from important follows.
+        *   **Fan-out on Write (Push):** Consumes new post events. For each post, retrieves author's followers. Injects post (or reference) into each follower's feed/timeline (e.g., Redis Sorted Set keyed by user ID). Good for active users.
+        *   **Fan-out on Load (Pull):** For less active users or cold starts, service queries Post Service for recent posts from followed users, aggregates, ranks, and returns.
+    *   **Media Service:** Handles image/video uploads (to Object Storage like S3), processing (thumbnails, transcoding), and provides CDN URLs.
+    *   **Interaction Service:** Handles likes, comments. Updates counts (e.g., in Redis, then flushed to persistent DB). Publishes events for notifications.
+    *   **Notification Service:** Generates notifications for likes, comments, new posts.
 
 2.  **Feed Generation & Delivery:**
-    *   **Writing a Post:** User client -> API Gateway -> Post Service. Post stored, event published.
-    *   **Reading Feed:** User client -> API Gateway -> Feed Service (or directly to a cache like Redis if feed is pre-computed).
-        *   If pre-computed (fan-out-on-write): Retrieve the user's timeline from Redis.
-        *   If generated on-demand (fan-out-on-load): Aggregate posts from followed users.
-    *   **Ranking:** A ranking algorithm (chronological, engagement-based, ML-personalized) sorts posts before display. This can happen during pre-computation or on-demand.
-    *   **Caching:** User timelines, post content, user profiles are heavily cached. CDNs serve media.
+    *   **Writing a Post:** Client -> API Gateway -> Post Service. Post stored, event published to Kafka.
+    *   **Reading Feed:** Client -> API Gateway -> Feed Service (or directly to Redis cache).
+        *   If pre-computed (fan-out-on-write): Retrieve user's timeline from Redis.
+        *   If on-demand (fan-out-on-load): Aggregate posts from followed users.
+    *   **Ranking:** Algorithm (chronological, engagement, ML-personalized) sorts posts. Can happen during pre-computation or on-demand.
+    *   **Caching:** User timelines, post content, user profiles heavily cached. CDNs serve media.
 
-3.  **Interactions (Likes/Comments):**
-    *   Handled by an Interaction Service. Updates counts, stores comments. Can also publish events for notifications or feed updates.
-    *   Counters can be stored in Redis (for speed) and periodically flushed to a persistent DB.
-
-4.  **Real-time Updates (Optional):**
-    *   WebSocket connections from clients to a Real-time Service. When new posts are fanned out to a user's timeline, an event can be pushed through the WebSocket to update the client's view.
+3.  **Real-time Updates (Optional):**
+    *   WebSocket connections from clients to a Real-time Service. New posts/interactions pushed to update client view.
 `,
     discussionPoints: [
-      "Fan-out on Write vs. Fan-out on Load: Trade-offs, handling the 'celebrity problem' (users with millions of followers), hybrid approaches.",
-      "Feed Ranking and Personalization: Algorithms, data needed, real-time vs. batch computation.",
-      "Database Choices: Rationale for different databases for posts, user data, follow graphs, and feed timelines. Scalability of each.",
-      "Caching Strategies: What to cache (feeds, posts, user data, media metadata), where (client, CDN, edge, server-side distributed cache), TTLs, cache invalidation.",
+      "Fan-out on Write vs. Fan-out on Load: Trade-offs, handling 'celebrity problem' (users with millions of followers), hybrid approaches.",
+      "Feed Ranking and Personalization: Algorithms, data needed, real-time vs. batch.",
+      "Database Choices: Rationale for different DBs for posts, user data, follow graphs, feed timelines. Scalability of each.",
+      "Caching Strategies: What to cache, where (client, CDN, edge, server-side distributed cache), TTLs, cache invalidation.",
       "Media Handling: Upload, storage (Object Storage), processing (transcoding, thumbnails), CDN delivery.",
-      "Real-time Updates: WebSockets vs. long polling vs. SSE. Connection management and scalability of real-time layer.",
-      "Consistency Models: Eventual consistency for feed visibility is generally acceptable. Stronger consistency for user actions like follow/unfollow.",
+      "Real-time Updates: WebSockets vs. long polling vs. SSE. Connection management.",
+      "Consistency Models: Eventual consistency for feed visibility. Stronger consistency for user actions.",
       "API Design: REST vs. GraphQL. Pagination for feeds. Rate limiting.",
-      "Scalability of individual components: Post ingestion, feed generation, notification delivery.",
-      "Handling Edits/Deletions: How to propagate changes to cached feeds and timelines.",
-      "Counter Services: Efficiently managing likes, comments, and share counts at scale.",
-      "Monitoring and Observability in a highly distributed system."
+      "Scalability of individual components (post ingestion, feed generation, notifications).",
+      "Handling Edits/Deletions: Propagating changes to cached feeds/timelines.",
+      "Counter Services: Managing likes/comments/shares counts efficiently.",
+      "Monitoring and Observability in a distributed system."
     ]
   },
   {
     id: "ride-sharing",
     title: "Design a Ride-Sharing App (e.g., Uber, Lyft)",
-    icon: Users, // Could also be Car or MapPin
-    problemStatement: "Design a service that connects riders looking for a trip with available drivers nearby. The service should handle ride requests, driver location tracking, pricing, and payments.",
+    icon: Car,
+    problemStatement: "Design a service that connects riders looking for a trip with available drivers nearby. The system must handle real-time location tracking of drivers, allow riders to request rides, match riders with suitable drivers, estimate ETAs and pricing, facilitate in-app communication, and process payments.",
     requirements: [
-      "Riders can request rides from their location to a destination.",
-      "Drivers can indicate availability and see nearby ride requests.",
-      "Match riders with nearby available drivers.",
-      "Real-time location tracking for riders and drivers.",
-      "Dynamic pricing based on demand and supply.",
-      "Handle payments and driver payouts.",
-      "High availability and reliability."
+      "Functional Requirements:",
+      "  - Riders can request rides from their current location to a destination.",
+      "  - Drivers can set their availability (online/offline) and accept/reject ride requests.",
+      "  - System must match available, nearby drivers to riders.",
+      "  - Real-time location tracking of drivers visible to riders (and vice-versa post-match).",
+      "  - Display estimated pickup time (ETA) and ride cost before booking.",
+      "  - In-app communication between rider and driver (optional).",
+      "  - Payment processing for rides and driver payouts.",
+      "  - Ride history and rating system (for riders and drivers).",
+      "Non-Functional Requirements:",
+      "  - High Availability: Service must be reliably available, especially driver location and ride requests.",
+      "  - Low Latency: Driver location updates, matching, and ETA calculations must be fast.",
+      "  - Scalability: Handle thousands of concurrent drivers and riders in multiple cities.",
+      "  - Accuracy: Location tracking and ETAs should be reasonably accurate.",
+      "  - Durability: Ride records, user accounts, and payment information must be durably stored."
     ],
     relevantRustikComponents: [
-      "Microservices Architecture (Rider service, Driver service, Matching service, Location service, Payment service)",
-      "API Design Styles & Protocols (REST/GraphQL for mobile clients, WebSockets/gRPC for real-time location updates)",
-      "Database Strategies (Relational DB for users/rides; Geospatial DB/indexes for location data; NoSQL for driver availability like Redis Sets/Geo Sets)",
-      "Async IO + Epoll + Tokio & Shared State & Data Plane (Message Queues for handling concurrent ride requests, location updates, and notifications)",
-      "Caching Strategies (Cache driver locations, geofences for pricing)",
-      "Service Discovery & Control Plane (for managing microservices)",
-      "Observability & Ops (critical for real-time monitoring)"
+      "Microservices Architecture (e.g., Rider Service, Driver Service, Matching Service, Location Service, Trip Service, Payment Service, Notification Service)",
+      "API Design Styles & Protocols (REST/GraphQL for mobile client interactions; WebSockets/gRPC for real-time location updates and notifications)",
+      "Database Strategies:",
+      "  - User/Driver/Ride Data: Relational DB (PostgreSQL) for structured data like profiles, ride details, payment info.",
+      "  - Driver Location/Availability: Geospatial DB/indexes (PostGIS extension for PostgreSQL) or specialized Key-Value stores with geo-capabilities (e.g., Redis Geo Sets) for efficient querying of nearby drivers.",
+      "Async IO + Epoll + Tokio & Shared State & Data Plane (Message Queues like Kafka/RabbitMQ for handling concurrent ride requests, location updates, dispatching notifications, and decoupling services like payment processing).",
+      "Caching Strategies (Cache driver locations in specific regions, geofences for surge pricing, popular routes).",
+      "Service Discovery & Control Plane (For managing and discovering various microservices).",
+      "Observability & Ops (Critical for real-time monitoring of driver locations, ride matching success rates, latency, and system health).",
+      "Load Balancer(s) & API Gateway (To manage traffic to microservices and client requests)."
     ],
-    conceptualSolutionOutline: "Drivers periodically update their location and availability (e.g., via WebSockets or frequent HTTP posts). This data is often stored in a system optimized for geospatial queries (like Redis with Geo commands or PostGIS). Riders request rides, providing pickup/dropoff locations. A matching service queries for nearby available drivers based on location and other criteria (e.g., car type). Once a match is found, both rider and driver are notified, and real-time location updates are exchanged. Pricing is calculated dynamically based on distance, estimated time, current demand/supply in the area (surge pricing). Payments are processed via an integrated payment gateway.",
+    conceptualSolutionOutline: `
+1.  **Services (Microservices Architecture):**
+    *   **Rider Service:** Manages rider profiles, ride requests, payment methods.
+    *   **Driver Service:** Manages driver profiles, availability status, vehicle details, payouts.
+    *   **Location Service:** Ingests and processes real-time location updates from drivers (e.g., via WebSockets or frequent HTTP posts). Stores current locations in a geo-indexed database (e.g., Redis Geo or PostGIS). Provides querying capabilities for nearby drivers.
+    *   **Matching Service:** Receives ride requests. Queries Location Service for nearby available drivers. Applies matching algorithms (considering proximity, driver rating, vehicle type, etc.). Notifies selected driver(s).
+    *   **Trip Service:** Manages the lifecycle of a ride (requested, accepted, ongoing, completed, canceled). Stores ride history.
+    *   **Payment Service:** Integrates with payment gateways to process ride payments and driver payouts.
+    *   **Notification Service:** Sends real-time push notifications to riders/drivers (e.g., ride accepted, driver arriving, new ride request).
+
+2.  **Core Flows:**
+    *   **Driver Availability & Location Update:** Drivers' apps periodically send location updates and availability status to the Location Service.
+    *   **Rider Requests Ride:** Rider app sends pickup/dropoff locations to Rider Service, which forwards to Matching Service.
+    *   **Driver Matching:** Matching Service queries Location Service for nearby drivers. Algorithm selects best match(es). Request sent to driver(s) via Notification Service.
+    *   **Ride Accepted:** Driver accepts. Trip Service updates ride status. Rider and Driver are connected for location sharing/communication.
+    *   **During Ride:** Location Service tracks both. ETAs updated.
+    *   **Ride Completion & Payment:** Trip Service marks ride complete. Payment Service processes payment. Ratings collected.
+
+3.  **Data Storage:**
+    *   Relational DB for user profiles, ride history, payment transactions.
+    *   Geo-indexed DB/cache (Redis Geo, PostGIS) for real-time driver locations and availability.
+
+4.  **Communication:**
+    *   Mobile clients (Rider/Driver apps) communicate with backend via API Gateway (REST/GraphQL).
+    *   Real-time location updates/notifications use WebSockets or efficient polling.
+    *   Internal services communicate via gRPC or asynchronous messages (Kafka).
+`,
     discussionPoints: [
-      "Driver-rider matching algorithm (efficiency, fairness, minimizing wait times).",
-      "Scalability of location tracking and updates (handling many drivers moving simultaneously).",
-      "Handling concurrent ride requests and ensuring consistency in driver availability.",
-      "Dynamic pricing model details and implementation (geofencing, surge calculation).",
-      "Payment processing, security, and fraud detection.",
-      "Ensuring safety and trust (driver verification, SOS features).",
-      "Communication channels (in-app chat, push notifications).",
-      "Database choice for handling geospatial data efficiently."
+      "Driver-rider matching algorithm: Efficiency (e.g., using Quadtrees, Geohashes), fairness, minimizing wait times, handling concurrent requests.",
+      "Scalability of location tracking: How to handle thousands of drivers updating locations frequently? Data partitioning for geo-queries.",
+      "Database choice for geospatial data: Pros/cons of Redis Geo, PostGIS, Elasticsearch with geo capabilities.",
+      "Dynamic pricing (surge pricing): How is it calculated? Geofencing. Communicating to users.",
+      "Payment processing integration: Security, reliability, fraud detection.",
+      "ETA calculation: Factors involved (traffic, distance, time of day), accuracy.",
+      "Ensuring safety and trust: Driver verification, SOS features, ride tracking by trusted contacts.",
+      "Communication channels: In-app chat (WebSockets), push notifications.",
+      "Handling network partitions or offline scenarios for drivers/riders.",
+      "Load balancing strategies for different services (e.g., location updates vs. ride requests).",
+      "Concurrency control and consistency for ride state and driver availability."
     ]
   }
 ];
