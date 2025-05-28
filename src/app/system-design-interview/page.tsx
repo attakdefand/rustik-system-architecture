@@ -3,7 +3,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -590,6 +590,80 @@ Several approaches exist, each with trade-offs:
       "DNS resolution at scale: Bottlenecks, caching.",
       "Security considerations for the crawler (e.g., not getting hacked, not participating in DDoS)."
     ]
+  },
+  {
+    id: "notification-system",
+    title: "Design a Notification System",
+    icon: BellRing,
+    problemStatement: "Design a scalable system that can send various types of notifications (e.g., push notifications, email, SMS) to users based on different events or triggers within an application ecosystem.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Support multiple notification channels (e.g., Mobile Push, Web Push, Email, SMS).",
+      "  - Allow other services to trigger notifications based on events (e.g., new order, friend request, system alert).",
+      "  - Manage user notification preferences (e.g., opt-in/out for specific notification types/channels).",
+      "  - Support templating for notification messages.",
+      "  - Track notification delivery status (sent, failed, delivered, read - where possible).",
+      "  - (Optional) Support for scheduled or recurring notifications.",
+      "Non-Functional Requirements:",
+      "  - High Availability: The system must reliably send notifications.",
+      "  - Scalability: Handle a large volume of notifications per second/minute.",
+      "  - Low Latency (for real-time notifications): Critical alerts or messages should be delivered quickly.",
+      "  - Reliability/Durability: Minimize notification loss. Ensure important notifications are eventually delivered.",
+      "  - Fault Tolerance: System should withstand failures in individual components or third-party gateways.",
+      "  - Cost-Effectiveness: Especially for SMS and potentially email at scale."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture (e.g., Notification Service, Event Ingestion Service, User Preference Service, Template Service, Dispatcher Services per channel)",
+      "API Design Styles & Protocols (Internal APIs for event submission, e.g., gRPC or REST)",
+      "Shared State & Data Plane:",
+      "  - Message Queues (Kafka, RabbitMQ, SQS): Essential for decoupling event producers from the notification service and for buffering/retrying messages.",
+      "  - Databases (Relational for user preferences/templates; NoSQL for high-volume status tracking if needed).",
+      "Async IO + Epoll + Tokio (For building high-throughput notification dispatchers and event consumers).",
+      "Autoscaling & Resilience Patterns (For scaling notification workers and handling failures in third-party gateways).",
+      "Observability & Ops (Monitoring notification queues, delivery rates, error rates, latencies)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Event Ingestion:**
+    *   Services publish events (e.g., \`order_created\`, \`new_message\`) to a Message Queue (e.g., Kafka).
+    *   Alternatively, an API endpoint on the Notification Service can receive direct requests to send notifications.
+
+2.  **Notification Service (Core Logic):**
+    *   Consumes events/requests from the queue/API.
+    *   Determines recipients and checks user preferences (from User Preference Service/DB).
+    *   Fetches notification templates (from Template Service/DB).
+    *   Composes the notification content (personalized, localized).
+    *   Decides on the appropriate channel(s) based on event type and user preferences.
+    *   Puts the formatted notification message onto specific channel queues (e.g., push_queue, email_queue, sms_queue).
+
+3.  **Dispatcher Services (Per Channel):**
+    *   Dedicated worker pools for each channel (Push, Email, SMS).
+    *   Consume messages from their respective channel queues.
+    *   Integrate with third-party gateways/providers (e.g., APNS/FCM for push, SendGrid/SES for email, Twilio/Vonage for SMS).
+    *   Handle API interactions, rate limits, and error responses from these gateways.
+
+4.  **Status Tracking & Retries:**
+    *   Log the status of each notification (attempted, sent, failed).
+    *   Implement retry mechanisms (with backoff) for transient failures from third-party gateways.
+    *   Store final delivery status if provided by the gateway (e.g., for email bounces, SMS delivery receipts).
+
+5.  **Data Storage:**
+    *   Relational DB for user notification preferences, templates.
+    *   Potentially a NoSQL or time-series DB for high-volume tracking of notification statuses.
+`,
+    discussionPoints: [
+      "Scalability of event ingestion and notification dispatch.",
+      "Reliability: At-least-once vs. at-most-once delivery semantics. Handling failures.",
+      "Idempotency: Ensuring a notification isn't sent multiple times if an event is reprocessed.",
+      "User Preferences & Unsubscribes: Managing opt-outs effectively and quickly.",
+      "Templating and Personalization: How to manage and render dynamic content in notifications.",
+      "Batching vs. Real-time: When to batch notifications versus sending immediately.",
+      "Rate Limiting: Both internally and when interacting with third-party gateways.",
+      "Monitoring: Key metrics (queue lengths, delivery success/failure rates, latency per channel).",
+      "Security: Protecting user data, preventing spam, secure API keys for third-party services.",
+      "Cost optimization for different channels (especially SMS).",
+      "Internationalization and localization of notification content.",
+      "Handling feedback loops (e.g., email bounces, push notification uninstalls)."
+    ]
   }
 ];
 
@@ -702,10 +776,6 @@ export default function SystemDesignInterviewPage() {
             <p>Use the examples below as a starting point. For each, think about how you would use the components discussed in Rustik to build your solution.</p>
           </CardContent>
         </Card>
-
-        <h3 className="text-3xl font-bold tracking-tight text-center mb-10 text-gray-800 dark:text-gray-100">
-          Example System Design Problems & Concepts
-        </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
            <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
