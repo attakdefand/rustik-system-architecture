@@ -89,34 +89,76 @@ const systemDesignQuestions: InterviewQuestion[] = [
     id: "social-feed",
     title: "Design a Social Media News Feed (e.g., Facebook, X/Twitter)",
     icon: Newspaper,
-    problemStatement: "Design a system that allows users to post updates and see a news feed consisting of updates from people they follow, ranked by relevance or recency.",
+    problemStatement: "Design a system that allows users to post updates (text, images, videos) and see a news feed consisting of updates from people they follow, ranked by relevance or recency. Users should also be able to interact with posts (e.g., like, comment).",
     requirements: [
-      "Users can post updates (text, images, videos).",
-      "Users can follow other users.",
-      "Generate a personalized news feed for each user.",
-      "High read-to-write ratio (many more feed views than posts).",
-      "Low latency for feed generation.",
-      "Scalability to millions of users and posts.",
-      "Real-time or near real-time updates to the feed (optional)."
+      "Functional Requirements:",
+      "  - Users can create posts (text, images, videos).",
+      "  - Users can follow/unfollow other users.",
+      "  - Generate a personalized news feed for each user displaying posts from followed entities.",
+      "  - Feed should be sortable (e.g., by recency, relevance).",
+      "  - (Optional) Users can like/react to posts.",
+      "  - (Optional) Users can comment on posts.",
+      "Non-Functional Requirements:",
+      "  - High Availability: The feed must be accessible with minimal downtime.",
+      "  - Low Latency: Feed generation should be fast (e.g., <200-500ms).",
+      "  - Scalability: Handle millions of active users, billions of posts, and a very high read-to-write ratio (many more feed views than new posts).",
+      "  - Durability: User posts and interactions must be durably stored.",
+      "  - Eventual Consistency: Acceptable for feed updates; strong consistency might be preferred for follow actions or post creation confirmation."
     ],
     relevantRustikComponents: [
-      "Microservices Architecture (User service, Post service, Follow service, Feed generation service)",
-      "API Design Styles & Protocols (REST/GraphQL for client interactions, gRPC for internal services)",
-      "Database Strategies (Graph DB for follow relationships; NoSQL for posts; Relational for users. Consider fan-out on write or fan-out on load for feeds)",
-      "Caching Strategies (Cache generated feeds, user profiles, hot posts)",
-      "Shared State & Data Plane (Message Queues for asynchronous post processing, feed updates, notifications)",
-      "Async IO + Epoll + Tokio (for real-time components if using WebSockets)",
-      "Observability & Ops (for monitoring service health and performance)"
+      "Microservices Architecture (e.g., User Service, Post Service, Follow Service, Feed Generation Service, Media Service, Notification Service)",
+      "API Design Styles & Protocols (REST/GraphQL for client fetching feeds/posts; WebSockets for real-time updates; gRPC for internal service communication)",
+      "Database Strategies:",
+      "  - User/Follow Data: Relational DB (PostgreSQL) or Graph DB (Neo4j) for user profiles and follow relationships.",
+      "  - Posts/Content: NoSQL (Cassandra, DynamoDB) for high write throughput and scalability.",
+      "  - Feed/Timeline Data: In-memory Key-Value store (Redis) for storing pre-computed feeds for active users (fan-out on write).",
+      "Caching Strategies (Aggressively cache generated feeds, user profiles, hot posts, media metadata. Use CDNs for static media assets like images/videos).",
+      "Shared State & Data Plane (Message Queues like Kafka or RabbitMQ for asynchronous tasks: post processing, fan-out to follower feeds, notification generation, like/comment aggregation).",
+      "Async IO + Epoll + Tokio (Essential for real-time components like WebSocket servers for live feed updates and for high-concurrency API services).",
+      "Observability & Ops (Critical for monitoring the health, performance, and interactions of numerous distributed services).",
+      "Load Balancer(s) & API Gateway (To manage traffic to various microservices and provide a unified client entry point)."
     ],
-    conceptualSolutionOutline: "When a user posts, the update is stored. If using fan-out on write, the post is pushed to the feeds of all followers. If fan-out on load, the feed is generated when the user requests it by querying posts from followed users. A combination (hybrid) is common. Feeds are often pre-computed and cached. Ranking algorithms determine post order.",
+    conceptualSolutionOutline: `
+Core Idea: Decouple post creation from feed generation and delivery. Often uses a hybrid of push (fan-out-on-write) and pull (fan-out-on-load) models.
+
+1.  **Services:**
+    *   **User Service:** Manages user accounts, profiles, authentication.
+    *   **Post Service:** Handles creation, storage (e.g., in Cassandra), and retrieval of posts. Publishes new post events to a Message Queue (e.g., Kafka).
+    *   **Follow Service:** Manages user follow relationships (e.g., in a Graph DB or Relational DB).
+    *   **Feed Generation Service (or Worker Pool):**
+        *   **Fan-out on Write (Push):** Consumes new post events from Kafka. For each post, retrieves the author's followers from Follow Service. For each follower, injects the new post (or a reference) into their respective feed/timeline (e.g., a Redis sorted set or list keyed by user ID). This is good for active users.
+        *   **Fan-out on Load (Pull):** When a less active user requests their feed, or for a "cold start," this service queries the Post Service for recent posts from users they follow, aggregates, ranks, and returns.
+    *   **Media Service:** Handles image/video uploads (to Object Storage like S3), processing (thumbnails, transcoding), and provides URLs for CDN delivery.
+    *   **Notification Service:** Generates notifications for likes, comments, new posts from important follows.
+
+2.  **Feed Generation & Delivery:**
+    *   **Writing a Post:** User client -> API Gateway -> Post Service. Post stored, event published.
+    *   **Reading Feed:** User client -> API Gateway -> Feed Service (or directly to a cache like Redis if feed is pre-computed).
+        *   If pre-computed (fan-out-on-write): Retrieve the user's timeline from Redis.
+        *   If generated on-demand (fan-out-on-load): Aggregate posts from followed users.
+    *   **Ranking:** A ranking algorithm (chronological, engagement-based, ML-personalized) sorts posts before display. This can happen during pre-computation or on-demand.
+    *   **Caching:** User timelines, post content, user profiles are heavily cached. CDNs serve media.
+
+3.  **Interactions (Likes/Comments):**
+    *   Handled by an Interaction Service. Updates counts, stores comments. Can also publish events for notifications or feed updates.
+    *   Counters can be stored in Redis (for speed) and periodically flushed to a persistent DB.
+
+4.  **Real-time Updates (Optional):**
+    *   WebSocket connections from clients to a Real-time Service. When new posts are fanned out to a user's timeline, an event can be pushed through the WebSocket to update the client's view.
+`,
     discussionPoints: [
-      "Fan-out on write vs. Fan-out on load trade-offs for feed generation.",
-      "Feed ranking algorithms (recency, engagement, personalization).",
-      "Scalability of feed storage and generation (e.g., Redis for timeline, Cassandra for posts).",
-      "Handling 'hot' users (celebrities with many followers).",
-      "Real-time updates vs. polling for new feed items.",
-      "Media storage (images, videos) and CDN integration.",
-      "Consistency models for posts and follower lists."
+      "Fan-out on Write vs. Fan-out on Load: Trade-offs, handling the 'celebrity problem' (users with millions of followers), hybrid approaches.",
+      "Feed Ranking and Personalization: Algorithms, data needed, real-time vs. batch computation.",
+      "Database Choices: Rationale for different databases for posts, user data, follow graphs, and feed timelines. Scalability of each.",
+      "Caching Strategies: What to cache (feeds, posts, user data, media metadata), where (client, CDN, edge, server-side distributed cache), TTLs, cache invalidation.",
+      "Media Handling: Upload, storage (Object Storage), processing (transcoding, thumbnails), CDN delivery.",
+      "Real-time Updates: WebSockets vs. long polling vs. SSE. Connection management and scalability of real-time layer.",
+      "Consistency Models: Eventual consistency for feed visibility is generally acceptable. Stronger consistency for user actions like follow/unfollow.",
+      "API Design: REST vs. GraphQL. Pagination for feeds. Rate limiting.",
+      "Scalability of individual components: Post ingestion, feed generation, notification delivery.",
+      "Handling Edits/Deletions: How to propagate changes to cached feeds and timelines.",
+      "Counter Services: Efficiently managing likes, comments, and share counts at scale.",
+      "Monitoring and Observability in a highly distributed system."
     ]
   },
   {
@@ -246,3 +288,4 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
