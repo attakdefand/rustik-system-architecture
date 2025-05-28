@@ -114,11 +114,11 @@ body {
   }
   .animate-blink-yellow {
     animation: blink-opacity 1.8s infinite;
-    animation-delay: 0.6s;
+    animation-delay: 0.6s; /* Staggered delay */
   }
   .animate-blink-green {
     animation: blink-opacity 1.8s infinite;
-    animation-delay: 1.2s;
+    animation-delay: 1.2s; /* Staggered delay */
   }
 
   @keyframes fade-in-fast {
@@ -171,6 +171,16 @@ body {
   }
   .animate-slide-in-out-text {
     animation: slide-in-out-text-animation 29.5s ease-in-out infinite; /* Slightly less than text change interval */
+  }
+
+  /* Animation for fading dynamic messages */
+  @keyframes fade-in-out-message-animation {
+    0%, 100% { opacity: 0; transform: translateY(5px); }
+    10%, 90% { opacity: 1; transform: translateY(0px); }
+    95% { opacity: 0; transform: translateY(-5px); }
+  }
+  .animate-fade-in-out-message {
+    animation: fade-in-out-message-animation 4.8s ease-in-out forwards; /* Duration just under 5s interval */
   }
 }
 
