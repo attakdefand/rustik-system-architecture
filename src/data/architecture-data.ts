@@ -7,6 +7,13 @@ export interface TypeDefinition {
   description: string;
 }
 
+export interface CodeSnippet {
+  language: string;
+  filename?: string;
+  description?: string;
+  code: string;
+}
+
 export interface ArchitectureComponent {
   id: string;
   title: string;
@@ -18,6 +25,7 @@ export interface ArchitectureComponent {
   eli5Details: string;
   complexity: 'Beginner' | 'Intermediate' | 'Advanced';
   implementationGuidance?: string[];
+  codeSnippets?: CodeSnippet[]; // New field for code snippets
 }
 
 export const architectureComponents: ArchitectureComponent[] = [
@@ -83,7 +91,7 @@ export const architectureComponents: ArchitectureComponent[] = [
     title: 'API Gateway',
     icon: Route,
     types: [
-        { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services (Aggregator Pattern).' },
+        { name: 'Request Routing & Composition (Aggregator Pattern)', description: 'Directs API requests to backend services, potentially aggregating results from multiple services. This is also known as the Aggregator Pattern.' },
         { name: 'Authentication & Authorization', description: 'Verifies caller identity and permissions before allowing access to backend services.' },
         { name: 'Rate Limiting & Quotas', description: 'Protects backend services from overload by controlling the number of requests allowed.' },
         { name: 'Request/Response Transformation', description: 'Modifies request or response payloads to match backend service expectations or client needs.' },
@@ -174,6 +182,39 @@ export const architectureComponents: ArchitectureComponent[] = [
       'Containerize your application (e.g., with Docker) for consistent deployment and scaling.',
       'Apply established software design patterns (e.g., Gang of Four patterns) to structure internal application code for robustness and maintainability.',
     ],
+    codeSnippets: [
+      {
+        language: 'rust',
+        filename: 'main.rs',
+        description: 'A minimal Rust web server using Tokio and Hyper (conceptual).',
+        code: `
+use hyper::{Body, Request, Response, Server};
+use hyper::service::{make_service_fn, service_fn};
+use std::convert::Infallible;
+use std::net::SocketAddr;
+
+async fn handle_request(_req: Request<Body>) -> Result<Response<Body>, Infallible> {
+    Ok(Response::new("Hello, Rustik World!".into()))
+}
+
+#[tokio::main]
+async fn main() {
+    let addr = SocketAddr::from(([127, 0, 0, 1], 9003)); // Changed port
+
+    let make_svc = make_service_fn(|_conn| async {
+        Ok::<_, Infallible>(service_fn(handle_request))
+    });
+
+    let server = Server::bind(&addr).serve(make_svc);
+
+    println!("Conceptual Rust server listening on http://{}", addr);
+
+    if let Err(e) = server.await {
+        eprintln!("server error: {}", e);
+    }
+}`
+      }
+    ]
   },
   {
     id: 'microservices-architecture',
@@ -411,40 +452,6 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   },
   {
-    id: 'operational-excellence',
-    title: 'Operational Excellence Pillars',
-    icon: ShieldCheck,
-    types: [
-      { name: "Comprehensive Monitoring & Observability", description: "Metrics, logs, traces to understand system health and behavior." },
-      { name: "Automated Alerting & Incident Response", description: "Notifies teams of issues and helps manage responses automatically." },
-      { name: "Automated Scaling (Horizontal & Vertical)", description: "Adjusts system capacity automatically based on demand." },
-      { name: "Safe Deployment Strategies", description: "Blue/Green, Canary, Rolling releases for minimal risk software updates." },
-      { name: "Infrastructure as Code (IaC) & Configuration Management", description: "Manages infrastructure and configurations via code for consistency." },
-    ],
-    useCases: [
-      "Proactively identifying and resolving issues before user impact.",
-      "Maintaining system performance and availability under varying loads.",
-      "Deploying new features and updates safely and efficiently.",
-      "Ensuring consistent and reproducible environments across the board."
-    ],
-    realWorldExamples: [
-      "Netflix's Simian Army (Chaos Monkey) tests system resilience proactively.",
-      "Cloud providers (AWS, Azure, GCP) offer extensive monitoring and auto-scaling capabilities.",
-      "Mature tech companies use sophisticated CI/CD pipelines with automated canary deployments.",
-      "Tools like Terraform and Ansible are widely used for IaC and configuration management."
-    ],
-    eli5Summary: "Detailed Explanation",
-    eli5Details: "Having really good playground monitors who watch everything (monitoring), can quickly add more play space if lots of kids show up (auto-scaling), have safe ways to introduce new toys (deployments), and make sure all playground rules are followed everywhere (config management). They also have a plan if something breaks (incident response).",
-    complexity: "Advanced",
-    implementationGuidance: [
-      "Implement centralized logging (e.g., ELK stack, Loki) and metrics (e.g., Prometheus, Grafana).",
-      "Utilize distributed tracing tools (e.g., Jaeger, OpenTelemetry).",
-      "Define clear Service Level Objectives (SLOs) and set up alerts.",
-      "Automate infrastructure provisioning and deployment processes.",
-      "Regularly test failover and disaster recovery procedures."
-    ]
-  },
-  {
     id: 'security-architecture-principles',
     title: 'Security Architecture Principles',
     icon: ShieldAlert,
@@ -678,4 +685,3 @@ export const architectureComponents: ArchitectureComponent[] = [
     ]
   }
 ];
-    

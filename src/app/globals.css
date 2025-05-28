@@ -173,3 +173,25 @@ body {
     animation: slide-in-out-text-animation 29.5s ease-in-out infinite; /* Slightly less than text change interval */
   }
 }
+
+/* Basic styling for code snippets */
+.code-snippet-container {
+  /* Optional: Add more specific container styles if needed */
+}
+
+.code-snippet-container pre {
+  background-color: hsl(var(--muted)); /* Or a specific code block background */
+  color: hsl(var(--foreground)); /* Or specific code text color */
+  border-radius: 0 0 var(--radius) var(--radius); /* if header exists */
+  line-height: 1.5;
+  tab-size: 4;
+}
+
+.code-snippet-container pre code {
+  font-family: var(--font-geist-mono), Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* If you decide to add a syntax highlighting library later,
+   you'll typically include its CSS theme here or via an import.
+   For now, this provides basic monospaced font and background.
+*/

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import type { ArchitectureComponent, TypeDefinition } from '@/data/architecture-data';
+import type { ArchitectureComponent, TypeDefinition, CodeSnippet } from '@/data/architecture-data';
 
 interface ArchitectureBlockProps extends ArchitectureComponent {}
 
@@ -29,6 +29,7 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
   eli5Details,
   complexity,
   implementationGuidance,
+  codeSnippets, // Added codeSnippets
 }) => {
   const complexityVariant = (complexityLevel: ArchitectureComponent['complexity']): 'default' | 'secondary' | 'destructive' => {
     switch (complexityLevel) {
@@ -86,6 +87,30 @@ const ArchitectureBlock: FC<ArchitectureBlockProps> = ({
                 <ul className="list-disc list-inside space-y-1.5 text-sm text-foreground/80">
                   {implementationGuidance.map((step, index) => <li key={index}>{step}</li>)}
                 </ul>
+              </div>
+            </>
+          )}
+          {codeSnippets && codeSnippets.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-accent">Code Snippets</h3>
+                <div className="space-y-4">
+                  {codeSnippets.map((snippet, index) => (
+                    <div key={index} className="code-snippet-container rounded-md border bg-muted/30 overflow-hidden">
+                      { (snippet.filename || snippet.description) &&
+                        <div className="px-4 py-2 border-b bg-muted/50 text-xs text-muted-foreground">
+                          {snippet.filename && <strong className="font-mono">{snippet.filename}</strong>}
+                          {snippet.filename && snippet.description && <span className="mx-2">|</span>}
+                          {snippet.description && <span className="italic">{snippet.description}</span>}
+                        </div>
+                      }
+                      <pre className="p-4 text-xs overflow-x-auto">
+                        <code className={`language-${snippet.language}`}>{snippet.code.trim()}</code>
+                      </pre>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}
