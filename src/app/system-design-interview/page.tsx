@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound
 } from 'lucide-react';
 import type React from 'react';
 
@@ -27,6 +27,10 @@ interface BasicInterviewQuestion {
   icon: React.ElementType;
   explanation: string;
   purpose?: string;
+  keyConcepts?: string[];
+  howItWorks?: string;
+  benefits?: string[];
+  challenges?: string[];
   keyTrends?: string[];
   architecturalConsiderations?: string[];
   commonLevels?: { name: string; description: string }[];
@@ -154,6 +158,48 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
       "Interoperability challenges between traditional financial systems and new digital payment rails.",
       "Factors driving user adoption and trust in emerging payment methods.",
       "Data sovereignty and cross-border payment complexities."
+    ]
+  },
+  {
+    id: "sso",
+    title: "What is SSO (Single Sign-On)?",
+    icon: KeyRound,
+    explanation: "Single Sign-On (SSO) is an authentication scheme that allows a user to log in with a single set of credentials to multiple independent software systems or applications. Its primary goal is to simplify user access and improve security by centralizing authentication.",
+    howItWorks: `Simplified Flow:
+1.  **User Accesses Service Provider (SP)**: The user tries to access an application (the SP).
+2.  **SP Redirects to Identity Provider (IdP)**: If the user isn't logged in, the SP redirects the user's browser to a central Identity Provider (IdP).
+3.  **User Authenticates with IdP**: The user enters their credentials (e.g., username/password, MFA) at the IdP.
+4.  **IdP Issues Assertion/Token**: If authentication is successful, the IdP creates a secure token or assertion (e.g., a SAML assertion or an OIDC ID token) containing information about the user's identity and authentication status.
+5.  **IdP Redirects Back to SP**: The IdP sends the user's browser back to the SP, along with the token/assertion.
+6.  **SP Validates Token & Grants Access**: The SP validates the token/assertion (often by checking its signature against the IdP's public key). If valid, the SP creates a local session for the user and grants access.
+Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer for identity).`,
+    benefits: [
+      "Improved User Experience: Users only need to remember one set of credentials and log in once to access multiple applications.",
+      "Enhanced Security: Centralizes authentication, making it easier to enforce strong password policies, multi-factor authentication (MFA), and monitor login activity. Reduces password fatigue, which can lead to users choosing weaker or reused passwords.",
+      "Simplified Administration: Central user account management. Easier to provision/deprovision user access across multiple applications.",
+      "Reduced Helpdesk Calls: Fewer password reset requests."
+    ],
+    challenges: [
+      "IdP as a Single Point of Failure: If the IdP is unavailable, users may not be able to log in to any integrated applications.",
+      "IdP as a High-Value Target: A compromised IdP can grant attackers access to multiple systems.",
+      "Complexity of Setup: Integrating applications with an SSO system, especially with protocols like SAML, can be complex.",
+      "Reliance on IdP Security: The security of all connected applications heavily depends on the security of the IdP.",
+      "Session Management: Ensuring secure logout across all applications (single log-out) can be tricky."
+    ],
+    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Microservices Architecture", "Rust App Nodes"],
+    rustikRelevanceNote: `Understanding SSO is vital when architecting systems.
+- **Security Architecture Principles**: SSO is a core pattern for robust Identity and Access Management (IAM).
+- **API Gateway**: Often acts as the enforcement point for authentication, integrating with an IdP to validate SSO tokens before requests reach backend microservices.
+- **Microservices Architecture**: In a distributed system, SSO provides a consistent authentication mechanism across all services. Instead of each microservice implementing its own authentication, they delegate to or trust tokens validated by a central component (like an API Gateway or a dedicated AuthN/AuthZ service) that handles SSO.
+- **Rust App Nodes**: Individual services (Rust App Nodes) in a microservices setup would either be configured as Service Providers themselves or, more commonly, be protected by an API Gateway that handles the SSO token validation and passes user identity information downstream.`,
+    discussionPoints: [
+      "Key differences between SAML, OAuth 2.0, and OpenID Connect (OIDC) in the context of SSO.",
+      "IdP-initiated vs. SP-initiated SSO flows.",
+      "Security implications and best practices for implementing or integrating with SSO.",
+      "Common SSO providers (e.g., Okta, Auth0, Azure AD, Keycloak, Ping Identity).",
+      "How does MFA fit into an SSO strategy?",
+      "Session management challenges in SSO (e.g., single log-out).",
+      "Just-In-Time (JIT) provisioning of user accounts in SPs based on IdP assertions."
     ]
   }
 ];
@@ -740,12 +786,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
+      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -756,7 +802,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -771,7 +817,7 @@ Several approaches exist, each with trade-offs:
 2.  **Crawler Workers (Fetchers):**
     *   Multiple distributed workers take URLs from the Frontier.
     *   Perform DNS resolution.
-    *   Fetch \\\`robots.txt\\\` for the domain and respect its rules (once per domain, cached).
+    *   Fetch \`robots.txt\` for the domain and respect its rules (once per domain, cached).
     *   Make HTTP GET requests to download page content.
     *   Handle politeness (e.g., delay between requests to the same server).
 
@@ -790,18 +836,18 @@ Several approaches exist, each with trade-offs:
 
 6.  **Scheduler & Politeness Module:**
     *   Coordinates workers, manages crawl rates per domain/IP address.
-    *   Ensures adherence to \\\`robots.txt\\\` and \`Crawl-delay\` directives.
+    *   Ensures adherence to \`robots.txt\` and \`Crawl-delay\` directives.
 
 7.  **DNS Resolver:**
     *   Resolves domain names to IP addresses. Needs to be scalable and potentially have its own cache.
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1215,7 +1261,7 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
@@ -1223,6 +1269,9 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
+               <p className="text-md text-muted-foreground mb-4">
+                This section covers foundational concepts and smaller, building-block design problems often encountered in system design interviews or as parts of larger questions.
+              </p>
               <Accordion type="multiple" className="w-full space-y-4">
                 {basicDesignQuestions.map((question) => (
                   <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
@@ -1243,6 +1292,12 @@ export default function SystemDesignInterviewPage() {
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
                         </div>
                       )}
+                       {question.howItWorks && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">How it Works (Simplified):</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.howItWorks}</p>
+                        </div>
+                      )}
                       {question.keyTrends && question.keyTrends.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Trends:</h5>
@@ -1260,6 +1315,14 @@ export default function SystemDesignInterviewPage() {
                                 <strong className="text-foreground/90">{level.name}:</strong> {level.description}
                               </li>
                             ))}
+                          </ul>
+                        </div>
+                      )}
+                       {question.benefits && question.benefits.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Benefits:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.benefits.map((benefit, index) => <li key={`benefit-${question.id}-${index}`}>{benefit}</li>)}
                           </ul>
                         </div>
                       )}
@@ -1288,6 +1351,14 @@ export default function SystemDesignInterviewPage() {
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Differences:</h5>
                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
                             {question.keyDifferences.map((diff, index) => <li key={`diff-${question.id}-${index}`}>{diff}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                       {question.challenges && question.challenges.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Challenges/Considerations:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.challenges.map((challenge, index) => <li key={`challenge-${question.id}-${index}`}>{challenge}</li>)}
                           </ul>
                         </div>
                       )}
@@ -1502,5 +1573,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
-    
