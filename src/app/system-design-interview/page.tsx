@@ -3,7 +3,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -375,6 +375,71 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Data replication strategies in conjunction with consistent hashing.",
       "Choice of hash function and its impact."
     ]
+  },
+  {
+    id: "key-value-store",
+    title: "Design a Key-Value Store (e.g., Redis, DynamoDB)",
+    icon: DatabaseZap,
+    problemStatement: "Design a highly scalable, available, and performant distributed key-value store. Users should be able to store, retrieve, and delete data based on a unique key.",
+    requirements: [
+      "Functional Requirements:",
+      "  - `Put(key, value)`: Store a value associated with a key.",
+      "  - `Get(key)`: Retrieve the value associated with a key.",
+      "  - `Delete(key)`: Remove a key and its associated value.",
+      "Non-Functional Requirements:",
+      "  - High Availability: The store should remain operational even if some nodes fail.",
+      "  - Low Latency: Get/Put/Delete operations should be very fast.",
+      "  - Scalability: Handle a large number of keys, large total data size, and high request throughput (reads and writes).",
+      "  - Durability: Data once written should not be lost.",
+      "  - (Optional) Tunable Consistency: Offer different levels of consistency (e.g., eventual vs. strong)."
+    ],
+    relevantRustikComponents: [
+      "Database Strategies (as this is a type of database)",
+      "Caching Strategies (can be employed within the K-V store or as a layer in front)",
+      "Async IO + Epoll + Tokio (for building the high-performance network layer of K-V store nodes)",
+      "Per-core Socket Accept + Sharding (for scaling the request handling layer of K-V store nodes)",
+      "Service Discovery & Control Plane (for nodes in a distributed K-V store to find each other)",
+      "Autoscaling & Resilience Patterns (for managing node health, data replication, and cluster scaling)"
+    ],
+    conceptualSolutionOutline: `
+1.  **Data Partitioning (Sharding):**
+    *   Use Consistent Hashing to distribute keys across multiple nodes. This minimizes data movement when nodes are added/removed.
+2.  **Replication:**
+    *   Replicate each data partition across multiple (e.g., 3) nodes for durability and availability.
+    *   Choose a replication strategy (e.g., leader-follower, leaderless/quorum-based like Dynamo).
+3.  **Request Handling:**
+    *   Client sends request to any node or a coordinator/gateway node.
+    *   The node (or coordinator) uses consistent hashing to determine which node(s) own the key.
+    *   Request is routed to the responsible node(s).
+4.  **Data Storage on Nodes:**
+    *   **In-memory:** For extreme speed (e.g., Redis-like). Data might be periodically snapshotted to disk or use Write-Ahead Logging (WAL) for durability.
+    *   **Disk-based:** For larger datasets. Often use Log-Structured Merge-Trees (LSM Trees) for efficient writes and good read performance (e.g., Cassandra, RocksDB).
+5.  **Write-Ahead Logging (WAL):**
+    *   For durable writes, append operations to a WAL before applying them to the in-memory structure or main data files. Helps in recovery after a crash.
+6.  **Consistency Models:**
+    *   **Eventual Consistency:** Writes propagate to replicas asynchronously. Reads might get stale data but offers high availability and low latency.
+    *   **Strong Consistency:** Writes are acknowledged only after being replicated to a quorum of replicas. Reads always get the latest data but can have higher latency.
+    *   Often configurable (e.g., read/write quorums: R+W > N).
+7.  **Node Failure Detection & Handling:**
+    *   Use a gossip protocol or a central leader/master to detect failed nodes.
+    *   Promote replicas or re-replicate data to maintain redundancy.
+    *   Leader election mechanism if using leader-based replication.
+8.  **API Design:**
+    *   Simple Get(key), Put(key, value), Delete(key) operations.
+    *   Consider TTLs for keys, conditional puts, batch operations.
+`,
+    discussionPoints: [
+      "Data partitioning strategy: Consistent hashing vs. range partitioning. Impact of key distribution.",
+      "Replication strategy: Leader-follower vs. leaderless. Synchronous vs. asynchronous replication.",
+      "Consistency models: CAP theorem. Strong vs. eventual consistency. Quorums (N, W, R).",
+      "Data storage on nodes: In-memory vs. disk-based. LSM-trees vs. B-trees. Compaction.",
+      "Failure detection and handling: Gossip protocols, leader election (Paxos, Raft).",
+      "Concurrency control and conflict resolution (e.g., vector clocks, last-write-wins).",
+      "Client interaction model: Smart client (knows data distribution) vs. dumb client (talks to coordinator).",
+      "Caching strategies within the K-V store or in front of it.",
+      "Metrics for monitoring performance and availability.",
+      "Specific use cases: Caching, session store, user profiles, metadata store."
+    ]
   }
 ];
 
@@ -493,7 +558,7 @@ export default function SystemDesignInterviewPage() {
         </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <TrendingUp className="h-7 w-7 text-primary" />
@@ -640,4 +705,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
