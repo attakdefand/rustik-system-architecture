@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle
+  Youtube, FolderGit2, Puzzle, CloudCog, Info
 } from 'lucide-react';
 import type React from 'react';
 
@@ -26,8 +26,11 @@ interface BasicInterviewQuestion {
   title: string;
   icon: React.ElementType;
   explanation: string;
-  purpose: string;
+  purpose?: string;
   commonLevels?: { name: string; description: string }[];
+  examples?: { model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }[];
+  keyDifferences?: string[];
+  whenToChoose?: string[];
   tradeOffs?: string;
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
@@ -63,7 +66,63 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
       "Optimistic vs. Pessimistic concurrency control and their relation to isolation."
     ]
   },
+  {
+    id: "cloud-service-models",
+    title: "What are Cloud Service Models: IaaS, PaaS, SaaS?",
+    icon: CloudCog,
+    explanation: `Cloud service models describe how cloud computing resources are offered to users. The three main models are:
+  - **IaaS (Infrastructure as a Service):** Provides fundamental building blocks for cloud IT. This includes access to computing resources (virtual machines, storage, networks) on demand. You manage the OS, middleware, applications, and data.
+  - **PaaS (Platform as a Service):** Provides a platform for developing, running, and managing applications without the complexity of building and maintaining the infrastructure typically associated with it. The provider manages the OS, middleware, and runtime. You manage your applications and data.
+  - **SaaS (Software as a Service):** Provides ready-to-use software applications delivered over the internet, typically on a subscription basis. The provider manages all aspects of the software service (infrastructure, platform, application software, maintenance). You just use the software.`,
+    examples: [
+      {
+        model: "IaaS (Infrastructure as a Service)",
+        description: "You get raw compute, storage, and networking. Like leasing land to build your own house.",
+        managedByCustomer: ["Applications", "Data", "Runtime", "Middleware", "Operating System"],
+        managedByProvider: ["Virtualization", "Servers", "Storage", "Networking"],
+        examples: ["Amazon Web Services (AWS EC2, S3)", "Microsoft Azure (Virtual Machines, Blob Storage)", "Google Cloud Platform (Compute Engine, Cloud Storage)", "DigitalOcean Droplets"]
+      },
+      {
+        model: "PaaS (Platform as a Service)",
+        description: "You get a platform to build and deploy applications, without managing the underlying infrastructure. Like renting a pre-built house frame and foundation where you can customize the interior.",
+        managedByCustomer: ["Applications", "Data"],
+        managedByProvider: ["Runtime", "Middleware", "Operating System", "Virtualization", "Servers", "Storage", "Networking"],
+        examples: ["AWS Elastic Beanstalk", "Heroku", "Google App Engine", "Azure App Service", "OpenShift"]
+      },
+      {
+        model: "SaaS (Software as a Service)",
+        description: "You get ready-to-use software. Like renting a fully furnished and maintained apartment.",
+        managedByCustomer: [],
+        managedByProvider: ["Applications", "Data", "Runtime", "Middleware", "Operating System", "Virtualization", "Servers", "Storage", "Networking"],
+        examples: ["Google Workspace (Gmail, Google Drive)", "Microsoft 365 (Outlook, OneDrive)", "Salesforce", "Dropbox", "Zoom"]
+      }
+    ],
+    keyDifferences: [
+      "Level of Abstraction: IaaS offers the most control over infrastructure, while SaaS offers the least (but most convenience).",
+      "Management Responsibility: The customer's management responsibility decreases from IaaS to PaaS to SaaS.",
+      "Flexibility vs. Ease of Use: IaaS provides maximum flexibility, while SaaS is easiest to use out-of-the-box."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (Deployment Model: Self-managed on IaaS VMs/containers, or deployed to PaaS)",
+      "Load Balancer(s) (Self-managed on IaaS, or provider-managed PaaS LBs)",
+      "Database Strategies (Self-hosted on IaaS, or managed DB services which are PaaS)",
+      "Deployment & CI/CD (Workflow differs based on IaaS/PaaS target)",
+      "Autoscaling & Resilience Patterns (Provider-managed features in PaaS vs. self-configured in IaaS)"
+    ],
+    rustikRelevanceNote: "Understanding IaaS, PaaS, and SaaS is fundamental because your choice of cloud service model significantly impacts how you'd implement, deploy, and manage many of Rustik's architectural components. For instance, 'Containerized Rust App Nodes' can be deployed on IaaS (e.g., running Kubernetes on your own VMs) or on a PaaS (e.g., Google Kubernetes Engine, AWS ECS/EKS, or simpler platforms like Cloud Run). Similarly, 'Database Strategies' might involve self-hosting a database on IaaS or using a managed PaaS database service. This choice affects operational overhead, scalability control, cost, and development speed.",
+    discussionPoints: [
+      "Define IaaS, PaaS, SaaS and give examples of each.",
+      "Explain the shared responsibility model for each (who manages what).",
+      "What are the pros and cons of each model?",
+      "When would you choose IaaS over PaaS, or PaaS over SaaS?",
+      "How do these models impact development speed, operational overhead, and cost?",
+      "Discuss vendor lock-in concerns with each model.",
+      "How does scalability differ across these models?",
+      "Can a company use a mix of these models? (Hybrid cloud, multi-cloud)"
+    ]
+  }
 ];
+
 
 const scalingJourneyPhases = [
   {
@@ -1143,10 +1202,12 @@ export default function SystemDesignInterviewPage() {
                         <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
                         <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
                       </div>
-                       <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
-                        <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
-                      </div>
+                      {question.purpose && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
+                        </div>
+                      )}
                       {question.commonLevels && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Common Isolation Levels:</h5>
@@ -1156,6 +1217,34 @@ export default function SystemDesignInterviewPage() {
                                 <strong className="text-foreground/90">{level.name}:</strong> {level.description}
                               </li>
                             ))}
+                          </ul>
+                        </div>
+                      )}
+                      {question.examples && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-2">Examples & Responsibility Model:</h5>
+                          <div className="space-y-4">
+                            {question.examples.map((example, index) => (
+                              <Card key={`ex-${question.id}-${index}`} className="bg-muted/30 p-3 border-border/50">
+                                <CardHeader className="p-0 pb-1.5">
+                                  <CardTitle className="text-sm font-semibold text-primary">{example.model}</CardTitle>
+                                  <CardDescription className="text-xs">{example.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-0 text-xs space-y-1">
+                                  <p><strong className="text-foreground/80">Customer Manages:</strong> {example.managedByCustomer.join(', ') || 'None'}</p>
+                                  <p><strong className="text-foreground/80">Provider Manages:</strong> {example.managedByProvider.join(', ')}</p>
+                                  <p><strong className="text-foreground/80">Examples:</strong> {example.examples.join(', ')}</p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                       {question.keyDifferences && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Differences:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyDifferences.map((diff, index) => <li key={`diff-${question.id}-${index}`}>{diff}</li>)}
                           </ul>
                         </div>
                       )}
@@ -1199,7 +1288,7 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-              <Accordion type="multiple" className="w-full space-y-6 px-2">
+              <Accordion type="multiple" className="w-full space-y-6">
                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                     <div className="flex items-center gap-3">
@@ -1370,5 +1459,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
-    
