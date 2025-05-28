@@ -123,7 +123,7 @@ const systemDesignQuestions: InterviewQuestion[] = [
   },
   {
     id: "social-feed",
-    title: "Design a Social Media News Feed (e.g., Facebook, X/Twitter)",
+    title: "Design a News Feed System (e.g., Facebook, X/Twitter)", // Renamed title
     icon: Newspaper,
     problemStatement: "Design a system that allows users to post updates (text, images, videos) and see a news feed consisting of updates from people they follow, ranked by relevance or recency. Users should also be able to interact with posts (e.g., like, comment).",
     requirements: [
@@ -925,3 +925,5 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
+    
