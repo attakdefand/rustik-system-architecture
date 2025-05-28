@@ -122,8 +122,8 @@ const systemDesignQuestions: InterviewQuestion[] = [
     ]
   },
   {
-    id: "social-feed",
-    title: "Design a News Feed System (e.g., Facebook, X/Twitter)", // Renamed title
+    id: "news-feed",
+    title: "Design a News Feed System (e.g., Facebook, X/Twitter)",
     icon: Newspaper,
     problemStatement: "Design a system that allows users to post updates (text, images, videos) and see a news feed consisting of updates from people they follow, ranked by relevance or recency. Users should also be able to interact with posts (e.g., like, comment).",
     requirements: [
@@ -664,6 +664,82 @@ Several approaches exist, each with trade-offs:
       "Internationalization and localization of notification content.",
       "Handling feedback loops (e.g., email bounces, push notification uninstalls)."
     ]
+  },
+  {
+    id: "chat-system",
+    title: "Design a Chat System (e.g., WhatsApp, Slack)",
+    icon: MessageSquarePlus,
+    problemStatement: "Design a scalable real-time chat system that allows users to have one-on-one and group conversations. The system should support message history and display user online/offline presence.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Users can send and receive text messages in real-time.",
+      "  - Support for one-on-one (private) chats.",
+      "  - Support for group chats with multiple members.",
+      "  - Persistent storage and retrieval of message history.",
+      "  - Display user online/offline/typing status (presence).",
+      "  - (Optional) Support for media messages (images, videos).",
+      "  - (Optional) Read receipts.",
+      "Non-Functional Requirements:",
+      "  - Low Latency: Messages should be delivered with minimal delay.",
+      "  - High Availability: Chat service should be highly reliable.",
+      "  - Scalability: Handle a large number of concurrent users and high message throughput.",
+      "  - Reliability: Minimize message loss.",
+      "  - Durability: Message history should be durably stored.",
+      "  - Security: (Optional for initial discussion, but important) Message encryption."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture (e.g., User Service, Connection/WebSocket Service, Chat Service, Presence Service, Message History Service)",
+      "API Design Styles & Protocols (WebSockets for real-time messaging; REST/GraphQL for user management, chat metadata, history retrieval)",
+      "Database Strategies:",
+      "  - Messages: NoSQL (Cassandra, ScyllaDB, DynamoDB) optimized for high write throughput and time-series data.",
+      "  - User/Chat Metadata: Relational DB (PostgreSQL) or Document DB for user accounts, chat room details, member lists.",
+      "  - Presence/Session: In-memory Key-Value store (Redis) for fast updates and lookups of online status and WebSocket connections.",
+      "Caching Strategies (User sessions, recent messages in active chats, frequently accessed group metadata).",
+      "Shared State & Data Plane (Message Queues like Kafka/RabbitMQ for fanning out group messages, handling offline notifications, or asynchronous tasks).",
+      "Async IO + Epoll + Tokio (Crucial for WebSocket servers handling thousands/millions of persistent connections).",
+      "Load Balancer(s) (For distributing connections to WebSocket servers; L4 often preferred for WebSockets, sometimes L7 for initial handshake).",
+      "Observability & Ops (Monitoring connection counts, message rates, latency, error rates)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Connection Management:**
+    *   WebSocket servers manage persistent connections from clients (mobile, web).
+    *   Connection Manager service keeps track of active connections per user (e.g., maps user ID to WebSocket server/connection ID, possibly using Redis).
+
+2.  **Message Handling:**
+    *   **Client Sends Message:** Sends via WebSocket to its connected server.
+    *   **Chat Service Receives:**
+        *   Persists message to a scalable NoSQL database (e.g., Cassandra, keyed by chat ID and timestamp).
+        *   For 1:1 chat: Looks up recipient's WebSocket connection (from Connection Manager). If online, delivers message. If offline, stores for later or sends push notification.
+        *   For group chat: Retrieves group members. Fans out message to all active members' WebSocket connections (can use a message queue like Kafka for reliable fan-out to multiple WebSocket servers).
+
+3.  **Presence Service:**
+    *   Clients send heartbeats or connect/disconnect events to Presence Service via WebSockets or dedicated endpoints.
+    *   Stores user online/offline/typing status in a fast Key-Value store (Redis).
+    *   Subscribers (other users in chats) receive presence updates.
+
+4.  **Message History Service:**
+    *   Provides API (e.g., REST/GraphQL) for clients to fetch historical messages, supporting pagination. Queries the NoSQL message store.
+
+5.  **Group Management Service:**
+    *   Handles creation of groups, adding/removing members, managing group metadata (stored in Relational/Document DB).
+
+6.  **Offline Handling & Push Notifications:**
+    *   If recipient is offline, store message and send a push notification (via Notification System) to prompt them to open the app.
+`,
+    discussionPoints: [
+      "Choice of real-time communication protocol (WebSockets usually preferred over Long Polling/SSE for chat).",
+      "Scalability of WebSocket connection management (horizontal scaling of WebSocket servers, sticky sessions if needed, connection multiplexing).",
+      "Database choice for messages: Optimizing for high write throughput and efficient retrieval of recent messages. Partitioning/sharding strategies.",
+      "Fan-out mechanism for group messages: Direct dispatch vs. using a message broker (Kafka, RabbitMQ).",
+      "Presence system: Accuracy, update frequency, scalability. How to handle flaky connections?",
+      "Message delivery guarantees: At-least-once, at-most-once. Handling message ordering.",
+      "Storage and retrieval of chat history: Pagination, indexing.",
+      "Security: End-to-end encryption (complex to implement correctly) vs. transport-level encryption. User authentication.",
+      "Handling media attachments: Storage, CDN delivery.",
+      "Read receipts and typing indicators: Scalability and real-time updates for these features.",
+      "Integration with a general Notification System for offline users.",
+      "Rate limiting and anti-spam measures."
+    ]
   }
 ];
 
@@ -925,5 +1001,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
-    
