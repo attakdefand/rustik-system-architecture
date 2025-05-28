@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2
+  Youtube, FolderGit2, Puzzle
 } from 'lucide-react';
 
 const scalingJourneyPhases = [
@@ -462,9 +462,9 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
     problemStatement: "Design a highly scalable, available, and performant distributed key-value store. Users should be able to store, retrieve, and delete data based on a unique key.",
     requirements: [
       "Functional Requirements:",
-      "  - `Put(key, value)`: Store a value associated with a key.",
-      "  - `Get(key)`: Retrieve the value associated with a key.",
-      "  - `Delete(key)`: Remove a key and its associated value.",
+      "  - \`Put(key, value)\`: Store a value associated with a key.",
+      "  - \`Get(key)\`: Retrieve the value associated with a key.",
+      "  - \`Delete(key)\`: Remove a key and its associated value.",
       "Non-Functional Requirements:",
       "  - High Availability: The store should remain operational even if some nodes fail.",
       "  - Low Latency: Get/Put/Delete operations should be very fast.",
@@ -1076,11 +1076,26 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="single" collapsible className="w-full max-w-5xl mx-auto space-y-6">
+          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+            <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
+              <div className="flex items-center gap-3">
+                <Puzzle className="h-8 w-8 text-primary" />
+                <span className="text-gray-700 dark:text-gray-200 text-left">Basic-Piece System Design</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-6 space-y-8">
+               <p className="text-md text-muted-foreground">
+                Content for Basic-Piece System Design will go here. This section will focus on foundational concepts, core building blocks, and smaller, more contained design problems. It's a great place to start before tackling more complex, large-scale "Master-Piece" designs.
+              </p>
+              {/* Placeholder for future basic design problems or concepts */}
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="master-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Brain className="h-8 w-8 text-primary" />
-                <span className="text-gray-700 dark:text-gray-200 text-left">Master-Piece-System-Design</span>
+                <span className="text-gray-700 dark:text-gray-200 text-left">Master-Piece System Design</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
