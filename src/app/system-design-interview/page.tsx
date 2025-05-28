@@ -4,10 +4,85 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
-  Brain, Lightbulb, Users, LinkIcon, Newspaper, ServerIcon as ServerLucideIcon, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
-  WorkflowIcon as WorkflowLucideIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
+  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
+  WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
   Youtube, FolderGit2
 } from 'lucide-react';
+
+const scalingJourneyPhases = [
+  {
+    icon: ServerIcon,
+    title: "Phase 1: The Monolith / Single Server (0 - 1,000s of Users)",
+    description: "Initial development often starts with a monolithic application and a single database, frequently on one server or a simple cloud setup. This phase prioritizes rapid development and getting a product to market.",
+    characteristics: [
+      "Single application codebase.",
+      "Single database instance.",
+      "Often deployed on one or few servers (vertical scaling primary).",
+    ],
+    pros: [
+      "Simple to develop and understand.",
+      "Easy to deploy and debug initially.",
+      "Fast time-to-market for MVPs.",
+    ],
+    challenges: [
+      "Vertical scaling has limits (CPU, RAM, I/O).",
+      "Single point of failure (if server or database goes down).",
+      "Deployment downtime can impact all users.",
+    ],
+    rustikRelevance: ["Rust App Nodes (Single-binary)", "Database Strategies (Simple Relational DB)", "API Design Styles (REST API)"]
+  },
+  {
+    icon: Layers,
+    title: "Phase 2: Scaling Out / Adding Layers (1,000s - 100,000s of Users)",
+    description: "As user load increases, the first bottlenecks appear, typically around the database and application server capacity. The focus shifts to horizontal scaling and introducing specialized layers.",
+    actions: [
+      "Separate database server from application server.",
+      "Introduce Load Balancers to distribute traffic across multiple application server instances.",
+      "Horizontally scale the application layer (more app servers running the same monolith).",
+      "Implement basic Caching (e.g., in-memory, Redis) for frequently accessed data.",
+      "Start using a Content Delivery Network (CDN) for static assets (images, JS, CSS).",
+    ],
+    pros: [
+      "Handles increased traffic.",
+      "Improved availability (no longer single server for app).",
+      "Reduced database load via caching and read replicas (if implemented).",
+    ],
+    challenges: [
+      "The monolith can still become a deployment and development bottleneck.",
+      "Database contention can become significant.",
+      "Managing state across multiple application instances if not stateless.",
+    ],
+    rustikRelevance: ["Load Balancer(s)", "Rust App Nodes (Multiple instances)", "Database Strategies (Read Replicas, Connection Pooling)", "Caching Strategies", "Network Infrastructure Strategies (CDN Integration)"]
+  },
+  {
+    icon: WorkflowIcon,
+    title: "Phase 3: Service Decomposition & Specialization (100,000s - Millions+ Users)",
+    description: "At this scale, the monolithic application becomes unwieldy. The system needs to be broken down into smaller, independent services that can be scaled and managed separately. Advanced operational practices become essential.",
+    actions: [
+      "Break down the monolith into Microservices, focusing on high-load or complex business domains first.",
+      "Introduce an API Gateway to manage and route requests to microservices.",
+      "Utilize Message Queues (e.g., Kafka, RabbitMQ) for asynchronous processing and inter-service communication.",
+      "Adopt more advanced Database Strategies (e.g., NoSQL for specific use cases like user sessions or product catalogs, potential database sharding if relational DBs hit limits).",
+      "Implement robust Observability: comprehensive metrics, distributed tracing, and centralized logging.",
+      "Automate deployments with CI/CD pipelines for reliable and frequent releases.",
+      "Strengthen Security Architecture with dedicated security components and practices.",
+      "Implement Autoscaling for various layers (app servers, microservices, database capacity).",
+    ],
+    pros: [
+      "Independent scaling of services based on demand.",
+      "Improved fault isolation – failure in one service is less likely to affect others.",
+      "Technology diversity: different services can use different tech stacks if beneficial.",
+      "Smaller, more focused teams can manage individual services.",
+    ],
+    challenges: [
+      "Increased complexity of a distributed system (network latency, inter-service communication).",
+      "Higher operational overhead (managing many services).",
+      "Requires mature DevOps practices.",
+      "Data consistency across services can be complex (eventual consistency, sagas).",
+    ],
+    rustikRelevance: ["Microservices Architecture", "API Gateway", "Shared State & Data Plane (Message Queues)", "Database Strategies (NoSQL, Sharding)", "Observability & Ops", "Deployment & CI/CD", "Autoscaling & Resilience Patterns", "Security Architecture Principles"]
+  }
+];
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -63,7 +138,7 @@ interface InterviewQuestion {
 }
 
 const systemDesignQuestions: InterviewQuestion[] = [
-  {
+   {
     id: "url-shortener",
     title: "Design a URL Shortener (e.g., TinyURL, bit.ly)",
     icon: LinkIcon,
@@ -925,7 +1000,7 @@ Several approaches exist, each with trade-offs:
       "  - High Availability: Service should be accessible most of the time.",
       "  - Scalability: Support petabytes of storage, billions of files, and millions of users.",
       "  - Low Latency: Fast uploads, downloads, and synchronization.",
-      "  - Consistency: Strong consistency for file metadata operations. Eventual consistency for file content propagation across all devices can be acceptable in some sync scenarios, but metadata changes should be atomic.",
+      "  - Consistency: Strong consistency for file metadata operations. Eventual consistency for file content propagation across devices can be acceptable in some sync scenarios, but metadata changes should be atomic.",
       "  - Security: File privacy, encryption (at rest and in transit), robust access control."
     ],
     relevantRustikComponents: [
@@ -984,81 +1059,6 @@ Several approaches exist, each with trade-offs:
   },
 ];
 
-const scalingJourneyPhases = [
-  {
-    icon: ServerLucideIcon,
-    title: "Phase 1: The Monolith / Single Server (0 - 1,000s of Users)",
-    description: "Initial development often starts with a monolithic application and a single database, frequently on one server or a simple cloud setup. This phase prioritizes rapid development and getting a product to market.",
-    characteristics: [
-      "Single application codebase.",
-      "Single database instance.",
-      "Often deployed on one or few servers (vertical scaling primary).",
-    ],
-    pros: [
-      "Simple to develop and understand.",
-      "Easy to deploy and debug initially.",
-      "Fast time-to-market for MVPs.",
-    ],
-    challenges: [
-      "Vertical scaling has limits (CPU, RAM, I/O).",
-      "Single point of failure (if server or database goes down).",
-      "Deployment downtime can impact all users.",
-    ],
-    rustikRelevance: ["Rust App Nodes (Single-binary)", "Database Strategies (Simple Relational DB)", "API Design Styles (REST API)"]
-  },
-  {
-    icon: Layers,
-    title: "Phase 2: Scaling Out / Adding Layers (1,000s - 100,000s of Users)",
-    description: "As user load increases, the first bottlenecks appear, typically around the database and application server capacity. The focus shifts to horizontal scaling and introducing specialized layers.",
-    actions: [
-      "Separate database server from application server.",
-      "Introduce Load Balancers to distribute traffic across multiple application server instances.",
-      "Horizontally scale the application layer (more app servers running the same monolith).",
-      "Implement basic Caching (e.g., in-memory, Redis) for frequently accessed data.",
-      "Start using a Content Delivery Network (CDN) for static assets (images, JS, CSS).",
-    ],
-    pros: [
-      "Handles increased traffic.",
-      "Improved availability (no longer single server for app).",
-      "Reduced database load via caching and read replicas (if implemented).",
-    ],
-    challenges: [
-      "The monolith can still become a deployment and development bottleneck.",
-      "Database contention can become significant.",
-      "Managing state across multiple application instances if not stateless.",
-    ],
-    rustikRelevance: ["Load Balancer(s)", "Rust App Nodes (Multiple instances)", "Database Strategies (Read Replicas, Connection Pooling)", "Caching Strategies", "Network Infra Strategies (CDN Integration)"]
-  },
-  {
-    icon: WorkflowLucideIcon,
-    title: "Phase 3: Service Decomposition & Specialization (100,000s - Millions+ Users)",
-    description: "At this scale, the monolithic application becomes unwieldy. The system needs to be broken down into smaller, independent services that can be scaled and managed separately. Advanced operational practices become essential.",
-    actions: [
-      "Break down the monolith into Microservices, focusing on high-load or complex business domains first.",
-      "Introduce an API Gateway to manage and route requests to microservices.",
-      "Utilize Message Queues (e.g., Kafka, RabbitMQ) for asynchronous processing and inter-service communication.",
-      "Adopt more advanced Database Strategies (e.g., NoSQL for specific use cases like user sessions or product catalogs, potential database sharding if relational DBs hit limits).",
-      "Implement robust Observability: comprehensive metrics, distributed tracing, and centralized logging.",
-      "Automate deployments with CI/CD pipelines for reliable and frequent releases.",
-      "Strengthen Security Architecture with dedicated security components and practices.",
-      "Implement Autoscaling for various layers (app servers, microservices, database capacity).",
-    ],
-    pros: [
-      "Independent scaling of services based on demand.",
-      "Improved fault isolation – failure in one service is less likely to affect others.",
-      "Technology diversity: different services can use different tech stacks if beneficial.",
-      "Smaller, more focused teams can manage individual services.",
-    ],
-    challenges: [
-      "Increased complexity of a distributed system (network latency, inter-service communication).",
-      "Higher operational overhead (managing many services).",
-      "Requires mature DevOps practices.",
-      "Data consistency across services can be complex (eventual consistency, sagas).",
-    ],
-    rustikRelevance: ["Microservices Architecture", "API Gateway", "Shared State & Data Plane (Message Queues)", "Database Strategies (NoSQL, Sharding)", "Observability & Ops", "Deployment & CI/CD", "Autoscaling & Resilience Patterns", "Security Architecture Principles"]
-  }
-];
-
 
 export default function SystemDesignInterviewPage() {
   return (
@@ -1085,144 +1085,167 @@ export default function SystemDesignInterviewPage() {
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
               
-              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
-                <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
-                  <TrendingUp className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
-                  <div className="flex-grow">
-                    <CardTitle className="text-lg font-semibold text-primary">Understanding the Scaling Journey: 0 to Millions of Users</CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground pt-1">
-                      Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  {scalingJourneyPhases.map((phase, index) => (
-                    <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50">
-                      <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
-                        <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
-                        <div className="flex-grow">
-                          <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
-                          <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
-                        </div>
+              <Accordion type="multiple" defaultValue={["scaling-journey-item"]} className="w-full space-y-6">
+                <AccordionItem value="scaling-journey-item" className="border-none">
+                   <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="h-7 w-7" />
+                      Understanding the Scaling Journey: 0 to Millions of Users
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    <Card className="shadow-md rounded-lg border-none">
+                      <CardHeader className="pb-2 pt-0 px-0">
+                        <CardDescription className="text-xs text-muted-foreground pt-1">
+                          Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
+                        </CardDescription>
                       </CardHeader>
-                      <CardContent className="p-4 text-xs space-y-2">
-                        {phase.characteristics && (
-                          <div>
-                            <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
-                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                              {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {phase.actions && (
-                          <div className="mt-2">
-                            <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
-                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                              {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {phase.pros && (
-                          <div className="mt-2">
-                            <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
-                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                              {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {phase.challenges && (
-                          <div className="mt-2">
-                            <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
-                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                              {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
-                          <div className="mt-2 pt-2 border-t border-border/30">
-                            <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
-                            <div className="flex flex-wrap gap-1">
-                              {phase.rustikRelevance.map((compName, i) => (
-                                <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
-                                  {compName}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                      <CardContent className="pt-4 space-y-4 px-0">
+                        {scalingJourneyPhases.map((phase, index) => (
+                          <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50">
+                            <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
+                              <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
+                              <div className="flex-grow">
+                                <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
+                                <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-4 text-xs space-y-2">
+                              {phase.characteristics && (
+                                <div>
+                                  <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                    {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {phase.actions && (
+                                <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                    {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {phase.pros && (
+                                <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                    {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {phase.challenges && (
+                                <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                    {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
+                                <div className="mt-2 pt-2 border-t border-border/30">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
+                                  <div className="flex flex-wrap gap-1">
+                                    {phase.rustikRelevance.map((compName, i) => (
+                                      <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                                        {compName}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
                       </CardContent>
                     </Card>
-                  ))}
-                </CardContent>
-              </Card>
+                  </AccordionContent>
+                </AccordionItem>
 
-              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
-                <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
-                  <systemDesignFramework.icon className="h-7 w-7 text-primary mr-0 mt-1 flex-shrink-0" />
-                   <div className="flex-grow">
-                    <CardTitle className="text-lg font-semibold text-primary">{systemDesignFramework.title}</CardTitle>
-                     <CardDescription className="text-xs text-muted-foreground pt-1">
-                      {systemDesignFramework.introduction}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-3">
-                  <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
-                    {systemDesignFramework.steps.map((step, index) => (
-                      <li key={`framework-step-${index}`} className="leading-relaxed">
-                        {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
-                </CardContent>
-              </Card>
-
-              <h4 className="text-xl font-semibold text-accent pt-4 pb-0 text-center">Common System Design Questions:</h4>
-              <Accordion type="multiple" className="w-full space-y-4">
-                {systemDesignQuestions.map((question) => (
-                  <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
-                    <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
-                      <div className="flex items-center gap-3 text-left">
-                        <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
+                <AccordionItem value="framework-item" className="border-none">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                     <div className="flex items-center gap-3">
+                        <systemDesignFramework.icon className="h-7 w-7" />
+                        {systemDesignFramework.title}
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="p-6 space-y-5">
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
-                        <p className="text-sm text-foreground/80">{question.problemStatement}</p>
-                      </div>
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
-                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
-                          {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
-                        </ul>
-                      </div>
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
-                        <div className="flex flex-wrap gap-1.5">
-                          {question.relevantRustikComponents.map((compName, index) => (
-                            <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
-                              {compName}
-                            </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    <Card className="shadow-md rounded-lg border-none">
+                       <CardHeader className="pb-2 pt-0 px-0">
+                         <CardDescription className="text-xs text-muted-foreground pt-1">
+                          {systemDesignFramework.introduction}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-4 space-y-3 px-0">
+                        <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
+                          {systemDesignFramework.steps.map((step, index) => (
+                            <li key={`framework-step-${index}`} className="leading-relaxed">
+                              {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
+                            </li>
                           ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
-                        <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
-                      </div>
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
-                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
-                          {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
                         </ul>
+                        <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
+                      </CardContent>
+                    </Card>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="common-questions-item" className="border-none">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                     <div className="flex items-center gap-3">
+                        <HelpCircle className="h-7 w-7" />
+                        Common System Design Questions
                       </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    <Accordion type="multiple" className="w-full space-y-4">
+                      {systemDesignQuestions.map((question) => (
+                        <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
+                          <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
+                            <div className="flex items-center gap-3 text-left">
+                              <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
+                              <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="p-6 space-y-5">
+                            <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
+                              <p className="text-sm text-foreground/80">{question.problemStatement}</p>
+                            </div>
+                            <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
+                              <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
+                                {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
+                              </ul>
+                            </div>
+                            <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
+                              <div className="flex flex-wrap gap-1.5">
+                                {question.relevantRustikComponents.map((compName, index) => (
+                                  <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                                    {compName}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
+                              <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
+                            </div>
+                            <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
+                              <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
+                                {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
+                              </ul>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion> {/* End of inner accordion */}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -1233,3 +1256,5 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
+    
