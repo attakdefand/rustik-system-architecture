@@ -8,6 +8,7 @@ import {
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
   Youtube, FolderGit2, Puzzle
 } from 'lucide-react';
+import type React from 'react';
 
 interface InterviewQuestion {
   id: string;
@@ -29,7 +30,7 @@ interface BasicInterviewQuestion {
   commonLevels?: { name: string; description: string }[];
   tradeOffs?: string;
   relevantRustikComponents: string[];
-  rustikRelevanceNote?: string; // New field for relevance explanation
+  rustikRelevanceNote?: string;
   discussionPoints: string[];
 }
 
@@ -39,11 +40,10 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
     title: "What are database isolation levels? What are they used for?",
     icon: DatabaseIcon,
     explanation: "Database isolation levels define the degree to which one transaction must be isolated from the effects of other concurrent transactions and data modifications made by them. They control the visibility of uncommitted changes made by one transaction to other transactions.",
-    purpose: `
-Their primary purpose is to prevent concurrency phenomena and ensure data integrity when multiple transactions are executing simultaneously. These phenomena include:
-  - **Dirty Reads:** A transaction reads data written by another concurrent transaction that has not yet been committed. If the other transaction rolls back, the first transaction has read 'dirty' or invalid data.
-  - **Non-Repeatable Reads:** A transaction re-reads data it has previously read and finds that another committed transaction has modified or deleted the data. The original read cannot be repeated.
-  - **Phantom Reads:** A transaction re-executes a query returning a set of rows that satisfy a search condition and finds that another committed transaction has inserted new rows that satisfy the condition. These new rows are 'phantoms'.`,
+    purpose: `Their primary purpose is to prevent concurrency phenomena and ensure data integrity when multiple transactions are executing simultaneously. These phenomena include:
+  - Dirty Reads: A transaction reads data written by another concurrent transaction that has not yet been committed. If the other transaction rolls back, the first transaction has read 'dirty' or invalid data.
+  - Non-Repeatable Reads: A transaction re-reads data it has previously read and finds that another committed transaction has modified or deleted the data. The original read cannot be repeated.
+  - Phantom Reads: A transaction re-executes a query returning a set of rows that satisfy a search condition and finds that another committed transaction has inserted new rows that satisfy the condition. These new rows are 'phantoms'.`,
     commonLevels: [
       { name: "Read Uncommitted", description: "Lowest level. Allows dirty reads, non-repeatable reads, and phantom reads. Offers maximum concurrency but minimal consistency." },
       { name: "Read Committed", description: "Prevents dirty reads. Data read is always committed. However, non-repeatable reads and phantom reads can still occur. Default for many databases like PostgreSQL and SQL Server." },
@@ -183,7 +183,6 @@ const systemDesignFramework = {
 };
 
 const systemDesignQuestions: InterviewQuestion[] = [
-  // ... (Existing questions: URL Shortener, News Feed, Ride-Sharing, Rate Limiter, Consistent Hashing, Key-Value Store, Unique ID Generator, Web Crawler, Notification System, Chat System, Search Autocomplete, YouTube, Google Drive) ...
   {
     id: "url-shortener",
     title: "Design a URL Shortener (e.g., TinyURL, bit.ly)",
@@ -647,12 +646,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\`robots.txt\\` exclusion rules and crawl-delay directives.",
+      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\`robots.txt\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -663,7 +662,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\`robots.txt\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -704,11 +703,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\`robots.txt\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\`robots.txt\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1200,7 +1199,7 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-              <Accordion type="multiple" defaultValue={[]} className="w-full space-y-6">
+              <Accordion type="multiple" className="w-full space-y-6 px-2">
                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                     <div className="flex items-center gap-3">
