@@ -3,7 +3,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -440,6 +440,76 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Metrics for monitoring performance and availability.",
       "Specific use cases: Caching, session store, user profiles, metadata store."
     ]
+  },
+  {
+    id: "unique-id-generator",
+    title: "Design a Unique ID Generator in Distributed Systems",
+    icon: Fingerprint,
+    problemStatement: "Design a service that generates unique, ideally sortable (e.g., by time), IDs at high throughput and low latency, suitable for use across a distributed system. These IDs are crucial for uniquely identifying entities like posts, users, or transactions.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Generate globally unique IDs.",
+      "Non-Functional Requirements:",
+      "  - Uniqueness: IDs must be unique across all services and instances.",
+      "  - High Availability: The ID generation service must be highly available.",
+      "  - Low Latency: ID generation should be very fast.",
+      "  - Scalability: Capable of generating a high volume of IDs per second.",
+      "  - Fault Tolerance: System should continue generating IDs even if some nodes fail.",
+      "  - (Optional but desirable) Roughly Time-Sortable: IDs generated around the same time should be numerically close. This helps with DB indexing and ordering."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (To build the ID generation service).",
+      "Service Discovery & Control Plane (If the ID generator is a centralized service that other services discover).",
+      "Database Strategies (If using database sequences or for coordination in some ID generation schemes).",
+      "Async IO + Epoll + Tokio (For high-performance network communication if it's a service).",
+      "Autoscaling & Resilience Patterns (To ensure the ID generation service is itself scalable and resilient)."
+    ],
+    conceptualSolutionOutline: `
+Several approaches exist, each with trade-offs:
+
+1.  **UUIDs (Universally Unique Identifiers):**
+    *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
+    *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
+    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
+    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
+
+2.  **Twitter Snowflake-like Approach:**
+    *   Combines:
+        *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
+        *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
+        *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
+    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
+    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
+
+3.  **Database Auto-Increment (with care):**
+    *   Use a database's auto-increment feature.
+    *   **Single DB:** Becomes a single point of failure and write bottleneck.
+    *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
+    *   **Pros:** Simple for single DB. IDs are sortable.
+    *   **Cons:** Scalability and availability challenges in distributed setups.
+
+4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
+    *   A central service manages sequence blocks.
+    *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
+    *   App instances then use IDs from their allocated batch locally.
+    *   **Pros:** Can be highly available if the central service is robust.
+    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
+
+5.  **Custom Solutions (e.g., Flickr's ticket servers):**
+    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
+`,
+    discussionPoints: [
+      "Uniqueness guarantees vs. collision probability.",
+      "Sortability needs: Is it critical? If so, how strictly sorted?",
+      "Scalability and throughput requirements (IDs per second).",
+      "Fault tolerance and availability of the ID generation scheme.",
+      "Latency of ID generation.",
+      "Impact of clock synchronization (for timestamp-based methods like Snowflake).",
+      "Complexity of implementation and operation.",
+      "ID size and storage implications (e.g., UUIDs are larger than 64-bit integers).",
+      "Decentralized vs. centralized approaches and their trade-offs.",
+      "How to assign and manage worker IDs in Snowflake-like systems."
+    ]
   }
 ];
 
@@ -558,7 +628,7 @@ export default function SystemDesignInterviewPage() {
         </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <TrendingUp className="h-7 w-7 text-primary" />
