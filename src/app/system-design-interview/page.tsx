@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap
 } from 'lucide-react';
 import type React from 'react';
 
@@ -32,6 +32,7 @@ interface BasicInterviewQuestion {
   benefits?: string[];
   challenges?: string[];
   keyTrends?: string[];
+  learningStrategies?: string[];
   architecturalConsiderations?: string[];
   commonLevels?: { name: string; description: string }[];
   examples?: { model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }[];
@@ -40,13 +41,42 @@ interface BasicInterviewQuestion {
   tradeOffs?: string;
   verificationProcess?: string;
   whyNotEncryption?: string;
-  keyStepsInHandshake?: string; // Added for HTTPS question
+  keyStepsInHandshake?: string;
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
   discussionPoints: string[];
 }
 
 const basicDesignQuestions: BasicInterviewQuestion[] = [
+  {
+    id: "how-to-learn-design-patterns",
+    title: "How to Learn Design Patterns (e.g., GoF, Architectural Patterns)?",
+    icon: GraduationCap,
+    explanation: `Design patterns are general, reusable solutions to commonly occurring problems within a given context in software design. It's crucial to distinguish between:
+- **Software Design Patterns (e.g., Gang of Four - GoF)**: These address specific problems in the design of software at the class and object level. They focus on object creation, composition, and interaction (e.g., Factory, Singleton, Observer, Strategy).
+- **Architectural Patterns**: These are higher-level patterns that describe fundamental structural organization schemas for software systems. They define subsystems, their responsibilities, and rules/guidelines for their relationships (e.g., Microservices, Event-Driven Architecture, Layered Architecture).`,
+    learningStrategies: [
+      "**Books & Resources**: Start with foundational texts like 'Design Patterns: Elements of Reusable Object-Oriented Software' (GoF) for software patterns. For architectural patterns, explore books and articles on cloud patterns, microservices, domain-driven design, and system design principles.",
+      "**Understand the Problem First**: Don't just memorize pattern structures. Focus on the specific problem each pattern is trying to solve and the context in which it's applicable.",
+      "**Practical Application**: Implement simple examples of patterns in a programming language you are comfortable with. This solidifies understanding far more than just reading.",
+      "**Study Real Code**: Look for patterns in well-regarded open-source projects or in your workplace's production codebases. Analyze how and why they were used.",
+      "**Relate to Your Experience**: Think about problems you've faced in past projects and consider if a design pattern could have provided a better solution.",
+      "**Discuss and Teach**: Explaining a pattern to someone else is a great way to test and deepen your own understanding.",
+      "**Start Simple, Then Go Deeper**: Begin with more common and easily understood patterns before tackling more complex or niche ones.",
+      "**Context is Key**: Understand that patterns are not silver bullets. Always consider the trade-offs and whether a pattern truly fits the problem at hand or might lead to over-engineering."
+    ],
+    relevantRustikComponents: ["Application Design Principles for Scale", "Microservices Architecture", "Database Strategies", "API Design Styles & Protocols", "All other architectural components"],
+    rustikRelevanceNote: `Rustik itself is an excellent tool for learning about various **architectural patterns and components**. By exploring components like 'Microservices Architecture,' 'Load Balancers,' 'API Gateway,' etc., you are learning about common high-level solutions for system structure and behavior. The 'Application Design Principles for Scale' component explicitly mentions the importance of using established **software design patterns** (like GoF) for implementing the internal logic of the services built using Rustik's architectural blocks. The System Design Interview Prep page further helps by showing how these architectural patterns and components combine to solve common design problems. Effective system design requires a grasp of both architectural patterns (for the big picture) and software design patterns (for building the individual services within that architecture).`,
+    discussionPoints: [
+      "What is the difference between an architectural pattern and a software design pattern?",
+      "Can you describe a software design pattern you have used or find particularly useful? What problem did it solve?",
+      "Can you describe an architectural pattern and discuss its trade-offs?",
+      "When might applying a design pattern be a bad idea (i.e., lead to over-engineering)?",
+      "How do design patterns contribute to code quality attributes like maintainability, reusability, and flexibility?",
+      "What resources (books, websites, courses) have you found most helpful for learning design patterns?",
+      "How do you decide which pattern to apply to a given problem?"
+    ]
+  },
   {
     id: "httpsso-how-it-works",
     title: "How does HTTPS work?",
@@ -473,10 +503,11 @@ const systemDesignQuestions: InterviewQuestion[] = [
       "  - Users can like/react to posts.",
       "  - Users can comment on posts.",
       "  - (Optional) Real-time feed updates.",
+      "  - (Optional) Media uploads (images, videos).",
       "Non-Functional Requirements:",
       "  - High Availability: Feed must be accessible with minimal downtime.",
       "  - Low Latency: Feed generation should be fast (e.g., <200-500ms).",
-      "  - Scalability: Handle millions of active users, billions of posts. High read-to-write ratio.",
+      "  - Scalability: Handle millions of active users, billions of posts. High read-to-write ratio for feeds.",
       "  - Durability: User posts and interactions must be durably stored.",
       "  - Eventual Consistency: Acceptable for feed updates; strong consistency for follow actions/post creation."
     ],
@@ -1335,7 +1366,7 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
@@ -1360,13 +1391,32 @@ export default function SystemDesignInterviewPage() {
                         <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
                         <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
                       </div>
-
+                      {question.purpose && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
+                        </div>
+                      )}
                       {question.keyConcepts && question.keyConcepts.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Concepts / Best Practices:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
                             {question.keyConcepts.map((concept, index) => <li key={`concept-${question.id}-${index}`}>{concept}</li>)}
                           </ul>
+                        </div>
+                      )}
+                       {question.learningStrategies && question.learningStrategies.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Strategies for Learning:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
+                            {question.learningStrategies.map((strategy, index) => <li key={`strategy-${question.id}-${index}`}>{strategy}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {question.howItWorks && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">How it Works (Simplified):</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.howItWorks}</p>
                         </div>
                       )}
                       {question.keyStepsInHandshake && (
@@ -1381,45 +1431,13 @@ export default function SystemDesignInterviewPage() {
                           <p className="text-sm text-foreground/80 whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.verificationProcess}</p>
                         </div>
                       )}
-
                       {question.whyNotEncryption && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Why Not Just Encryption?</h5>
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.whyNotEncryption}</p>
                         </div>
                       )}
-
-                      {question.purpose && (
-                        <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
-                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
-                        </div>
-                      )}
-                       {question.howItWorks && (
-                        <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">How it Works (Simplified):</h5>
-                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.howItWorks}</p>
-                        </div>
-                      )}
-                      {question.keyTrends && question.keyTrends.length > 0 && (
-                        <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Trends:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
-                            {question.keyTrends.map((trend, index) => <li key={`trend-${question.id}-${index}`}>{trend}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {question.architecturalConsiderations && question.architecturalConsiderations.length > 0 && (
-                        <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">Architectural Considerations with Rustik Components:</h5>
-                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
-                            {question.architecturalConsiderations.map((item, index) => (
-                              <li key={`arch-cons-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: item.replace(/'([^']*)'/g, '<code class="text-xs bg-muted p-0.5 rounded-sm font-mono">\'$1\'</code>') }} />
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {question.commonLevels && (
+                      {question.commonLevels && question.commonLevels.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Common Isolation Levels:</h5>
                           <ul className="space-y-2 text-sm text-foreground/75 pl-2">
@@ -1431,15 +1449,13 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
-                       {question.benefits && question.benefits.length > 0 && (
-                        <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">Benefits:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
-                            {question.benefits.map((benefit, index) => <li key={`benefit-${question.id}-${index}`}>{benefit}</li>)}
-                          </ul>
+                      {question.tradeOffs && (
+                         <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Trade-offs:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.tradeOffs}</p>
                         </div>
                       )}
-                      {question.examples && (
+                      {question.examples && question.examples.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-2">Examples & Responsibility Model:</h5>
                           <div className="space-y-4">
@@ -1459,7 +1475,7 @@ export default function SystemDesignInterviewPage() {
                           </div>
                         </div>
                       )}
-                       {question.keyDifferences && (
+                       {question.keyDifferences && question.keyDifferences.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Differences:</h5>
                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
@@ -1467,7 +1483,15 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
-                       {question.challenges && question.challenges.length > 0 && (
+                       {question.benefits && question.benefits.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Benefits:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.benefits.map((benefit, index) => <li key={`benefit-${question.id}-${index}`}>{benefit}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {question.challenges && question.challenges.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Challenges/Considerations:</h5>
                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
@@ -1475,10 +1499,22 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
-                      {question.tradeOffs && (
-                         <div>
-                          <h5 className="text-md font-semibold text-accent mb-1.5">Trade-offs:</h5>
-                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.tradeOffs}</p>
+                       {question.keyTrends && question.keyTrends.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Trends:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyTrends.map((trend, index) => <li key={`trend-${question.id}-${index}`}>{trend}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {question.architecturalConsiderations && question.architecturalConsiderations.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Architectural Considerations with Rustik Components:</h5>
+                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.architecturalConsiderations.map((item, index) => (
+                              <li key={`arch-cons-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: item.replace(/'([^']*)'/g, '<code class="text-xs bg-muted p-0.5 rounded-sm font-mono">\'$1\'</code>') }} />
+                            ))}
+                          </ul>
                         </div>
                       )}
                       <div>
@@ -1515,7 +1551,7 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-               <Accordion type="multiple" className="w-full space-y-6">
+              <Accordion type="multiple" className="w-full space-y-6">
                  <AccordionItem value="scaling-journey-item" className="border-none p-0">
                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                     <div className="flex items-center gap-3">
@@ -1686,5 +1722,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
-    
