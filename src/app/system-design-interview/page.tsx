@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock
 } from 'lucide-react';
 import type React from 'react';
 
@@ -40,12 +40,50 @@ interface BasicInterviewQuestion {
   tradeOffs?: string;
   verificationProcess?: string;
   whyNotEncryption?: string;
+  keyStepsInHandshake?: string; // Added for HTTPS question
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
   discussionPoints: string[];
 }
 
 const basicDesignQuestions: BasicInterviewQuestion[] = [
+  {
+    id: "httpsso-how-it-works",
+    title: "How does HTTPS work?",
+    icon: Lock,
+    explanation: "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between your browser and the website that you are connected to. The 'S' at the end of HTTPS stands for 'Secure'. It means all communications between your browser and the website are encrypted. HTTPS is used to protect the privacy and integrity of the exchanged data.",
+    purpose: `The primary goals of HTTPS are:
+  - **Encryption**: To ensure that the data exchanged between the client and the server is unreadable to anyone who might intercept it. This provides confidentiality.
+  - **Authentication**: To verify that the client is communicating with the legitimate server it intends to connect to (preventing impersonation).
+  - **Integrity**: To ensure that the data has not been tampered with during transit.`,
+    keyStepsInHandshake: `The security is provided by SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols. Here's a simplified overview of the TLS handshake:
+  1.  **Client Hello**: The client (e.g., your browser) initiates the handshake by sending a "ClientHello" message to the server. This message includes the TLS versions the client supports, a list of supported cipher suites (encryption algorithms), and a random string of bytes known as the "client random".
+  2.  **Server Hello**: The server responds with a "ServerHello" message. This message includes the server's chosen TLS version, the selected cipher suite from the client's list, the server's digital certificate, and another random string of bytes known as the "server random". The certificate contains the server's public key and is signed by a trusted Certificate Authority (CA).
+  3.  **Client Verification & Key Exchange**:
+      *   The client verifies the server's certificate (checking if it's issued by a trusted CA, not expired, and matches the domain).
+      *   The client generates a "pre-master secret" (a random string of bytes). It encrypts this pre-master secret with the server's public key (obtained from the server's certificate) and sends it to the server.
+  4.  **Server Decryption & Session Key Generation**:
+      *   The server uses its private key to decrypt the pre-master secret sent by the client.
+      *   Both the client and the server now use the client random, server random, and the pre-master secret to independently generate the same symmetric "session keys". These session keys will be used for encrypting and decrypting the actual application data.
+  5.  **Secure Communication Established**:
+      *   The client sends a "Finished" message, encrypted with the session key, indicating it's ready for secure communication.
+      *   The server sends its own "Finished" message, also encrypted with the session key.
+      *   The handshake is complete, and all subsequent HTTP data exchanged between the client and server is encrypted using the agreed-upon session keys.`,
+    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Load Balancer(s)", "Rust App Nodes"],
+    rustikRelevanceNote: "HTTPS is fundamental to the 'Security Architecture Principles', ensuring data in transit is protected. 'API Gateway' and 'Load Balancers' (especially Layer-7) often handle TLS termination, managing certificates and offloading encryption from backend 'Rust App Nodes'. Any Rustik component involved in web communication should enforce or operate behind HTTPS.",
+    discussionPoints: [
+      "What is the difference between HTTP and HTTPS?",
+      "Explain the role of SSL/TLS in HTTPS.",
+      "What are digital certificates and Certificate Authorities (CAs)? How does certificate validation work?",
+      "Describe the main steps of the TLS handshake.",
+      "What is symmetric vs. asymmetric encryption, and how are they used in HTTPS?",
+      "What are cipher suites?",
+      "Are there any performance implications of using HTTPS? (Generally minimal with modern hardware).",
+      "How does HTTPS help prevent Man-in-the-Middle (MITM) attacks?",
+      "What is HTTP Strict Transport Security (HSTS)?",
+      "Discuss different TLS versions (e.g., TLS 1.2, TLS 1.3) and their improvements."
+    ]
+  },
   {
     id: "db-isolation-levels",
     title: "What are database isolation levels? What are they used for?",
@@ -1331,7 +1369,12 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
-
+                      {question.keyStepsInHandshake && (
+                        <div>
+                            <h5 className="text-md font-semibold text-accent mb-1.5">Key Steps in Handshake (Simplified):</h5>
+                            <p className="text-sm text-foreground/80 whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.keyStepsInHandshake}</p>
+                        </div>
+                      )}
                        {question.verificationProcess && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Verification Process:</h5>
@@ -1472,8 +1515,8 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-              <Accordion type="multiple" className="w-full space-y-6">
-                <AccordionItem value="scaling-journey-item" className="border-none p-0">
+               <Accordion type="multiple" className="w-full space-y-6">
+                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                     <div className="flex items-center gap-3">
                       <TrendingUp className="h-7 w-7" />
@@ -1632,7 +1675,7 @@ export default function SystemDesignInterviewPage() {
                     </Accordion>
                   </AccordionContent>
                 </AccordionItem>
-              </Accordion>
+               </Accordion>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -1644,3 +1687,4 @@ export default function SystemDesignInterviewPage() {
   );
 }
 
+    
