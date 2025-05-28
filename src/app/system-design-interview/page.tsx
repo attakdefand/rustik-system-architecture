@@ -3,7 +3,11 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus } from 'lucide-react';
+import { 
+  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
+  Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
+  ServerIcon as ServerLucideIcon, WorkflowIcon as WorkflowLucideIcon // Renamed for clarity if Server/Workflow are used elsewhere
+} from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -740,12 +744,81 @@ Several approaches exist, each with trade-offs:
       "Integration with a general Notification System for offline users.",
       "Rate limiting and anti-spam measures."
     ]
+  },
+  {
+    id: "search-autocomplete",
+    title: "Design a Search Autocomplete System (Typeahead)",
+    icon: Type,
+    problemStatement: "Design a system that provides real-time search suggestions as a user types into a search box. Suggestions should be relevant and appear with very low latency.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Provide a list of relevant search suggestions based on the user's input prefix.",
+      "  - Suggestions should be ranked (e.g., by popularity, relevance, or personalization).",
+      "  - System should update suggestions as the user types more characters.",
+      "Non-Functional Requirements:",
+      "  - Very Low Latency: Suggestions should appear almost instantaneously (e.g., < 50-100ms).",
+      "  - High Availability: The autocomplete service must be highly available.",
+      "  - Scalability: Handle a high volume of concurrent users and queries.",
+      "  - Accuracy: Suggestions should be relevant to the user's query.",
+      "  - Freshness (Optional): Suggestions should reflect recent trends or new terms if possible."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (For building the high-performance suggestion generation service).",
+      "Caching Strategies (Aggressively cache results for common prefixes at multiple levels: client-side, edge (CDN), server-side).",
+      "Database Strategies (To store the dictionary of terms and their frequencies/scores. Specialized data structures like Tries stored in memory (possibly backed by persistent storage like Redis or a NoSQL DB) are common).",
+      "Load Balancer(s) (To distribute query load across suggestion service instances).",
+      "Async IO + Epoll + Tokio (For efficient handling of high-concurrency suggestion requests)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Data Structure for Suggestions:**
+    *   **Trie (Prefix Tree):** A common and efficient data structure. Each node represents a character. Paths from the root to a node represent prefixes. Nodes can store metadata (e.g., if it's a complete word, its frequency/score).
+    *   Store the Trie in memory on suggestion service nodes for fast lookups. It can be periodically rebuilt from a master data source.
+
+2.  **Building/Updating the Data:**
+    *   Collect search queries or terms from a corpus (e.g., historical user searches, product catalogs).
+    *   Process and clean this data.
+    *   Build the Trie (or other index) and distribute it to suggestion service instances. Updates can be batch or incremental.
+
+3.  **Querying for Suggestions:**
+    *   As the user types, the client sends the current prefix to the autocomplete service.
+    *   The service traverses the Trie based on the prefix.
+    *   Collect all words/phrases that start with this prefix from the descendant nodes.
+    *   Limit the number of suggestions (e.g., top 10).
+
+4.  **Ranking Suggestions:**
+    *   Rank suggestions based on factors like:
+        *   Frequency of the search term.
+        *   Recency or trending score.
+        *   Personalization (user's past search history).
+        *   Business rules (e.g., promote certain products).
+    *   Scores can be pre-computed and stored in the Trie nodes or applied at query time.
+
+5.  **System Architecture:**
+    *   Load Balancers distribute requests to a fleet of stateless Autocomplete Service instances.
+    *   Each service instance has a copy of the Trie/index in memory (or part of it if sharded).
+    *   Aggressive caching at CDN, edge, and service levels for popular prefixes.
+
+6.  **Scalability & Distribution:**
+    *   For very large datasets, the Trie/index can be sharded (e.g., by the first letter of the prefix, or using consistent hashing).
+    *   Requests are routed to the appropriate shard.
+`,
+    discussionPoints: [
+      "Choice of data structure (Trie vs. other indexing methods like inverted indexes or specialized search engines like Elasticsearch for more complex scenarios).",
+      "How to update the suggestion data: Batch processing vs. near real-time updates. Impact on freshness.",
+      "Ranking algorithms for suggestions: Complexity, data required, personalization.",
+      "Caching strategies: What to cache, where, cache eviction policies. TTLs for cached suggestions.",
+      "Handling typos and misspellings (e.g., using fuzzy matching, phonetic algorithms).",
+      "Personalization of suggestions based on user history or context.",
+      "Scalability of the suggestion index/Trie: Sharding strategies, replication for availability.",
+      "Latency optimization techniques (e.g., pre-computing top suggestions for short prefixes, client-side optimizations).",
+      "Metrics for evaluating suggestion quality and system performance (e.g., suggestion relevance, click-through rate, query latency)."
+    ]
   }
 ];
 
 const scalingJourneyPhases = [
   {
-    icon: Server,
+    icon: ServerLucideIcon,
     title: "Phase 1: The Monolith / Single Server (0 - 1,000s of Users)",
     description: "Initial development often starts with a monolithic application and a single database, frequently on one server or a simple cloud setup. This phase prioritizes rapid development and getting a product to market.",
     characteristics: [
@@ -789,7 +862,7 @@ const scalingJourneyPhases = [
     rustikRelevance: ["Load Balancer(s)", "Rust App Nodes (Multiple instances)", "Database Strategies (Read Replicas, Connection Pooling)", "Caching Strategies", "Network Infra Strategies (CDN Integration)"]
   },
   {
-    icon: Workflow,
+    icon: WorkflowLucideIcon,
     title: "Phase 3: Service Decomposition & Specialization (100,000s - Millions+ Users)",
     description: "At this scale, the monolithic application becomes unwieldy. The system needs to be broken down into smaller, independent services that can be scaled and managed separately. Advanced operational practices become essential.",
     actions: [
