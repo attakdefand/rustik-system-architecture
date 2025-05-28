@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
   Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  ServerIcon as ServerLucideIcon, WorkflowIcon as WorkflowLucideIcon // Renamed for clarity if Server/Workflow are used elsewhere
+  Youtube, // Added Youtube icon
+  ServerIcon as ServerLucideIcon, WorkflowIcon as WorkflowLucideIcon 
 } from 'lucide-react';
 
 const systemDesignFramework = {
@@ -526,12 +527,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
+      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -542,7 +543,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -583,11 +584,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -813,7 +814,98 @@ Several approaches exist, each with trade-offs:
       "Latency optimization techniques (e.g., pre-computing top suggestions for short prefixes, client-side optimizations).",
       "Metrics for evaluating suggestion quality and system performance (e.g., suggestion relevance, click-through rate, query latency)."
     ]
-  }
+  },
+  {
+    id: "youtube-design",
+    title: "Design YouTube (or a Video Streaming Platform)",
+    icon: Youtube,
+    problemStatement: "Design a highly scalable platform for users to upload, share, browse, search, and stream video content.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Video upload, processing (transcoding to multiple formats/resolutions), and storage.",
+      "  - Video playback with adaptive bitrate streaming (different quality options).",
+      "  - Search functionality for videos (by title, description, tags, channel).",
+      "  - User channels and subscriptions.",
+      "  - User interactions: likes/dislikes, comments.",
+      "  - Recommendations for videos and channels.",
+      "  - (Optional for initial design) Live streaming capabilities.",
+      "Non-Functional Requirements:",
+      "  - High Availability: Platform should be accessible with minimal downtime.",
+      "  - Low Latency: Fast video start times and smooth streaming experience.",
+      "  - Scalability: Handle petabytes of video storage and millions of concurrent viewers.",
+      "  - Durability: Video content must be durably stored and not lost.",
+      "  - Reliability: Consistent video playback and reliable uploads.",
+      "  - High Throughput: For both video uploads and streaming requests."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture (e.g., Upload Service, Video Processing Service, Metadata Service, User Service, Search Service, Recommendation Service, Streaming Service, Comment Service, Notification Service).",
+      "API Design Styles & Protocols (REST/GraphQL for client-server interactions; streaming protocols like HLS/DASH for video delivery).",
+      "Database Strategies:",
+      "  - Relational DB (e.g., PostgreSQL) for user profiles, channel information, video metadata (titles, descriptions).",
+      "  - NoSQL DB (e.g., Cassandra, DynamoDB) for high-volume, scalable data like view counts, likes, comments, user activity logs.",
+      "  - Search-optimized DB (e.g., Elasticsearch) for indexing and querying video metadata for search functionality.",
+      "Shared State & Data Plane:",
+      "  - Object Storage (e.g., AWS S3, Google Cloud Storage) for storing raw and transcoded video files (petabytes of data).",
+      "  - Message Queues (e.g., Kafka, RabbitMQ) for managing the video processing pipeline (upload -> transcode -> publish).",
+      "Caching Strategies:",
+      "  - Content Delivery Network (CDN) is paramount for caching video segments globally, close to users.",
+      "  - Caching for hot video metadata, search results, user recommendations, user sessions.",
+      "Async IO + Epoll + Tokio (For high-concurrency services like video upload ingestion, notification systems, or parts of the real-time interaction services).",
+      "Network Infrastructure Strategies (Essential for global content delivery, CDN peering, and managing massive bandwidth requirements).",
+      "Autoscaling & Resilience Patterns (For all services, especially video processing workers and streaming servers).",
+      "Observability & Ops (Critical for monitoring upload success, processing times, streaming quality, and overall platform health)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Video Upload & Processing Pipeline:**
+    *   Client uploads raw video file via API to an Upload Service.
+    *   Upload Service stores the raw file in temporary Object Storage and publishes an event (e.g., to Kafka).
+    *   Video Processing Service (worker pool) consumes the event.
+        *   Transcodes the video into multiple formats and resolutions (e.g., H.264, VP9; 1080p, 720p, 480p).
+        *   Generates thumbnails.
+        *   Extracts metadata.
+    *   Stores processed video segments and thumbnails in persistent Object Storage.
+    *   Updates the Metadata Service with video details and storage locations/CDN URLs.
+
+2.  **Video Playback & Streaming:**
+    *   Client requests a video.
+    *   Application fetches video metadata (including URLs for different quality streams, often pointing to CDN) from Metadata Service.
+    *   Video player on the client uses Adaptive Bitrate Streaming (e.g., HLS or DASH) to request video segments from the CDN.
+    *   CDN serves segments from its edge cache or fetches from origin (Object Storage) if not cached.
+
+3.  **Metadata Management:**
+    *   User Service: Manages user accounts, channels, subscriptions (Relational DB).
+    *   Video Metadata Service: Stores video titles, descriptions, tags, processing status, view counts, likes/dislikes (Mix of Relational for core info, NoSQL for counters).
+    *   Comment Service: Manages comments (NoSQL DB).
+
+4.  **Search Functionality:**
+    *   Search Service uses a search engine like Elasticsearch.
+    *   Video metadata is indexed.
+    *   Provides ranked search results based on relevance, popularity, recency.
+
+5.  **Recommendation System:**
+    *   Recommendation Engine analyzes user watch history, likes, subscriptions, and other signals.
+    *   Uses machine learning models to generate personalized video recommendations.
+    *   Feeds recommendations to user homepages and 'Up Next' suggestions.
+
+6.  **Content Delivery Network (CDN):**
+    *   Crucial for distributing video segments globally to reduce latency and server load.
+`,
+    discussionPoints: [
+      "Video encoding/transcoding pipeline: Choice of codecs, resolutions, formats. Scalability of processing workers.",
+      "Storage solution for petabytes of video data: Object Storage (S3, GCS) cost, durability, tiering.",
+      "CDN strategy: Multi-CDN, cache hit ratio, cache invalidation, geo-distribution, cost.",
+      "Database schema and choices for different types of data (video metadata, user data, interaction data like views/likes).",
+      "Adaptive Bitrate Streaming (HLS/DASH): How it works, benefits.",
+      "Search indexing and query performance at scale.",
+      "Recommendation engine design: Collaborative filtering, content-based filtering, hybrid models. Data sources.",
+      "Scaling different components: Video ingestion, processing farm, streaming servers, metadata APIs.",
+      "Copyright infringement detection and Digital Rights Management (DRM).",
+      "Handling user interactions: Comments (moderation, ranking), likes/dislikes, subscriptions. Real-time updates.",
+      "Monetization strategies: Advertisements, subscriptions, channel memberships.",
+      "Data analytics for content creators and platform improvement.",
+      "Live streaming architecture (if discussed as an extension)."
+    ]
+  },
 ];
 
 const scalingJourneyPhases = [
