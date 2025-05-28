@@ -4,7 +4,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
-  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
+  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
   Youtube, FolderGit2, Puzzle
 } from 'lucide-react';
@@ -136,6 +136,49 @@ interface InterviewQuestion {
   conceptualSolutionOutline: string;
   discussionPoints: string[];
 }
+
+interface BasicInterviewQuestion {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  explanation: string;
+  purpose: string;
+  commonLevels?: { name: string; description: string }[];
+  tradeOffs?: string;
+  relevantRustikComponents: string[];
+  discussionPoints: string[];
+}
+
+const basicDesignQuestions: BasicInterviewQuestion[] = [
+  {
+    id: "db-isolation-levels",
+    title: "What are database isolation levels? What are they used for?",
+    icon: DatabaseIcon,
+    explanation: "Database isolation levels define the degree to which one transaction must be isolated from the effects of other concurrent transactions and data modifications made by them. They control the visibility of uncommitted changes made by one transaction to other transactions.",
+    purpose: `
+Their primary purpose is to prevent concurrency phenomena and ensure data integrity when multiple transactions are executing simultaneously. These phenomena include:
+  - **Dirty Reads:** A transaction reads data written by another concurrent transaction that has not yet been committed. If the other transaction rolls back, the first transaction has read 'dirty' or invalid data.
+  - **Non-Repeatable Reads:** A transaction re-reads data it has previously read and finds that another committed transaction has modified or deleted the data. The original read cannot be repeated.
+  - **Phantom Reads:** A transaction re-executes a query returning a set of rows that satisfy a search condition and finds that another committed transaction has inserted new rows that satisfy the condition. These new rows are 'phantoms'.`,
+    commonLevels: [
+      { name: "Read Uncommitted", description: "Lowest level. Allows dirty reads, non-repeatable reads, and phantom reads. Offers maximum concurrency but minimal consistency." },
+      { name: "Read Committed", description: "Prevents dirty reads. Data read is always committed. However, non-repeatable reads and phantom reads can still occur. Default for many databases like PostgreSQL and SQL Server." },
+      { name: "Repeatable Read", description: "Prevents dirty reads and non-repeatable reads. Ensures that if a row is read multiple times within the same transaction, the result is the same. Phantom reads can still occur. Default for MySQL (InnoDB)." },
+      { name: "Serializable", description: "Highest level. Prevents dirty reads, non-repeatable reads, and phantom reads. Transactions appear to run serially (one after another), ensuring complete isolation. Offers maximum consistency but can significantly reduce concurrency and performance." },
+    ],
+    tradeOffs: "There is a fundamental trade-off: higher isolation levels provide stronger data consistency and prevent more concurrency issues, but they typically reduce concurrency and can negatively impact performance due to increased locking or versioning overhead.",
+    relevantRustikComponents: ["Database Strategies"],
+    discussionPoints: [
+      "Why are isolation levels important in concurrent systems?",
+      "Explain each standard isolation level and the phenomena it prevents.",
+      "What are the performance implications of choosing a higher isolation level?",
+      "How do different databases (e.g., PostgreSQL vs. MySQL) implement isolation levels or handle defaults?",
+      "When might you choose a lower isolation level despite the risks?",
+      "How do isolation levels relate to database locking mechanisms?",
+      "Optimistic vs. Pessimistic concurrency control and their relation to isolation."
+    ]
+  },
+];
 
 const systemDesignQuestions: InterviewQuestion[] = [
    {
@@ -601,12 +644,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
+      "  - Respect \\`robots.txt\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\`robots.txt\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -617,7 +660,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\`robots.txt\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -658,11 +701,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\`robots.txt\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\`robots.txt\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1084,10 +1127,62 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-               <p className="text-md text-muted-foreground">
-                Content for Basic-Piece System Design will go here. This section will focus on foundational concepts, core building blocks, and smaller, more contained design problems. It's a great place to start before tackling more complex, large-scale "Master-Piece" designs.
-              </p>
-              {/* Placeholder for future basic design problems or concepts */}
+              <Accordion type="multiple" className="w-full space-y-4">
+                {basicDesignQuestions.map((question) => (
+                  <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
+                    <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
+                      <div className="flex items-center gap-3 text-left">
+                        <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
+                        <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-6 space-y-5">
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
+                        <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
+                      </div>
+                       <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
+                        <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
+                      </div>
+                      {question.commonLevels && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Common Isolation Levels:</h5>
+                          <ul className="space-y-2 text-sm text-foreground/75 pl-2">
+                            {question.commonLevels.map((level, index) => (
+                              <li key={`level-${question.id}-${index}`}>
+                                <strong className="text-foreground/90">{level.name}:</strong> {level.description}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {question.tradeOffs && (
+                         <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Trade-offs:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.tradeOffs}</p>
+                        </div>
+                      )}
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
+                         <div className="flex flex-wrap gap-1.5">
+                          {question.relevantRustikComponents.map((compName, index) => (
+                            <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                              {compName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
+                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
+                          {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </AccordionContent>
           </AccordionItem>
 
@@ -1099,17 +1194,16 @@ export default function SystemDesignInterviewPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
-              
-              <Accordion type="multiple" defaultValue={["scaling-journey-item"]} className="w-full space-y-6">
-                <AccordionItem value="scaling-journey-item" className="border-none">
+              <Accordion type="multiple" defaultValue={[]} className="w-full space-y-6">
+                <AccordionItem value="scaling-journey-item" className="border-none p-0">
                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                     <div className="flex items-center gap-3">
                       <TrendingUp className="h-7 w-7" />
                       Understanding the Scaling Journey: 0 to Millions of Users
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-0">
-                    <Card className="shadow-md rounded-lg border-none">
+                  <AccordionContent className="pb-0 pl-1 pr-1">
+                    <Card className="shadow-md rounded-lg border-none bg-transparent">
                       <CardHeader className="pb-2 pt-0 px-0">
                         <CardDescription className="text-xs text-muted-foreground pt-1">
                           Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
@@ -1117,7 +1211,7 @@ export default function SystemDesignInterviewPage() {
                       </CardHeader>
                       <CardContent className="pt-4 space-y-4 px-0">
                         {scalingJourneyPhases.map((phase, index) => (
-                          <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50">
+                          <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50 bg-card">
                             <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
                               <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
                               <div className="flex-grow">
@@ -1178,15 +1272,15 @@ export default function SystemDesignInterviewPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="framework-item" className="border-none">
+                <AccordionItem value="framework-item" className="border-none p-0">
                   <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                      <div className="flex items-center gap-3">
                         <systemDesignFramework.icon className="h-7 w-7" />
                         {systemDesignFramework.title}
                       </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-0">
-                    <Card className="shadow-md rounded-lg border-none">
+                  <AccordionContent className="pb-0 pl-1 pr-1">
+                    <Card className="shadow-md rounded-lg border-none bg-transparent">
                        <CardHeader className="pb-2 pt-0 px-0">
                          <CardDescription className="text-xs text-muted-foreground pt-1">
                           {systemDesignFramework.introduction}
@@ -1206,14 +1300,14 @@ export default function SystemDesignInterviewPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="common-questions-item" className="border-none">
+                <AccordionItem value="common-questions-item" className="border-none p-0">
                   <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
                      <div className="flex items-center gap-3">
                         <HelpCircle className="h-7 w-7" />
                         Common System Design Questions
                       </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-0">
+                  <AccordionContent className="pb-0 pl-1 pr-1">
                     <Accordion type="multiple" className="w-full space-y-4">
                       {systemDesignQuestions.map((question) => (
                         <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
@@ -1260,7 +1354,7 @@ export default function SystemDesignInterviewPage() {
                     </Accordion>
                   </AccordionContent>
                 </AccordionItem>
-              </Accordion> {/* End of inner accordion */}
+              </Accordion> 
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -1271,5 +1365,3 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
-
-    
