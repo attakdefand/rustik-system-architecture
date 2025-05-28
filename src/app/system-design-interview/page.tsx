@@ -1,8 +1,9 @@
 
+'use client';
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -268,6 +269,72 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Load balancing strategies for different services (e.g., location updates vs. ride requests).",
       "Concurrency control and consistency for ride state and driver availability."
     ]
+  },
+  {
+    id: "rate-limiter",
+    title: "Design a Rate Limiter",
+    icon: Gauge,
+    problemStatement: "Design a system that can limit the number of requests an entity (e.g., user, IP address, API key) can make to an API or service within a specified time window. This is crucial for preventing abuse, ensuring fair usage, and protecting backend services from overload.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Limit the number of requests per client identifier (IP, user ID, API key) within a defined time window (e.g., 100 requests/minute).",
+      "  - Support different rate limits for different APIs, users, or tiers.",
+      "  - Accurately track request counts.",
+      "  - Reject requests exceeding the limit, typically with an HTTP 429 (Too Many Requests) status code.",
+      "Non-Functional Requirements:",
+      "  - Low Latency: Checking and updating rate limits should add minimal overhead to requests.",
+      "  - High Availability: The rate limiter itself must be highly available.",
+      "  - Scalability: Handle a large number of requests and track limits for many clients across a distributed system.",
+      "  - Accuracy: The rate limiting should be reasonably accurate.",
+      "  - Fault Tolerance: Failure of one rate limiter instance should not cripple the system.",
+      "  - Configurability: Easy to configure and update rate limit rules."
+    ],
+    relevantRustikComponents: [
+      "API Gateway (Often the ideal place to enforce rate limits centrally).",
+      "Caching Strategies (Distributed in-memory caches like Redis are essential for storing and rapidly incrementing/checking counters).",
+      "Rust App Nodes (If building custom rate limiting logic or a dedicated rate limiting service).",
+      "Load Balancer(s) (To distribute traffic to rate limiting services if it's a separate component).",
+      "Observability & Ops (To monitor rate limit effectiveness, rejections, and performance)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Core Logic (Algorithms):**
+    *   **Token Bucket:** Each client has a bucket of tokens that refills at a fixed rate. Each request consumes a token. If no tokens, request is rejected.
+    *   **Leaky Bucket:** Requests are added to a queue (bucket). If the queue is full, requests are rejected. Requests leak out of the bucket at a constant rate.
+    *   **Fixed Window Counter:** Count requests within a fixed time window (e.g., last minute). Reset count at the end of window. Prone to burst traffic at window edges.
+    *   **Sliding Window Log:** Store timestamps of requests in a sorted set/list. Count requests within the current sliding window. More accurate, higher storage/computation.
+    *   **Sliding Window Counter:** Hybrid approach. Combines fixed window efficiency with sliding window accuracy using weighted counts from current and previous windows.
+
+2.  **Storage for Counters/State:**
+    *   **Distributed Cache (Redis):** Highly suitable due to its speed, atomic increment operations (INCR, INCRBY), and features like sorted sets (for sliding window log) or Lua scripting for complex logic. Keys could be \`rate_limit:{client_id}:{api_endpoint}\`.
+    *   **In-memory (with care):** For very localized rate limiting if distribution isn't a concern (rare for scalable systems).
+
+3.  **Implementation Strategy:**
+    *   **Middleware:** Implement as middleware in your application framework or API gateway.
+    *   **Dedicated Service:** A separate rate limiting microservice that other services query.
+    *   **API Gateway Integration:** Many modern API Gateways (e.g., Kong, Apigee, AWS API Gateway) have built-in rate limiting capabilities.
+
+4.  **Enforcement:**
+    *   Before processing a request, check the rate limit for the client.
+    *   If limit exceeded, return HTTP 429 with headers like \`Retry-After\`, \`X-RateLimit-Limit\`, \`X-RateLimit-Remaining\`, \`X-RateLimit-Reset\`.
+    *   If within limits, process the request and update the counter.
+
+5.  **Distributed Systems:**
+    *   Counters must be shared and synchronized across all instances handling requests for a client. This is why Redis (or similar) is crucial.
+    *   Race conditions can occur; atomic operations are key. Eventual consistency might be acceptable for some less strict scenarios.
+`,
+    discussionPoints: [
+      "Choice of rate limiting algorithm and its trade-offs (accuracy, performance, complexity, memory usage).",
+      "Where to implement the rate limiter (client-side, server-side middleware, API Gateway, dedicated service).",
+      "Handling distributed systems: ensuring consistent rate limiting across multiple servers/instances. Centralized vs. decentralized approaches.",
+      "Granularity of rate limits (per IP, user, API key, global, per endpoint).",
+      "What to do when a limit is exceeded (reject, queue, log). Importance of HTTP 429 and informative headers.",
+      "Configuration and dynamic updates of rate limit rules without service restarts.",
+      "Performance impact of the rate limiter itself. How to keep it low-latency.",
+      "Accuracy vs. eventual consistency trade-offs in a distributed environment.",
+      "Monitoring and alerting for rate limiting activity (e.g., high rejection rates).",
+      "Handling bursty traffic vs. sustained load.",
+      "Strategies for different types of clients (e.g., more lenient limits for authenticated users vs. anonymous IPs)."
+    ]
   }
 ];
 
@@ -386,7 +453,7 @@ export default function SystemDesignInterviewPage() {
         </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <TrendingUp className="h-7 w-7 text-primary" />
@@ -412,31 +479,31 @@ export default function SystemDesignInterviewPage() {
                         <div>
                           <h4 className="text-sm font-semibold text-accent mb-1.5">Key Characteristics:</h4>
                           <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.characteristics.map((char, i) => <li key={`char-${i}`}>{char}</li>)}
+                            {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
                           </ul>
                         </div>
                       )}
                        {phase.actions && (
-                        <div>
+                        <div className="mt-3">
                           <h4 className="text-sm font-semibold text-accent mb-1.5">Common Actions & Strategies:</h4>
                           <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.actions.map((action, i) => <li key={`action-${i}`}>{action}</li>)}
+                            {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
                           </ul>
                         </div>
                       )}
                       {phase.pros && (
-                        <div>
+                         <div className="mt-3">
                           <h4 className="text-sm font-semibold text-accent mb-1.5">Pros at this stage:</h4>
                           <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.pros.map((pro, i) => <li key={`pro-${i}`}>{pro}</li>)}
+                            {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
                           </ul>
                         </div>
                       )}
                       {phase.challenges && (
-                        <div>
+                        <div className="mt-3">
                           <h4 className="text-sm font-semibold text-accent mb-1.5">Common Challenges:</h4>
                           <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.challenges.map((challenge, i) => <li key={`chall-${i}`}>{challenge}</li>)}
+                            {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
                           </ul>
                         </div>
                       )}
@@ -445,7 +512,7 @@ export default function SystemDesignInterviewPage() {
                           <h4 className="text-sm font-semibold text-muted-foreground mb-1.5">Relevant Rustik Components:</h4>
                           <div className="flex flex-wrap gap-1.5">
                             {phase.rustikRelevance.map((compName, i) => (
-                              <span key={`rel-${i}`} className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                              <span key={`rel-${index}-${i}`} className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
                                 {compName}
                               </span>
                             ))}
@@ -461,7 +528,7 @@ export default function SystemDesignInterviewPage() {
               </p>
             </AccordionContent>
           </AccordionItem>
-          
+
           <AccordionItem value="interview-framework" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
@@ -471,7 +538,7 @@ export default function SystemDesignInterviewPage() {
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-4">
               <p className="text-md text-muted-foreground">{systemDesignFramework.introduction}</p>
-              <ul className="list-none space-y-3 text-md text-foreground/80 pl-2 whitespace-pre-line">
+              <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
                 {systemDesignFramework.steps.map((step, index) => (
                   <li key={`framework-step-${index}`} className="leading-relaxed">
                     {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
@@ -497,15 +564,15 @@ export default function SystemDesignInterviewPage() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-accent mb-2">Key Requirements & Considerations:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-md text-foreground/80 pl-4 whitespace-pre-line">
-                    {question.requirements.map((req, index) => <li key={index}>{req}</li>)}
+                  <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
+                    {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
                   </ul>
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-accent mb-2">Relevant Rustik Components:</h4>
                    <div className="flex flex-wrap gap-2">
                     {question.relevantRustikComponents.map((compName, index) => (
-                      <span key={index} className="px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                      <span key={`comp-${question.id}-${index}`} className="px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
                         {compName}
                       </span>
                     ))}
@@ -513,12 +580,12 @@ export default function SystemDesignInterviewPage() {
                 </div>
                  <div>
                   <h4 className="text-lg font-semibold text-accent mb-2">Conceptual Solution Outline:</h4>
-                  <div className="text-md text-foreground/80 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line">{question.conceptualSolutionOutline}</div>
+                  <div className="text-sm text-foreground/80 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line bg-muted/30 p-4 rounded-md border">{question.conceptualSolutionOutline}</div>
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-accent mb-2">Discussion Points for an Interview:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-md text-foreground/80 pl-4">
-                    {question.discussionPoints.map((point, index) => <li key={index}>{point}</li>)}
+                  <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                    {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
                   </ul>
                 </div>
               </AccordionContent>
