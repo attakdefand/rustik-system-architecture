@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch
 } from 'lucide-react';
 import type React from 'react';
 
@@ -27,6 +27,8 @@ interface BasicInterviewQuestion {
   icon: React.ElementType;
   explanation: string;
   purpose?: string;
+  keyTrends?: string[];
+  architecturalConsiderations?: string[];
   commonLevels?: { name: string; description: string }[];
   examples?: { model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }[];
   keyDifferences?: string[];
@@ -71,9 +73,9 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
     title: "What are Cloud Service Models: IaaS, PaaS, SaaS?",
     icon: CloudCog,
     explanation: `Cloud service models describe how cloud computing resources are offered to users. The three main models are:
-  - **IaaS (Infrastructure as a Service):** Provides fundamental building blocks for cloud IT. This includes access to computing resources (virtual machines, storage, networks) on demand. You manage the OS, middleware, applications, and data.
-  - **PaaS (Platform as a Service):** Provides a platform for developing, running, and managing applications without the complexity of building and maintaining the infrastructure typically associated with it. The provider manages the OS, middleware, and runtime. You manage your applications and data.
-  - **SaaS (Software as a Service):** Provides ready-to-use software applications delivered over the internet, typically on a subscription basis. The provider manages all aspects of the software service (infrastructure, platform, application software, maintenance). You just use the software.`,
+  - IaaS (Infrastructure as a Service): Provides fundamental building blocks for cloud IT. This includes access to computing resources (virtual machines, storage, networks) on demand. You manage the OS, middleware, applications, and data.
+  - PaaS (Platform as a Service): Provides a platform for developing, running, and managing applications without the complexity of building and maintaining the infrastructure typically associated with it. The provider manages the OS, middleware, and runtime. You manage your applications and data.
+  - SaaS (Software as a Service): Provides ready-to-use software applications delivered over the internet, typically on a subscription basis. The provider manages all aspects of the software service (infrastructure, platform, application software, maintenance). You just use the software.`,
     examples: [
       {
         model: "IaaS (Infrastructure as a Service)",
@@ -119,6 +121,39 @@ const basicDesignQuestions: BasicInterviewQuestion[] = [
       "Discuss vendor lock-in concerns with each model.",
       "How does scalability differ across these models?",
       "Can a company use a mix of these models? (Hybrid cloud, multi-cloud)"
+    ]
+  },
+  {
+    id: "future-online-payments",
+    title: "The Future of Online Payments: Trends & Architectural Implications",
+    icon: Landmark,
+    explanation: "The online payment landscape is rapidly evolving beyond traditional card processing. Understanding future trends is key for designing robust and adaptable payment systems.",
+    keyTrends: [
+      "Cryptocurrencies & Blockchain: For decentralized, peer-to-peer transactions, and smart contracts.",
+      "Central Bank Digital Currencies (CBDCs): Government-backed digital currencies aiming for efficiency and stability.",
+      "Real-Time Payments (RTP): Instantaneous fund transfers, 24/7.",
+      "Buy Now, Pay Later (BNPL): Offering consumers installment payment options at checkout.",
+      "Embedded Finance: Integrating payment functionalities seamlessly into non-financial platforms (e.g., ride-sharing apps, social media).",
+      "AI in Fraud Detection & Personalization: Advanced algorithms for real-time fraud prevention and personalized payment experiences.",
+      "Biometric Authentication: Using fingerprints, facial recognition for enhanced security.",
+    ],
+    relevantRustikComponents: ["API Design Styles & Protocols", "Microservices Architecture", "Security Architecture Principles", "Database Strategies", "Async IO + Epoll + Tokio", "Observability & Ops", "Autoscaling & Resilience Patterns"],
+    rustikRelevanceNote: `Building systems for the future of payments requires leveraging several Rustik architectural concepts:
+- **API Design Styles & Protocols**: Secure, versioned, and potentially standardized APIs (REST for general, gRPC for internal high-speed, specific financial protocols) are crucial for interacting with diverse payment networks, banks, crypto exchanges, and third-party services.
+- **Microservices Architecture**: Allows for modularity. New payment methods (crypto, CBDC, BNPL), fraud detection modules, compliance engines, and regional payment gateways can be added as independent services without overhauling the entire system.
+- **Security Architecture Principles**: Paramount for handling sensitive financial data. This includes end-to-end encryption, tokenization, robust IAM, Zero Trust principles for internal services, and advanced WAF/DDoS protection for public-facing APIs.
+- **Database Strategies**: Need to support high transaction volumes, provide strong consistency for financial ledgers (potentially using Event Sourcing for immutable audit trails), and facilitate complex analytics for fraud detection.
+- **Async IO + Epoll + Tokio & Rust App Nodes**: Essential for building high-throughput, low-latency services to process payment transactions in real-time and handle concurrent API requests from users and partners.
+- **Observability & Ops**: Critical for real-time monitoring of transaction success/failure rates, settlement times, fraud alerts, and overall system health across a complex payment ecosystem.
+- **Autoscaling & Resilience Patterns**: Payment systems must be highly available and scale to handle peak transaction loads (e.g., during holiday sales or market volatility). Circuit breakers, retries, and robust failover mechanisms are vital.`,
+    discussionPoints: [
+      "The impact of evolving regulations on new payment technologies (e.g., crypto, CBDCs).",
+      "Security and privacy challenges associated with digital currencies and real-time payment data.",
+      "Scalability requirements to support global, instantaneous payment networks.",
+      "The role of AI/ML in real-time fraud prevention, credit scoring for BNPL, and personalized financial offerings.",
+      "Interoperability challenges between traditional financial systems and new digital payment rails.",
+      "Factors driving user adoption and trust in emerging payment methods.",
+      "Data sovereignty and cross-border payment complexities."
     ]
   }
 ];
@@ -1179,8 +1214,8 @@ export default function SystemDesignInterviewPage() {
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+        <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
+           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
@@ -1206,6 +1241,14 @@ export default function SystemDesignInterviewPage() {
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
+                        </div>
+                      )}
+                      {question.keyTrends && question.keyTrends.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Trends:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyTrends.map((trend, index) => <li key={`trend-${question.id}-${index}`}>{trend}</li>)}
+                          </ul>
                         </div>
                       )}
                       {question.commonLevels && (
@@ -1264,7 +1307,7 @@ export default function SystemDesignInterviewPage() {
                           ))}
                         </div>
                         {question.rustikRelevanceNote && (
-                          <p className="text-xs text-muted-foreground mt-2 italic">{question.rustikRelevanceNote}</p>
+                          <p className="text-xs text-muted-foreground mt-2 italic whitespace-pre-line">{question.rustikRelevanceNote}</p>
                         )}
                       </div>
                       <div>
@@ -1280,7 +1323,7 @@ export default function SystemDesignInterviewPage() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="master-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="master-piece-system-design" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Brain className="h-8 w-8 text-primary" />
@@ -1342,7 +1385,7 @@ export default function SystemDesignInterviewPage() {
                                 <div className="mt-2">
                                   <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
                                   <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                    {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
+                                    {phase.challenges.map((challengeText, i) => <li key={`chall-${index}-${i}`}>{challengeText}</li>)}
                                   </ul>
                                 </div>
                               )}
@@ -1376,7 +1419,7 @@ export default function SystemDesignInterviewPage() {
                   <AccordionContent className="pb-0 pl-1 pr-1">
                     <Card className="shadow-md rounded-lg border-none bg-transparent">
                        <CardHeader className="pb-2 pt-0 px-0">
-                         <CardDescription className="text-xs text-muted-foreground pt-1">
+                         <CardDescription className="text-xs text-muted-foreground pt-1 whitespace-pre-line">
                           {systemDesignFramework.introduction}
                         </CardDescription>
                       </CardHeader>
@@ -1459,3 +1502,5 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
+    
