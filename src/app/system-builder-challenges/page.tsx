@@ -8,7 +8,7 @@ import {
   Lightbulb, Settings, Code, Network, Database, Server, ShieldCheck, DollarSign, 
   Layers, Activity, Scaling, Repeat, Wrench, Gavel, Route, ShieldAlert,
   DatabaseZap, Waypoints, Zap, Workflow, TrendingUp, Landmark, FlaskConical,
-  Shield, CloudLightning, Binary, BrainCircuit, ActivitySquare, LockKeyhole, CloudCog, FunctionSquare, PackageSearch, Users, ChevronsUp, Beaker
+  Shield, CloudLightning, Binary, BrainCircuit, ActivitySquare, LockKeyhole, CloudCog, FunctionSquare, PackageSearch, Users, ChevronsUp, Beaker, BarChart3
 } from 'lucide-react';
 
 export default function SystemBuilderChallengesPage() {
@@ -167,7 +167,7 @@ export default function SystemBuilderChallengesPage() {
       description: 'Integrate predictive autoscalers that use machine-learning models on metrics (latency, queue lengths, custom business KPIs) rather than simple CPU/RAM thresholds.',
     },
     {
-      icon: FlaskConical, // Changed to Beaker below to differentiate
+      icon: Beaker, // Changed from FlaskConical to avoid conflict
       title: 'Chaos Engineering',
       description: 'Inject failures in a controlled way (e.g. using Chaos Mesh or Gremlin) to validate resiliency across every layer—network, compute, storage, and service dependencies.',
     },
@@ -193,6 +193,81 @@ export default function SystemBuilderChallengesPage() {
     },
   ];
 
+  const scalingJourneyPhases = [
+    {
+      icon: Server,
+      title: "Phase 1: The Monolith / Single Server (0 - 1,000s of Users)",
+      description: "Initial development often starts with a monolithic application and a single database, frequently on one server or a simple cloud setup. This phase prioritizes rapid development and getting a product to market.",
+      characteristics: [
+        "Single application codebase.",
+        "Single database instance.",
+        "Often deployed on one or few servers (vertical scaling primary).",
+      ],
+      pros: [
+        "Simple to develop and understand.",
+        "Easy to deploy and debug initially.",
+        "Fast time-to-market for MVPs.",
+      ],
+      challenges: [
+        "Vertical scaling has limits (CPU, RAM, I/O).",
+        "Single point of failure (if server or database goes down).",
+        "Deployment downtime can impact all users.",
+      ],
+      rustikRelevance: ["Rust App Nodes (Single-binary)", "Database Strategies (Simple Relational DB)", "API Design Styles (REST API)"]
+    },
+    {
+      icon: Layers,
+      title: "Phase 2: Scaling Out / Adding Layers (1,000s - 100,000s of Users)",
+      description: "As user load increases, the first bottlenecks appear, typically around the database and application server capacity. The focus shifts to horizontal scaling and introducing specialized layers.",
+      actions: [
+        "Separate database server from application server.",
+        "Introduce Load Balancers to distribute traffic across multiple application server instances.",
+        "Horizontally scale the application layer (more app servers running the same monolith).",
+        "Implement basic Caching (e.g., in-memory, Redis) for frequently accessed data.",
+        "Start using a Content Delivery Network (CDN) for static assets (images, JS, CSS).",
+      ],
+      pros: [
+        "Handles increased traffic.",
+        "Improved availability (no longer single server for app).",
+        "Reduced database load via caching and read replicas (if implemented).",
+      ],
+      challenges: [
+        "The monolith can still become a deployment and development bottleneck.",
+        "Database contention can become significant.",
+        "Managing state across multiple application instances if not stateless.",
+      ],
+      rustikRelevance: ["Load Balancer(s)", "Rust App Nodes (Multiple instances)", "Database Strategies (Read Replicas, Connection Pooling)", "Caching Strategies", "Network Infra Strategies (CDN Integration)"]
+    },
+    {
+      icon: Workflow,
+      title: "Phase 3: Service Decomposition & Specialization (100,000s - Millions+ Users)",
+      description: "At this scale, the monolithic application becomes unwieldy. The system needs to be broken down into smaller, independent services that can be scaled and managed separately. Advanced operational practices become essential.",
+      actions: [
+        "Break down the monolith into Microservices, focusing on high-load or complex business domains first.",
+        "Introduce an API Gateway to manage and route requests to microservices.",
+        "Utilize Message Queues (e.g., Kafka, RabbitMQ) for asynchronous processing and inter-service communication.",
+        "Adopt more advanced Database Strategies (e.g., NoSQL for specific use cases like user sessions or product catalogs, potential database sharding if relational DBs hit limits).",
+        "Implement robust Observability: comprehensive metrics, distributed tracing, and centralized logging.",
+        "Automate deployments with CI/CD pipelines for reliable and frequent releases.",
+        "Strengthen Security Architecture with dedicated security components and practices.",
+        "Implement Autoscaling for various layers (app servers, microservices, database capacity).",
+      ],
+      pros: [
+        "Independent scaling of services based on demand.",
+        "Improved fault isolation – failure in one service is less likely to affect others.",
+        "Technology diversity: different services can use different tech stacks if beneficial.",
+        "Smaller, more focused teams can manage individual services.",
+      ],
+      challenges: [
+        "Increased complexity of a distributed system (network latency, inter-service communication).",
+        "Higher operational overhead (managing many services).",
+        "Requires mature DevOps practices.",
+        "Data consistency across services can be complex (eventual consistency, sagas).",
+      ],
+      rustikRelevance: ["Microservices Architecture", "API Gateway", "Shared State & Data Plane (Message Queues)", "Database Strategies (NoSQL, Sharding)", "Observability & Ops", "Deployment & CI/CD", "Autoscaling & Resilience Patterns", "Security Architecture Principles"]
+    }
+  ];
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -209,6 +284,82 @@ export default function SystemBuilderChallengesPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-8">
+          <AccordionItem value="item-0" className="border border-border/70 rounded-xl shadow-lg overflow-hidden">
+            <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-7 w-7 text-primary" />
+                SCALE FROM ZERO TO MILLIONS OF USERS
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-6">
+              <p className="text-md text-muted-foreground mb-6">
+                Scaling a system is an iterative journey, not a one-time setup. Systems evolve significantly as they grow from serving a few users to millions. This section outlines common phases and architectural shifts.
+              </p>
+              <div className="space-y-8">
+                {scalingJourneyPhases.map((phase, index) => (
+                  <Card key={`scaling-phase-${index}`} className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
+                    <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
+                      <phase.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                      <div className="flex-grow">
+                        <CardTitle className="text-lg font-semibold text-primary">{phase.title}</CardTitle>
+                        <p className="text-xs text-muted-foreground pt-1">{phase.description}</p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-3">
+                      {phase.characteristics && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-accent mb-1.5">Key Characteristics:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
+                            {phase.characteristics.map((char, i) => <li key={`char-${i}`}>{char}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                       {phase.actions && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-accent mb-1.5">Common Actions & Strategies:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
+                            {phase.actions.map((action, i) => <li key={`action-${i}`}>{action}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {phase.pros && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-accent mb-1.5">Pros at this stage:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
+                            {phase.pros.map((pro, i) => <li key={`pro-${i}`}>{pro}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {phase.challenges && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-accent mb-1.5">Common Challenges:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
+                            {phase.challenges.map((challenge, i) => <li key={`chall-${i}`}>{challenge}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                       {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border/30">
+                          <h4 className="text-sm font-semibold text-muted-foreground mb-1.5">Relevant Rustik Components:</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {phase.rustikRelevance.map((compName, i) => (
+                              <span key={`rel-${i}`} className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                                {compName}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+               <p className="text-sm text-muted-foreground mt-8">
+                This is a generalized path. The specific timing and choice of when to implement these changes depend heavily on the application's unique workload, business goals, and available resources.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="item-1" className="border border-border/70 rounded-xl shadow-lg overflow-hidden">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
