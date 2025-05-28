@@ -2,7 +2,49 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, MessageSquare, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, MapPin, TrendingUp, Workflow } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList } from 'lucide-react';
+
+const systemDesignFramework = {
+  title: "A Framework for System Design Interviews",
+  icon: ClipboardList,
+  introduction: "Approaching a system design interview with a structured framework can help you cover all essential aspects and articulate your thoughts clearly. Here’s a general guide:",
+  steps: [
+    "**1. Understand Requirements & Scope (5-10 mins):**",
+    "  - Actively listen and ask clarifying questions. Don't assume!",
+    "  - Identify core use cases and features (Functional Requirements).",
+    "  - Discuss scale: users (DAU/MAU), requests per second (QPS), data volume.",
+    "  - Clarify constraints: latency, consistency, availability (Non-Functional Requirements - NFRs).",
+    "  - Define what's out of scope.",
+    "**2. High-Level Design / API Design (10-15 mins):**",
+    "  - Sketch the major components and their interactions (e.g., client, API gateway, services, database, cache).",
+    "  - Define the primary APIs (e.g., REST endpoints, gRPC service definitions) between components.",
+    "  - Estimate system load based on requirements (e.g., read/write QPS, storage needs).",
+    "**3. Deep Dive into Components (15-20 mins):**",
+    "  - Detail the design of critical components. For example:",
+    "    - Database choice and schema design.",
+    "    - Caching strategies.",
+    "    - Load balancing mechanisms.",
+    "    - Service logic if designing microservices.",
+    "  - Justify your choices.",
+    "**4. Data Model / Database Design:**",
+    "  - Discuss your data model (e.g., relational schema, NoSQL document structure).",
+    "  - Explain data storage choices and why they fit the requirements (e.g., SQL for transactions, NoSQL for scale/flexibility).",
+    "  - Consider data partitioning, sharding, and replication if scale demands it.",
+    "**5. Identify Bottlenecks & Scale (5-10 mins):**",
+    "  - Proactively identify potential bottlenecks in your design (e.g., single points of failure, database contention, service hotspots).",
+    "  - Discuss how to scale the system (horizontal vs. vertical scaling for different components).",
+    "  - Explain how your design addresses the initial scale requirements and beyond.",
+    "**6. Security, Reliability & Other NFRs:**",
+    "  - Briefly touch upon security considerations (authentication, authorization, data encryption).",
+    "  - Discuss fault tolerance, redundancy, and monitoring.",
+    "  - Mention other relevant NFRs like maintainability, cost-effectiveness.",
+    "**7. Summarize & Discuss Trade-offs (5 mins):**",
+    "  - Briefly summarize your design.",
+    "  - Acknowledge any trade-offs made (e.g., consistency vs. availability, cost vs. performance).",
+    "  - Mention potential future improvements or areas for further investigation if time permitted."
+  ],
+  conclusion: "Throughout the interview, communicate your thought process, draw diagrams, and be open to feedback or changing requirements. The interviewer is often more interested in how you think than in a single 'correct' answer."
+};
 
 interface InterviewQuestion {
   id: string;
@@ -229,7 +271,6 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
   }
 ];
 
-
 const scalingJourneyPhases = [
   {
     icon: Server,
@@ -418,6 +459,26 @@ export default function SystemDesignInterviewPage() {
                <p className="text-sm text-muted-foreground mt-8">
                 This is a generalized path. The specific timing and choice of when to implement these changes depend heavily on the application's unique workload, business goals, and available resources.
               </p>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="interview-framework" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+            <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
+              <div className="flex items-center gap-3">
+                <systemDesignFramework.icon className="h-7 w-7 text-primary" />
+                {systemDesignFramework.title}
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-6 space-y-4">
+              <p className="text-md text-muted-foreground">{systemDesignFramework.introduction}</p>
+              <ul className="list-none space-y-3 text-md text-foreground/80 pl-2 whitespace-pre-line">
+                {systemDesignFramework.steps.map((step, index) => (
+                  <li key={`framework-step-${index}`} className="leading-relaxed">
+                    {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-md text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
             </AccordionContent>
           </AccordionItem>
 
