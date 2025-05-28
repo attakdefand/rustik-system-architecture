@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
   Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, // Added Youtube icon
+  Youtube, FolderGit2, // Added FolderGit2 icon
   ServerIcon as ServerLucideIcon, WorkflowIcon as WorkflowLucideIcon 
 } from 'lucide-react';
 
@@ -527,12 +527,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
+      "  - Respect \\`robots.txt\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\`robots.txt\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -543,7 +543,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\`robots.txt\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -584,11 +584,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\`robots.txt\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\`robots.txt\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -904,6 +904,83 @@ Several approaches exist, each with trade-offs:
       "Monetization strategies: Advertisements, subscriptions, channel memberships.",
       "Data analytics for content creators and platform improvement.",
       "Live streaming architecture (if discussed as an extension)."
+    ]
+  },
+  {
+    id: "google-drive-design",
+    title: "Design Google Drive (or a Cloud File Storage & Sync Service)",
+    icon: FolderGit2,
+    problemStatement: "Design a service that allows users to store various types of files in the cloud, synchronize them across multiple devices (desktop, mobile, web), and share them with other users with different permission levels.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Users can upload and download files and folders.",
+      "  - Files/folders should be synchronized across all a user's devices.",
+      "  - Support for creating, deleting, renaming, and moving files/folders.",
+      "  - File version history and ability to restore previous versions.",
+      "  - Sharing files/folders with other users with different permission levels (e.g., view, edit).",
+      "  - Search functionality for files/folders based on name and potentially content.",
+      "  - (Optional) Real-time collaborative editing for certain file types (e.g., documents).",
+      "  - (Optional) Offline access to a subset of files.",
+      "Non-Functional Requirements:",
+      "  - High Durability: User data must not be lost.",
+      "  - High Availability: Service should be accessible most of the time.",
+      "  - Scalability: Support petabytes of storage, billions of files, and millions of users.",
+      "  - Low Latency: Fast uploads, downloads, and synchronization.",
+      "  - Consistency: Strong consistency for file metadata operations. Eventual consistency for file content propagation across all devices can be acceptable in some sync scenarios, but metadata changes should be atomic.",
+      "  - Security: File privacy, encryption (at rest and in transit), robust access control."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture (e.g., File Service, Metadata Service, Sync Service, User Service, Sharing Service, Search Service, Notification Service, Versioning Service).",
+      "API Design Styles & Protocols (REST/GraphQL for client interactions; potentially custom binary protocols or gRPC for efficient sync clients).",
+      "Database Strategies:",
+      "  - Metadata: Relational DB (e.g., PostgreSQL) for file/folder hierarchy, versions, user ownership, sharing permissions. Requires strong consistency.",
+      "  - File Block/Chunk Metadata: Potentially a scalable NoSQL DB if files are heavily chunked and deduplicated.",
+      "Shared State & Data Plane:",
+      "  - Object Storage (e.g., AWS S3, Google Cloud Storage): For storing the actual file content (often as chunks/blocks for large files and efficient diffs).",
+      "  - Message Queues (e.g., Kafka, RabbitMQ): For asynchronous tasks like file processing, sync notifications, indexing.",
+      "Caching Strategies (Frequently accessed file metadata, hot file chunks/blocks, user session data).",
+      "Async IO + Epoll + Tokio (For building high-concurrency sync servers, file transfer services).",
+      "Autoscaling & Resilience Patterns (Crucial for all backend services, especially storage and sync components).",
+      "Observability & Ops (Monitoring sync status, storage usage, API latencies, error rates).",
+      "Security Architecture Principles (Encryption, access control, audit trails are paramount)."
+    ],
+    conceptualSolutionOutline: `
+1.  **Client Applications (Desktop, Mobile, Web):**
+    *   Monitor local file system changes (for desktop clients).
+    *   Communicate with backend services for upload, download, sync, and metadata operations.
+    *   Manage local cache for offline access and faster performance.
+
+2.  **Core Backend Services:**
+    *   **Authentication Service:** Handles user login and session management.
+    *   **Metadata Service:** Manages all metadata about files and folders: names, hierarchy, ownership, sharing permissions, version information, pointers to actual file data in Object Storage. Typically uses a relational database for strong consistency.
+    *   **File Service (or Block Store Service):** Handles the actual upload/download of file data. Chunks large files for efficient transfer and storage. Interacts with Object Storage.
+    *   **Synchronization Service:** The heart of the system. Detects changes on clients and server. Manages conflict resolution. Uses an efficient protocol to transfer only deltas/diffs when possible. May use long polling, WebSockets, or push notifications to inform clients of changes.
+    *   **Sharing Service:** Manages sharing links, permissions, and collaboration invites.
+    *   **Notification Service:** Informs clients about changes to shared files/folders or other relevant events.
+    *   **Search Service:** Indexes file metadata (and potentially content) for fast searching.
+
+3.  **Data Storage:**
+    *   **Object Storage (e.g., S3, GCS):** Stores the actual file content, often broken into chunks. This provides durability and scalability.
+    *   **Relational Database (e.g., PostgreSQL):** Stores metadata, user information, folder structures, sharing permissions.
+    *   **Caching Layer (e.g., Redis):** Caches frequently accessed metadata or hot file chunks.
+
+4.  **Key Operations:**
+    *   **File Upload:** Client splits file into chunks (if large). Chunks uploaded to File Service, then to Object Storage. Metadata Service updated. Sync Service notifies other clients.
+    *   **File Download:** Client requests file. Metadata Service provides locations of chunks. Client downloads chunks from File Service/Object Storage.
+    *   **Synchronization:** Clients report local changes. Sync Service reconciles changes with server state, resolves conflicts, and propagates updates to other clients.
+`,
+    discussionPoints: [
+      "Synchronization algorithm: How to efficiently detect and transfer changes (deltas/diffs)? Handling concurrent updates and conflict resolution strategies.",
+      "Large file handling: Chunking, resumable uploads/downloads, bandwidth optimization.",
+      "Metadata scalability: How to manage billions of files and their metadata? Database sharding for metadata DB.",
+      "Data consistency model: Strong consistency for metadata operations is critical. Eventual consistency for file content propagation to remote clients might be acceptable.",
+      "File versioning: How are versions stored (diffs vs. full copies)? Storage cost implications.",
+      "Security: Encryption at rest and in transit, robust access control mechanisms, secure sharing links, audit trails for file access.",
+      "Offline access: How do clients cache files locally? How are offline changes synced when back online?",
+      "Real-time updates vs. polling for changes.",
+      "Storage efficiency: Deduplication of identical file chunks/blocks across users.",
+      "Search functionality: Indexing metadata vs. full-text search of content. Scalability of search.",
+      "API design for client applications."
     ]
   },
 ];
