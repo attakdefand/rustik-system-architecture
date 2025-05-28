@@ -4,10 +4,9 @@ import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
-  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
-  Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, // Added FolderGit2 icon
-  ServerIcon as ServerLucideIcon, WorkflowIcon as WorkflowLucideIcon 
+  Brain, Lightbulb, Users, LinkIcon, Newspaper, ServerIcon as ServerLucideIcon, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
+  WorkflowIcon as WorkflowLucideIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
+  Youtube, FolderGit2
 } from 'lucide-react';
 
 const systemDesignFramework = {
@@ -527,12 +526,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\`robots.txt\\` exclusion rules and crawl-delay directives.",
+      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\`robots.txt\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -543,7 +542,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\`robots.txt\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -584,11 +583,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\`robots.txt\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\`robots.txt\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1076,166 +1075,157 @@ export default function SystemDesignInterviewPage() {
           </p>
         </div>
 
-        <Card className="w-full max-w-5xl mx-auto shadow-xl rounded-xl mb-12 bg-card">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary flex items-center">
-              <Lightbulb className="h-7 w-7 mr-3" />
-              How Rustik Helps You Prepare
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-md text-foreground/80 space-y-3">
-            <p>Understanding system design is crucial for modern software engineering roles. Rustik helps by:</p>
-            <ul className="list-disc list-inside space-y-1.5 pl-4">
-              <li><strong>Demystifying Core Components:</strong> Learn about Anycast IP, Load Balancers, Databases, Caching, Microservices, and more in one place.</li>
-              <li><strong>Visualizing Interactions:</strong> The System Visualizer and Master-Flow help you see how components conceptually connect and interact.</li>
-              <li><strong>Considering Trade-offs:</strong> AI analyses highlight benefits and challenges of different architectural choices.</li>
-              <li><strong>Focusing on Scalability & Resilience:</strong> Many components and insights are geared towards building high-performance, fault-tolerant systems.</li>
-            </ul>
-            <p>Use the examples below as a starting point. For each, think about how you would use the components discussed in Rustik to build your solution.</p>
-          </CardContent>
-        </Card>
-
-        <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
-            <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
+        <Accordion type="single" collapsible className="w-full max-w-5xl mx-auto space-y-6">
+          <AccordionItem value="master-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+            <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
-                <TrendingUp className="h-7 w-7 text-primary" />
-                Understanding the Scaling Journey: 0 to Millions of Users
+                <Brain className="h-8 w-8 text-primary" />
+                <span className="text-gray-700 dark:text-gray-200 text-left">Master-Piece-System-Design</span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="p-6">
-              <p className="text-md text-muted-foreground mb-6">
-                Scaling a system is an iterative journey, not a one-time setup. Systems evolve significantly as they grow from serving a few users to millions. This section outlines common phases and architectural shifts.
-              </p>
-              <div className="space-y-8">
-                {scalingJourneyPhases.map((phase, index) => (
-                  <Card key={`scaling-phase-${index}`} className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
-                    <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
-                      <phase.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
-                      <div className="flex-grow">
-                        <CardTitle className="text-lg font-semibold text-primary">{phase.title}</CardTitle>
-                        <p className="text-xs text-muted-foreground pt-1">{phase.description}</p>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-4 space-y-3">
-                      {phase.characteristics && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-accent mb-1.5">Key Characteristics:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                       {phase.actions && (
-                        <div className="mt-3">
-                          <h4 className="text-sm font-semibold text-accent mb-1.5">Common Actions & Strategies:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {phase.pros && (
-                         <div className="mt-3">
-                          <h4 className="text-sm font-semibold text-accent mb-1.5">Pros at this stage:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {phase.challenges && (
-                        <div className="mt-3">
-                          <h4 className="text-sm font-semibold text-accent mb-1.5">Common Challenges:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/80">
-                            {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                       {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-border/30">
-                          <h4 className="text-sm font-semibold text-muted-foreground mb-1.5">Relevant Rustik Components:</h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {phase.rustikRelevance.map((compName, i) => (
-                              <span key={`rel-${index}-${i}`} className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
-                                {compName}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-               <p className="text-sm text-muted-foreground mt-8">
-                This is a generalized path. The specific timing and choice of when to implement these changes depend heavily on the application's unique workload, business goals, and available resources.
-              </p>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="interview-framework" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
-            <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
-              <div className="flex items-center gap-3">
-                <systemDesignFramework.icon className="h-7 w-7 text-primary" />
-                {systemDesignFramework.title}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="p-6 space-y-4">
-              <p className="text-md text-muted-foreground">{systemDesignFramework.introduction}</p>
-              <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
-                {systemDesignFramework.steps.map((step, index) => (
-                  <li key={`framework-step-${index}`} className="leading-relaxed">
-                    {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-md text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
-            </AccordionContent>
-          </AccordionItem>
-
-          {systemDesignQuestions.map((question) => (
-            <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
-              <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
-                <div className="flex items-center gap-3 text-left">
-                  <question.icon className="h-7 w-7 text-primary flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-6 space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-accent mb-2">Problem Statement:</h4>
-                  <p className="text-md text-foreground/80">{question.problemStatement}</p>
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-accent mb-2">Key Requirements & Considerations:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
-                    {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-accent mb-2">Relevant Rustik Components:</h4>
-                   <div className="flex flex-wrap gap-2">
-                    {question.relevantRustikComponents.map((compName, index) => (
-                      <span key={`comp-${question.id}-${index}`} className="px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
-                        {compName}
-                      </span>
-                    ))}
+            <AccordionContent className="p-6 space-y-8">
+              
+              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
+                <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
+                  <TrendingUp className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex-grow">
+                    <CardTitle className="text-lg font-semibold text-primary">Understanding the Scaling Journey: 0 to Millions of Users</CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground pt-1">
+                      Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
+                    </CardDescription>
                   </div>
-                </div>
-                 <div>
-                  <h4 className="text-lg font-semibold text-accent mb-2">Conceptual Solution Outline:</h4>
-                  <div className="text-sm text-foreground/80 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line bg-muted/30 p-4 rounded-md border">{question.conceptualSolutionOutline}</div>
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-accent mb-2">Discussion Points for an Interview:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
-                    {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
-                  </ul>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  {scalingJourneyPhases.map((phase, index) => (
+                    <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50">
+                      <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
+                        <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
+                        <div className="flex-grow">
+                          <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
+                          <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 text-xs space-y-2">
+                        {phase.characteristics && (
+                          <div>
+                            <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
+                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                              {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {phase.actions && (
+                          <div className="mt-2">
+                            <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
+                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                              {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {phase.pros && (
+                          <div className="mt-2">
+                            <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
+                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                              {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {phase.challenges && (
+                          <div className="mt-2">
+                            <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
+                            <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                              {phase.challenges.map((challenge, i) => <li key={`chall-${index}-${i}`}>{challenge}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-border/30">
+                            <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
+                            <div className="flex flex-wrap gap-1">
+                              {phase.rustikRelevance.map((compName, i) => (
+                                <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                                  {compName}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CardContent>
+              </Card>
 
+              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg">
+                <CardHeader className="flex flex-row items-start gap-4 pb-3 bg-primary/5">
+                  <systemDesignFramework.icon className="h-7 w-7 text-primary mr-0 mt-1 flex-shrink-0" />
+                   <div className="flex-grow">
+                    <CardTitle className="text-lg font-semibold text-primary">{systemDesignFramework.title}</CardTitle>
+                     <CardDescription className="text-xs text-muted-foreground pt-1">
+                      {systemDesignFramework.introduction}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-3">
+                  <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
+                    {systemDesignFramework.steps.map((step, index) => (
+                      <li key={`framework-step-${index}`} className="leading-relaxed">
+                        {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
+                </CardContent>
+              </Card>
+
+              <h4 className="text-xl font-semibold text-accent pt-4 pb-0 text-center">Common System Design Questions:</h4>
+              <Accordion type="multiple" className="w-full space-y-4">
+                {systemDesignQuestions.map((question) => (
+                  <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
+                    <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
+                      <div className="flex items-center gap-3 text-left">
+                        <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
+                        <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-6 space-y-5">
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
+                        <p className="text-sm text-foreground/80">{question.problemStatement}</p>
+                      </div>
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
+                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
+                          {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
+                        <div className="flex flex-wrap gap-1.5">
+                          {question.relevantRustikComponents.map((compName, index) => (
+                            <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                              {compName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
+                        <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
+                      </div>
+                      <div>
+                        <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
+                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
+                          {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </main>
       <footer className="py-8 text-center text-muted-foreground border-t border-border/50 mt-16">
         <p>&copy; {new Date().getFullYear()} Rustik. Ace your System Design Interview!</p>
