@@ -3,11 +3,67 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { 
-  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, 
+import {
+  Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
   Youtube, FolderGit2, Puzzle
 } from 'lucide-react';
+
+interface InterviewQuestion {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  problemStatement: string;
+  requirements: string[];
+  relevantRustikComponents: string[];
+  conceptualSolutionOutline: string;
+  discussionPoints: string[];
+}
+
+interface BasicInterviewQuestion {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  explanation: string;
+  purpose: string;
+  commonLevels?: { name: string; description: string }[];
+  tradeOffs?: string;
+  relevantRustikComponents: string[];
+  rustikRelevanceNote?: string; // New field for relevance explanation
+  discussionPoints: string[];
+}
+
+const basicDesignQuestions: BasicInterviewQuestion[] = [
+  {
+    id: "db-isolation-levels",
+    title: "What are database isolation levels? What are they used for?",
+    icon: DatabaseIcon,
+    explanation: "Database isolation levels define the degree to which one transaction must be isolated from the effects of other concurrent transactions and data modifications made by them. They control the visibility of uncommitted changes made by one transaction to other transactions.",
+    purpose: `
+Their primary purpose is to prevent concurrency phenomena and ensure data integrity when multiple transactions are executing simultaneously. These phenomena include:
+  - **Dirty Reads:** A transaction reads data written by another concurrent transaction that has not yet been committed. If the other transaction rolls back, the first transaction has read 'dirty' or invalid data.
+  - **Non-Repeatable Reads:** A transaction re-reads data it has previously read and finds that another committed transaction has modified or deleted the data. The original read cannot be repeated.
+  - **Phantom Reads:** A transaction re-executes a query returning a set of rows that satisfy a search condition and finds that another committed transaction has inserted new rows that satisfy the condition. These new rows are 'phantoms'.`,
+    commonLevels: [
+      { name: "Read Uncommitted", description: "Lowest level. Allows dirty reads, non-repeatable reads, and phantom reads. Offers maximum concurrency but minimal consistency." },
+      { name: "Read Committed", description: "Prevents dirty reads. Data read is always committed. However, non-repeatable reads and phantom reads can still occur. Default for many databases like PostgreSQL and SQL Server." },
+      { name: "Repeatable Read", description: "Prevents dirty reads and non-repeatable reads. Ensures that if a row is read multiple times within the same transaction, the result is the same. Phantom reads can still occur. Default for MySQL (InnoDB)." },
+      { name: "Serializable", description: "Highest level. Prevents dirty reads, non-repeatable reads, and phantom reads. Transactions appear to run serially (one after another), ensuring complete isolation. Offers maximum consistency but can significantly reduce concurrency and performance." },
+    ],
+    tradeOffs: "There is a fundamental trade-off: higher isolation levels provide stronger data consistency and prevent more concurrency issues, but they typically reduce concurrency and can negatively impact performance due to increased locking or versioning overhead.",
+    relevantRustikComponents: ["Database Strategies"],
+    rustikRelevanceNote: "Understanding database isolation levels is crucial when selecting or configuring any of Rustik's 'Database Strategies'. For example, choosing a Relational DB type implies needing to decide on an appropriate isolation level (like Read Committed or Serializable) which directly impacts data consistency and performance. Similarly, when using Read Replicas, the primary's isolation level and replication mechanism influence the data seen by replicas. Even with NoSQL options, understanding isolation principles helps evaluate their different consistency models.",
+    discussionPoints: [
+      "Why are isolation levels important in concurrent systems?",
+      "Explain each standard isolation level and the phenomena it prevents.",
+      "What are the performance implications of choosing a higher isolation level?",
+      "How do different databases (e.g., PostgreSQL vs. MySQL) implement isolation levels or handle defaults?",
+      "When might you choose a lower isolation level despite the risks?",
+      "How do isolation levels relate to database locking mechanisms?",
+      "Optimistic vs. Pessimistic concurrency control and their relation to isolation."
+    ]
+  },
+];
 
 const scalingJourneyPhases = [
   {
@@ -126,62 +182,9 @@ const systemDesignFramework = {
   conclusion: "Throughout the interview, communicate your thought process, draw diagrams, and be open to feedback or changing requirements. The interviewer is often more interested in how you think than in a single 'correct' answer."
 };
 
-interface InterviewQuestion {
-  id: string;
-  title: string;
-  icon: React.ElementType;
-  problemStatement: string;
-  requirements: string[];
-  relevantRustikComponents: string[];
-  conceptualSolutionOutline: string;
-  discussionPoints: string[];
-}
-
-interface BasicInterviewQuestion {
-  id: string;
-  title: string;
-  icon: React.ElementType;
-  explanation: string;
-  purpose: string;
-  commonLevels?: { name: string; description: string }[];
-  tradeOffs?: string;
-  relevantRustikComponents: string[];
-  discussionPoints: string[];
-}
-
-const basicDesignQuestions: BasicInterviewQuestion[] = [
-  {
-    id: "db-isolation-levels",
-    title: "What are database isolation levels? What are they used for?",
-    icon: DatabaseIcon,
-    explanation: "Database isolation levels define the degree to which one transaction must be isolated from the effects of other concurrent transactions and data modifications made by them. They control the visibility of uncommitted changes made by one transaction to other transactions.",
-    purpose: `
-Their primary purpose is to prevent concurrency phenomena and ensure data integrity when multiple transactions are executing simultaneously. These phenomena include:
-  - **Dirty Reads:** A transaction reads data written by another concurrent transaction that has not yet been committed. If the other transaction rolls back, the first transaction has read 'dirty' or invalid data.
-  - **Non-Repeatable Reads:** A transaction re-reads data it has previously read and finds that another committed transaction has modified or deleted the data. The original read cannot be repeated.
-  - **Phantom Reads:** A transaction re-executes a query returning a set of rows that satisfy a search condition and finds that another committed transaction has inserted new rows that satisfy the condition. These new rows are 'phantoms'.`,
-    commonLevels: [
-      { name: "Read Uncommitted", description: "Lowest level. Allows dirty reads, non-repeatable reads, and phantom reads. Offers maximum concurrency but minimal consistency." },
-      { name: "Read Committed", description: "Prevents dirty reads. Data read is always committed. However, non-repeatable reads and phantom reads can still occur. Default for many databases like PostgreSQL and SQL Server." },
-      { name: "Repeatable Read", description: "Prevents dirty reads and non-repeatable reads. Ensures that if a row is read multiple times within the same transaction, the result is the same. Phantom reads can still occur. Default for MySQL (InnoDB)." },
-      { name: "Serializable", description: "Highest level. Prevents dirty reads, non-repeatable reads, and phantom reads. Transactions appear to run serially (one after another), ensuring complete isolation. Offers maximum consistency but can significantly reduce concurrency and performance." },
-    ],
-    tradeOffs: "There is a fundamental trade-off: higher isolation levels provide stronger data consistency and prevent more concurrency issues, but they typically reduce concurrency and can negatively impact performance due to increased locking or versioning overhead.",
-    relevantRustikComponents: ["Database Strategies"],
-    discussionPoints: [
-      "Why are isolation levels important in concurrent systems?",
-      "Explain each standard isolation level and the phenomena it prevents.",
-      "What are the performance implications of choosing a higher isolation level?",
-      "How do different databases (e.g., PostgreSQL vs. MySQL) implement isolation levels or handle defaults?",
-      "When might you choose a lower isolation level despite the risks?",
-      "How do isolation levels relate to database locking mechanisms?",
-      "Optimistic vs. Pessimistic concurrency control and their relation to isolation."
-    ]
-  },
-];
-
 const systemDesignQuestions: InterviewQuestion[] = [
-   {
+  // ... (Existing questions: URL Shortener, News Feed, Ride-Sharing, Rate Limiter, Consistent Hashing, Key-Value Store, Unique ID Generator, Web Crawler, Notification System, Chat System, Search Autocomplete, YouTube, Google Drive) ...
+  {
     id: "url-shortener",
     title: "Design a URL Shortener (e.g., TinyURL, bit.ly)",
     icon: LinkIcon,
@@ -1172,6 +1175,9 @@ export default function SystemDesignInterviewPage() {
                             </span>
                           ))}
                         </div>
+                        {question.rustikRelevanceNote && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">{question.rustikRelevanceNote}</p>
+                        )}
                       </div>
                       <div>
                         <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
@@ -1289,9 +1295,9 @@ export default function SystemDesignInterviewPage() {
                       <CardContent className="pt-4 space-y-3 px-0">
                         <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
                           {systemDesignFramework.steps.map((step, index) => (
-                            <li key={`framework-step-${index}`} className="leading-relaxed">
-                              {step.startsWith('**') ? <strong className="text-accent/90">{step.replace(/\*\*/g, '')}</strong> : step}
-                            </li>
+                            <li key={`framework-step-${index}`} className="leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, '<strong class="text-accent/90">$1</strong>') }}
+                            />
                           ))}
                         </ul>
                         <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
@@ -1330,7 +1336,7 @@ export default function SystemDesignInterviewPage() {
                             </div>
                             <div>
                               <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
-                              <div className="flex flex-wrap gap-1.5">
+                               <div className="flex flex-wrap gap-1.5">
                                 {question.relevantRustikComponents.map((compName, index) => (
                                   <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
                                     {compName}
@@ -1354,7 +1360,7 @@ export default function SystemDesignInterviewPage() {
                     </Accordion>
                   </AccordionContent>
                 </AccordionItem>
-              </Accordion> 
+              </Accordion>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -1365,3 +1371,5 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
+    
