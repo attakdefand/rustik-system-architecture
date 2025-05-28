@@ -3,7 +3,7 @@
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint } from 'lucide-react';
+import { Brain, Lightbulb, Users, LinkIcon, Newspaper, Server, Database, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp, Workflow, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode } from 'lucide-react';
 
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
@@ -510,6 +510,86 @@ Several approaches exist, each with trade-offs:
       "Decentralized vs. centralized approaches and their trade-offs.",
       "How to assign and manage worker IDs in Snowflake-like systems."
     ]
+  },
+  {
+    id: "web-crawler",
+    title: "Design a Web Crawler",
+    icon: SearchCode,
+    problemStatement: "Design a scalable web crawler that can discover new web pages starting from a set of seed URLs, fetch their content, extract new links, and potentially store the content for later processing (e.g., by a search engine indexer).",
+    requirements: [
+      "Functional Requirements:",
+      "  - Start with a list of seed URLs.",
+      "  - Fetch web pages corresponding to URLs.",
+      "  - Parse HTML content to extract new URLs.",
+      "  - Store discovered URLs for future crawling.",
+      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
+      "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
+      "  - (Optional) Store fetched page content.",
+      "Non-Functional Requirements:",
+      "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
+      "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
+      "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
+      "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
+      "  - Efficiency: Minimize resource usage (bandwidth, CPU, storage)."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (For crawler worker processes/threads).",
+      "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
+      "Shared State & Data Plane:",
+      "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
+      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
+      "Database Strategies:",
+      "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
+      "  - Document Store or Object Storage for storing crawled page content.",
+      "Autoscaling & Resilience Patterns (For scaling crawler workers and handling failures).",
+      "Service Discovery & Control Plane (If crawler workers are distributed across many machines)."
+    ],
+    conceptualSolutionOutline: `
+1.  **URL Frontier:**
+    *   Manages URLs to be crawled. Prioritized queues can be used (e.g., based on page rank, recency).
+    *   Typically implemented using Message Queues (Kafka, SQS) or a distributed database.
+
+2.  **Crawler Workers (Fetchers):**
+    *   Multiple distributed workers take URLs from the Frontier.
+    *   Perform DNS resolution.
+    *   Fetch \\\`robots.txt\\\` for the domain and respect its rules (once per domain, cached).
+    *   Make HTTP GET requests to download page content.
+    *   Handle politeness (e.g., delay between requests to the same server).
+
+3.  **HTML Parser & Link Extractor:**
+    *   Parses HTML content of downloaded pages.
+    *   Extracts all hyperlinks (\`<a>\` tags).
+    *   Normalizes and canonicalizes extracted URLs.
+
+4.  **URL Deduplication & Filtering:**
+    *   Check if extracted URLs have already been seen/crawled (using a Bloom filter and/or a database of seen URLs).
+    *   Filter out URLs based on scope, type, or other criteria.
+    *   Add new, unique URLs to the URL Frontier.
+
+5.  **Content Storage (Optional):**
+    *   Store downloaded page content (HTML, text, metadata) in a scalable storage system (e.g., Object Storage like S3, or a NoSQL database like Cassandra/HBase).
+
+6.  **Scheduler & Politeness Module:**
+    *   Coordinates workers, manages crawl rates per domain/IP address.
+    *   Ensures adherence to \\\`robots.txt\\\` and \`Crawl-delay\` directives.
+
+7.  **DNS Resolver:**
+    *   Resolves domain names to IP addresses. Needs to be scalable and potentially have its own cache.
+`,
+    discussionPoints: [
+      "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
+      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
+      "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
+      "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
+      "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
+      "Freshness: Strategies for re-crawling pages to keep content updated.",
+      "Managing different content types beyond HTML.",
+      "DNS resolution at scale: Bottlenecks, caching.",
+      "Security considerations for the crawler (e.g., not getting hacked, not participating in DDoS)."
+    ]
   }
 ];
 
@@ -628,7 +708,7 @@ export default function SystemDesignInterviewPage() {
         </h3>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+           <AccordionItem value="scaling-journey" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <TrendingUp className="h-7 w-7 text-primary" />
