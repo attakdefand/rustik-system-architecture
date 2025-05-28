@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { LockKeyhole } from 'lucide-react'; // Icon was for Admin link
+import { HelpCircle } from 'lucide-react'; // New Icon for Interview Prep
 
 // A-style/Compass-style logo
 const RustikArchitectLogo = () => (
@@ -26,7 +26,7 @@ export function AppHeader() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentMottoCycleIndex((prevIndex) => (prevIndex + 1) % mottoCycleTexts.length);
-    }, 30000); // Change text every 30 seconds
+    }, 30000); 
 
     return () => clearInterval(intervalId);
   }, [mottoCycleTexts.length]);
@@ -57,7 +57,7 @@ export function AppHeader() {
     { href: "/", label: "Components" },
     { href: "/system-builder-challenges", label: "Builder Insights" },
     { href: "/system-visualizer", label: "Visualizer" },
-    // { href: "/admin", label: "Admin Panel", icon: LockKeyhole }, // Admin link REMOVED
+    { href: "/system-design-interview", label: "Interview Prep", icon: HelpCircle },
   ];
 
   return (
@@ -93,7 +93,7 @@ export function AppHeader() {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{mottoTooltips[index]}</p>
+                      {mottoTooltips[index]}
                     </TooltipContent>
                   </Tooltip>
                 ))}
@@ -115,7 +115,7 @@ export function AppHeader() {
               </Button>
               {pathname === item.href && (
                 <div className="flex h-1 mt-0.5 rounded-full overflow-hidden">
-                  {dotColors.map((bgColor, index) => (
+                  {dotColors.slice(0,7).map((bgColor, index) => ( // Ensure only 7 dots for underline
                     <span
                       key={`${item.href}-underline-${index}`}
                       className={`h-full w-2 ${bgColor}`}
@@ -130,3 +130,5 @@ export function AppHeader() {
     </header>
   );
 }
+
+    
