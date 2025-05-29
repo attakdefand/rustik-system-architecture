@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, DatabaseSearch
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap
 } from 'lucide-react';
 import type React from 'react';
 
@@ -25,172 +25,36 @@ interface BasicInterviewQuestion {
   id: string;
   title: string;
   icon: React.ElementType;
-  explanation?: string; // Made optional as some questions might lead with problemStatement
+  explanation?: string;
   purpose?: string;
   keyConcepts?: string[];
+  learningStrategies?: string[];
   howItWorks?: string;
+  keyStepsInHandshake?: string;
   benefits?: string[];
   challenges?: string[];
-  keyTrends?: string[];
-  learningStrategies?: string[];
-  architecturalConsiderations?: string[];
   commonLevels?: { name: string; description: string }[];
-  examples?: { model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }[];
+  tradeOffs?: string;
+  examples?: Array<{ model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }>;
   keyDifferences?: string[];
   whenToChoose?: string[];
-  tradeOffs?: string;
+  keyTrends?: string[];
+  architecturalConsiderations?: string[];
   verificationProcess?: string;
   whyNotEncryption?: string;
-  keyStepsInHandshake?: string;
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
   discussionPoints: string[];
-  decisionFactors?: string[];
-  databaseTypeGuidance?: Array<{ category: string; description: string; considerations: string[]; rustikLink: string; examples: string; }>;
   // Fields to accommodate questions moved from InterviewQuestion structure
   problemStatement?: string;
   requirements?: string[];
   conceptualSolutionOutline?: string;
+  decisionFactors?: string[];
+  databaseTypeGuidance?: Array<{ category: string; description: string; considerations: string[]; rustikLink: string; examples: string; }>;
 }
 
 
 const basicDesignQuestions: BasicInterviewQuestion[] = [
-  {
-    id: "unique-id-generator", // Moved from systemDesignQuestions
-    title: "Design a Unique ID Generator in Distributed Systems",
-    icon: Fingerprint,
-    problemStatement: "Design a service that generates unique, ideally sortable (e.g., by time), IDs at high throughput and low latency, suitable for use across a distributed system. These IDs are crucial for uniquely identifying entities like posts, users, or transactions.",
-    requirements: [
-      "Functional Requirements:",
-      "  - Generate globally unique IDs.",
-      "Non-Functional Requirements:",
-      "  - Uniqueness: IDs must be unique across all services and instances.",
-      "  - High Availability: The ID generation service must be highly available.",
-      "  - Low Latency: ID generation should be very fast.",
-      "  - Scalability: Capable of generating a high volume of IDs per second.",
-      "  - Fault Tolerance: System should continue generating IDs even if some nodes fail.",
-      "  - (Optional but desirable) Roughly Time-Sortable: IDs generated around the same time should be numerically close. This helps with DB indexing and ordering."
-    ],
-    relevantRustikComponents: [
-      "Rust App Nodes (To build the ID generation service).",
-      "Service Discovery & Control Plane (If the ID generator is a centralized service that other services discover).",
-      "Database Strategies (If using database sequences or for coordination in some ID generation schemes).",
-      "Async IO + Epoll + Tokio (For high-performance network communication if it's a service).",
-      "Autoscaling & Resilience Patterns (To ensure the ID generation service is itself scalable and resilient)."
-    ],
-    conceptualSolutionOutline: `
-Several approaches exist, each with trade-offs:
-
-1.  **UUIDs (Universally Unique Identifiers):**
-    *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
-    *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
-    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
-    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
-
-2.  **Twitter Snowflake-like Approach:**
-    *   Combines:
-        *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
-        *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
-        *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
-    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
-    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
-
-3.  **Database Auto-Increment (with care):**
-    *   Use a database's auto-increment feature.
-    *   **Single DB:** Becomes a single point of failure and write bottleneck.
-    *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
-    *   **Pros:** Simple for single DB. IDs are sortable.
-    *   **Cons:** Scalability and availability challenges in distributed setups.
-
-4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
-    *   A central service manages sequence blocks.
-    *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
-    *   App instances then use IDs from their allocated batch locally.
-    *   **Pros:** Can be highly available if the central service is robust.
-    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
-
-5.  **Custom Solutions (e.g., Flickr's ticket servers):**
-    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
-`,
-    discussionPoints: [
-      "Uniqueness guarantees vs. collision probability.",
-      "Sortability needs: Is it critical? If so, how strictly sorted?",
-      "Scalability and throughput requirements (IDs per second).",
-      "Fault tolerance and availability of the ID generation scheme.",
-      "Latency of ID generation.",
-      "Impact of clock synchronization (for timestamp-based methods like Snowflake).",
-      "Complexity of implementation and operation.",
-      "ID size and storage implications (e.g., UUIDs are larger than 64-bit integers).",
-      "Decentralized vs. centralized approaches and their trade-offs.",
-      "How to assign and manage worker IDs in Snowflake-like systems."
-    ]
-  },
-  {
-    id: "how-to-learn-design-patterns",
-    title: "How to Learn Design Patterns (e.g., GoF, Architectural Patterns)?",
-    icon: GraduationCap,
-    explanation: `Design patterns are general, reusable solutions to commonly occurring problems within a given context in software design. It's crucial to distinguish between:
-- **Software Design Patterns (e.g., Gang of Four - GoF)**: These address specific problems in the design of software at the class and object level. They focus on object creation, composition, and interaction (e.g., Factory, Singleton, Observer, Strategy).
-- **Architectural Patterns**: These are higher-level patterns that describe fundamental structural organization schemas for software systems. They define subsystems, their responsibilities, and rules/guidelines for their relationships (e.g., Microservices, Event-Driven Architecture, Layered Architecture).`,
-    learningStrategies: [
-      "**Books & Resources**: Start with foundational texts like 'Design Patterns: Elements of Reusable Object-Oriented Software' (GoF) for software patterns. For architectural patterns, explore books and articles on cloud patterns, microservices, domain-driven design, and system design principles.",
-      "**Understand the Problem First**: Don't just memorize pattern structures. Focus on the specific problem each pattern is trying to solve and the context in which it's applicable.",
-      "**Practical Application**: Implement simple examples of patterns in a programming language you are comfortable with. This solidifies understanding far more than just reading.",
-      "**Study Real Code**: Look for patterns in well-regarded open-source projects or in your workplace's production codebases. Analyze how and why they were used.",
-      "**Relate to Your Experience**: Think about problems you've faced in past projects and consider if a design pattern could have provided a better solution.",
-      "**Discuss and Teach**: Explaining a pattern to someone else is a great way to test and deepen your own understanding.",
-      "**Start Simple, Then Go Deeper**: Begin with more common and easily understood patterns before tackling more complex or niche ones.",
-      "**Context is Key**: Understand that patterns are not silver bullets. Always consider the trade-offs and whether a pattern truly fits the problem at hand or might lead to over-engineering."
-    ],
-    relevantRustikComponents: ["Application Design Principles for Scale", "Microservices Architecture", "Database Strategies", "API Design Styles & Protocols", "All other architectural components"],
-    rustikRelevanceNote: `Rustik itself is an excellent tool for learning about various **architectural patterns and components**. By exploring components like 'Microservices Architecture,' 'Load Balancers,' 'API Gateway,' etc., you are learning about common high-level solutions for system structure and behavior. The 'Application Design Principles for Scale' component explicitly mentions the importance of using established **software design patterns** (like GoF) for implementing the internal logic of the services built using Rustik's architectural blocks. The System Design Interview Prep page further helps by showing how these architectural patterns and components combine to solve common design problems. Effective system design requires a grasp of both architectural patterns (for the big picture) and software design patterns (for building the individual services within that architecture).`,
-    discussionPoints: [
-      "What is the difference between an architectural pattern and a software design pattern?",
-      "Can you describe a software design pattern you have used or find particularly useful? What problem did it solve?",
-      "Can you describe an architectural pattern and discuss its trade-offs?",
-      "When might applying a design pattern be a bad idea (i.e., lead to over-engineering)?",
-      "How do design patterns contribute to code quality attributes like maintainability, reusability, and flexibility?",
-      "What resources (books, websites, courses) have you found most helpful for learning design patterns?",
-      "How do you decide which pattern to apply to a given problem?"
-    ]
-  },
-  {
-    id: "httpsso-how-it-works",
-    title: "How does HTTPS work?",
-    icon: Lock,
-    explanation: "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between your browser and the website that you are connected to. The 'S' at the end of HTTPS stands for 'Secure'. It means all communications between your browser and the website are encrypted. HTTPS is used to protect the privacy and integrity of the exchanged data.",
-    purpose: `The primary goals of HTTPS are:
-  - **Encryption**: To ensure that the data exchanged between the client and the server is unreadable to anyone who might intercept it. This provides confidentiality.
-  - **Authentication**: To verify that the client is communicating with the legitimate server it intends to connect to (preventing impersonation).
-  - **Integrity**: To ensure that the data has not been tampered with during transit.`,
-    keyStepsInHandshake: `The security is provided by SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols. Here's a simplified overview of the TLS handshake:
-  1.  **Client Hello**: The client (e.g., your browser) initiates the handshake by sending a "ClientHello" message to the server. This message includes the TLS versions the client supports, a list of supported cipher suites (encryption algorithms), and a random string of bytes known as the "client random".
-  2.  **Server Hello**: The server responds with a "ServerHello" message. This message includes the server's chosen TLS version, the selected cipher suite from the client's list, the server's digital certificate, and another random string of bytes known as the "server random". The certificate contains the server's public key and is signed by a trusted Certificate Authority (CA).
-  3.  **Client Verification & Key Exchange**:
-      *   The client verifies the server's certificate (checking if it's issued by a trusted CA, not expired, and matches the domain).
-      *   The client generates a "pre-master secret" (a random string of bytes). It encrypts this pre-master secret with the server's public key (obtained from the server's certificate) and sends it to the server.
-  4.  **Server Decryption & Session Key Generation**:
-      *   The server uses its private key to decrypt the pre-master secret sent by the client.
-      *   Both the client and the server now use the client random, server random, and the pre-master secret to independently generate the same symmetric "session keys". These session keys will be used for encrypting and decrypting the actual application data.
-  5.  **Secure Communication Established**:
-      *   The client sends a "Finished" message, encrypted with the session key, indicating it's ready for secure communication.
-      *   The server sends its own "Finished" message, also encrypted with the session key.
-      *   The handshake is complete, and all subsequent HTTP data exchanged between the client and server is encrypted using the agreed-upon session keys.`,
-    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Load Balancer(s)", "Rust App Nodes"],
-    rustikRelevanceNote: "HTTPS is fundamental to the 'Security Architecture Principles', ensuring data in transit is protected. 'API Gateway' and 'Load Balancers' (especially Layer-7) often handle TLS termination, managing certificates and offloading encryption from backend 'Rust App Nodes'. Any Rustik component involved in web communication should enforce or operate behind HTTPS.",
-    discussionPoints: [
-      "What is the difference between HTTP and HTTPS?",
-      "Explain the role of SSL/TLS in HTTPS.",
-      "What are digital certificates and Certificate Authorities (CAs)? How does certificate validation work?",
-      "Describe the main steps of the TLS handshake.",
-      "What is symmetric vs. asymmetric encryption, and how are they used in HTTPS?",
-      "What are cipher suites?",
-      "Are there any performance implications of using HTTPS? (Generally minimal with modern hardware).",
-      "How does HTTPS help prevent Man-in-the-Middle (MITM) attacks?",
-      "What is HTTP Strict Transport Security (HSTS)?",
-      "Discuss different TLS versions (e.g., TLS 1.2, TLS 1.3) and their improvements."
-    ]
-  },
   {
     id: "db-isolation-levels",
     title: "What are database isolation levels? What are they used for?",
@@ -384,9 +248,75 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
     ]
   },
   {
+    id: "httpsso-how-it-works",
+    title: "How does HTTPS work?",
+    icon: Lock,
+    explanation: "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between your browser and the website that you are connected to. The 'S' at the end of HTTPS stands for 'Secure'. It means all communications between your browser and the website are encrypted. HTTPS is used to protect the privacy and integrity of the exchanged data.",
+    purpose: `The primary goals of HTTPS are:
+  - **Encryption**: To ensure that the data exchanged between the client and the server is unreadable to anyone who might intercept it. This provides confidentiality.
+  - **Authentication**: To verify that the client is communicating with the legitimate server it intends to connect to (preventing impersonation).
+  - **Integrity**: To ensure that the data has not been tampered with during transit.`,
+    keyStepsInHandshake: `The security is provided by SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols. Here's a simplified overview of the TLS handshake:
+  1.  **Client Hello**: The client (e.g., your browser) initiates the handshake by sending a "ClientHello" message to the server. This message includes the TLS versions the client supports, a list of supported cipher suites (encryption algorithms), and a random string of bytes known as the "client random".
+  2.  **Server Hello**: The server responds with a "ServerHello" message. This message includes the server's chosen TLS version, the selected cipher suite from the client's list, the server's digital certificate, and another random string of bytes known as the "server random". The certificate contains the server's public key and is signed by a trusted Certificate Authority (CA).
+  3.  **Client Verification & Key Exchange**:
+      *   The client verifies the server's certificate (checking if it's issued by a trusted CA, not expired, and matches the domain).
+      *   The client generates a "pre-master secret" (a random string of bytes). It encrypts this pre-master secret with the server's public key (obtained from the server's certificate) and sends it to the server.
+  4.  **Server Decryption & Session Key Generation**:
+      *   The server uses its private key to decrypt the pre-master secret sent by the client.
+      *   Both the client and the server now use the client random, server random, and the pre-master secret to independently generate the same symmetric "session keys". These session keys will be used for encrypting and decrypting the actual application data.
+  5.  **Secure Communication Established**:
+      *   The client sends a "Finished" message, encrypted with the session key, indicating it's ready for secure communication.
+      *   The server sends its own "Finished" message, also encrypted with the session key.
+      *   The handshake is complete, and all subsequent HTTP data exchanged between the client and server is encrypted using the agreed-upon session keys.`,
+    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Load Balancer(s)", "Rust App Nodes"],
+    rustikRelevanceNote: "HTTPS is fundamental to the 'Security Architecture Principles', ensuring data in transit is protected. 'API Gateway' and 'Load Balancers' (especially Layer-7) often handle TLS termination, managing certificates and offloading encryption from backend 'Rust App Nodes'. Any Rustik component involved in web communication should enforce or operate behind HTTPS.",
+    discussionPoints: [
+      "What is the difference between HTTP and HTTPS?",
+      "Explain the role of SSL/TLS in HTTPS.",
+      "What are digital certificates and Certificate Authorities (CAs)? How does certificate validation work?",
+      "Describe the main steps of the TLS handshake.",
+      "What is symmetric vs. asymmetric encryption, and how are they used in HTTPS?",
+      "What are cipher suites?",
+      "Are there any performance implications of using HTTPS? (Generally minimal with modern hardware).",
+      "How does HTTPS help prevent Man-in-the-Middle (MITM) attacks?",
+      "What is HTTP Strict Transport Security (HSTS)?",
+      "Discuss different TLS versions (e.g., TLS 1.2, TLS 1.3) and their improvements."
+    ]
+  },
+  {
+    id: "how-to-learn-design-patterns",
+    title: "How to Learn Design Patterns (e.g., GoF, Architectural Patterns)?",
+    icon: GraduationCap,
+    explanation: `Design patterns are general, reusable solutions to commonly occurring problems within a given context in software design. It's crucial to distinguish between:
+- **Software Design Patterns (e.g., Gang of Four - GoF)**: These address specific problems in the design of software at the class and object level. They focus on object creation, composition, and interaction (e.g., Factory, Singleton, Observer, Strategy).
+- **Architectural Patterns**: These are higher-level patterns that describe fundamental structural organization schemas for software systems. They define subsystems, their responsibilities, and rules/guidelines for their relationships (e.g., Microservices, Event-Driven Architecture, Layered Architecture).`,
+    learningStrategies: [
+      "**Books & Resources**: Start with foundational texts like 'Design Patterns: Elements of Reusable Object-Oriented Software' (GoF) for software patterns. For architectural patterns, explore books and articles on cloud patterns, microservices, domain-driven design, and system design principles.",
+      "**Understand the Problem First**: Don't just memorize pattern structures. Focus on the specific problem each pattern is trying to solve and the context in which it's applicable.",
+      "**Practical Application**: Implement simple examples of patterns in a programming language you are comfortable with. This solidifies understanding far more than just reading.",
+      "**Study Real Code**: Look for patterns in well-regarded open-source projects or in your workplace's production codebases. Analyze how and why they were used.",
+      "**Relate to Your Experience**: Think about problems you've faced in past projects and consider if a design pattern could have provided a better solution.",
+      "**Discuss and Teach**: Explaining a pattern to someone else is a great way to test and deepen your own understanding.",
+      "**Start Simple, Then Go Deeper**: Begin with more common and easily understood patterns before tackling more complex or niche ones.",
+      "**Context is Key**: Understand that patterns are not silver bullets. Always consider the trade-offs and whether a pattern truly fits the problem at hand or might lead to over-engineering."
+    ],
+    relevantRustikComponents: ["Application Design Principles for Scale", "Microservices Architecture", "Database Strategies", "API Design Styles & Protocols", "All other architectural components"],
+    rustikRelevanceNote: `Rustik itself is an excellent tool for learning about various **architectural patterns and components**. By exploring components like 'Microservices Architecture,' 'Load Balancers,' 'API Gateway,' etc., you are learning about common high-level solutions for system structure and behavior. The 'Application Design Principles for Scale' component explicitly mentions the importance of using established **software design patterns** (like GoF) for implementing the internal logic of the services built using Rustik's architectural blocks. The System Design Interview Prep page further helps by showing how these architectural patterns and components combine to solve common design problems. Effective system design requires a grasp of both architectural patterns (for the big picture) and software design patterns (for building the individual services within that architecture).`,
+    discussionPoints: [
+      "What is the difference between an architectural pattern and a software design pattern?",
+      "Can you describe a software design pattern you have used or find particularly useful? What problem did it solve?",
+      "Can you describe an architectural pattern and discuss its trade-offs?",
+      "When might applying a design pattern be a bad idea (i.e., lead to over-engineering)?",
+      "How do design patterns contribute to code quality attributes like maintainability, reusability, and flexibility?",
+      "What resources (books, websites, courses) have you found most helpful for learning design patterns?",
+      "How do you decide which pattern to apply to a given problem?"
+    ]
+  },
+  {
     id: "db-guide",
     title: "Choosing the Right Database: A Conceptual Guide",
-    icon: DatabaseSearch,
+    icon: DatabaseIcon, 
     explanation: "Selecting the appropriate database is a critical architectural decision. Different database types are optimized for different data models, query patterns, and scalability requirements. This guide provides a high-level overview.",
     decisionFactors: [
       "**Data Model**: How is your data structured (relational, document, key-value, graph, time-series)?",
@@ -453,7 +383,77 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
       "Specific features of certain databases that make them suitable for particular tasks (e.g., Redis for caching, Elasticsearch for search, Neo4j for graphs).",
       "Polyglot persistence: using multiple database types in one system."
     ]
-  }
+  },
+  {
+    id: "unique-id-generator",
+    title: "Design a Unique ID Generator in Distributed Systems",
+    icon: Fingerprint,
+    problemStatement: "Design a service that generates unique, ideally sortable (e.g., by time), IDs at high throughput and low latency, suitable for use across a distributed system. These IDs are crucial for uniquely identifying entities like posts, users, or transactions.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Generate globally unique IDs.",
+      "Non-Functional Requirements:",
+      "  - Uniqueness: IDs must be unique across all services and instances.",
+      "  - High Availability: The ID generation service must be highly available.",
+      "  - Low Latency: ID generation should be very fast.",
+      "  - Scalability: Capable of generating a high volume of IDs per second.",
+      "  - Fault Tolerance: System should continue generating IDs even if some nodes fail.",
+      "  - (Optional but desirable) Roughly Time-Sortable: IDs generated around the same time should be numerically close. This helps with DB indexing and ordering."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (To build the ID generation service).",
+      "Service Discovery & Control Plane (If the ID generator is a centralized service that other services discover).",
+      "Database Strategies (If using database sequences or for coordination in some ID generation schemes).",
+      "Async IO + Epoll + Tokio (For high-performance network communication if it's a service).",
+      "Autoscaling & Resilience Patterns (To ensure the ID generation service is itself scalable and resilient)."
+    ],
+    conceptualSolutionOutline: `
+Several approaches exist, each with trade-offs:
+
+1.  **UUIDs (Universally Unique Identifiers):**
+    *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
+    *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
+    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
+    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
+
+2.  **Twitter Snowflake-like Approach:**
+    *   Combines:
+        *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
+        *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
+        *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
+    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
+    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
+
+3.  **Database Auto-Increment (with care):**
+    *   Use a database's auto-increment feature.
+    *   **Single DB:** Becomes a single point of failure and write bottleneck.
+    *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
+    *   **Pros:** Simple for single DB. IDs are sortable.
+    *   **Cons:** Scalability and availability challenges in distributed setups.
+
+4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
+    *   A central service manages sequence blocks.
+    *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
+    *   App instances then use IDs from their allocated batch locally.
+    *   **Pros:** Can be highly available if the central service is robust.
+    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
+
+5.  **Custom Solutions (e.g., Flickr's ticket servers):**
+    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
+`,
+    discussionPoints: [
+      "Uniqueness guarantees vs. collision probability.",
+      "Sortability needs: Is it critical? If so, how strictly sorted?",
+      "Scalability and throughput requirements (IDs per second).",
+      "Fault tolerance and availability of the ID generation scheme.",
+      "Latency of ID generation.",
+      "Impact of clock synchronization (for timestamp-based methods like Snowflake).",
+      "Complexity of implementation and operation.",
+      "ID size and storage implications (e.g., UUIDs are larger than 64-bit integers).",
+      "Decentralized vs. centralized approaches and their trade-offs.",
+      "How to assign and manage worker IDs in Snowflake-like systems."
+    ]
+  },
 ];
 
 const scalingJourneyPhases = [
@@ -968,12 +968,12 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
+      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -984,7 +984,7 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
+      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -1018,18 +1018,18 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
 
 6.  **Scheduler & Politeness Module:**
     *   Coordinates workers, manages crawl rates per domain/IP address.
-    *   Ensures adherence to \\\`robots.txt\\\` and \`Crawl-delay\` directives.
+    *   Ensures adherence to \\\`robots.txt\\\` and \\\`Crawl-delay\\\` directives.
 
 7.  **DNS Resolver:**
     *   Resolves domain names to IP addresses. Needs to be scalable and potentially have its own cache.
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1443,7 +1443,7 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
