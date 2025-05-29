@@ -173,11 +173,11 @@ body {
     animation: slide-in-out-text-animation 29.5s ease-in-out infinite; /* Slightly less than text change interval */
   }
 
-  /* Animation for fading dynamic messages */
+  /* Animation for fading dynamic messages in header and hover messages */
   @keyframes fade-in-out-message-animation {
-    0%, 100% { opacity: 0; transform: translateY(5px); }
-    10%, 90% { opacity: 1; transform: translateY(0px); }
-    95% { opacity: 0; transform: translateY(-5px); }
+    0% { opacity: 0; transform: translateY(5px); }
+    10%, 90% { opacity: 1; transform: translateY(0px); } /* Stay visible for most of the duration */
+    100% { opacity: 0; transform: translateY(5px); } /* Fade out at the end */
   }
   .animate-fade-in-out-message {
     animation: fade-in-out-message-animation 4.8s ease-in-out forwards; /* Duration just under 5s interval */
@@ -205,3 +205,4 @@ body {
    you'll typically include its CSS theme here or via an import.
    For now, this provides basic monospaced font and background.
 */
+

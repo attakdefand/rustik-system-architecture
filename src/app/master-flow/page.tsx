@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList, Info } from 'lucide-react';
+import { AlertTriangle, Brain, Layers, Scaling, Zap, Maximize, Shield, Cpu, DollarSign, ShieldAlert, Share2, Bookmark, BellRing, WorkflowIcon as WorkflowIconLucide, FlaskConical, FileText, BrainCircuit as BrainCircuitIcon, ClipboardCheck, Store, ClipboardList, Info } from 'lucide-react'; // Renamed WorkflowIcon to WorkflowIconLucide
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +40,7 @@ interface AnalysisState<T> {
 
 interface CategorizedComponents {
   category: string;
+  hoverHint: string;
   components: ArchitectureComponent[];
 }
 
@@ -54,29 +55,45 @@ export default function MasterFlowPage() {
   const [securityPostureAnalysis, setSecurityPostureAnalysis] = useState<AnalysisState<AnalyzeSecurityPostureOutput>>(initialAnalysisState);
   const [microserviceSuggestions, setMicroserviceSuggestions] = useState<AnalysisState<SuggestMicroservicesOutput>>({...initialAnalysisState, data: {suggestedServices: []}});
 
-
   const [isGeneratingDocument, setIsGeneratingDocument] = useState(false);
   const [documentGenerationError, setDocumentGenerationError] = useState<string | null>(null);
 
   const [analysesTriggered, setAnalysesTriggered] = useState(false);
   const [currentFlowInput, setCurrentFlowInput] = useState<AnalyzeSystemInput | null>(null);
 
+  const [hoverMessage, setHoverMessage] = useState<string | null>(null);
+  const hoverMessageTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerHoverMessage = (message: string) => {
+    if (hoverMessageTimerRef.current) {
+      clearTimeout(hoverMessageTimerRef.current);
+    }
+    setHoverMessage(message); // Set message and make it visible
+    hoverMessageTimerRef.current = setTimeout(() => {
+      setHoverMessage(null); // Clear message after 5 seconds
+    }, 5000);
+  };
+
 
   const categorizedComponents: CategorizedComponents[] = [
     {
       category: 'Networking & Connectivity',
+      hoverHint: 'Explore components for network traffic management, API exposure, and global connectivity.',
       components: architectureComponents.filter(c => ['anycast-ip', 'load-balancers', 'api-gateway', 'network-infra-strategies'].includes(c.id)),
     },
     {
       category: 'Application & Compute Logic',
+      hoverHint: 'Select core application processing units, architectural styles, and design principles.',
       components: architectureComponents.filter(c => ['rust-app-nodes', 'microservices-architecture', 'async-io', 'per-core-socket', 'api-design-styles', 'app-design-principles'].includes(c.id)),
     },
     {
       category: 'Data Management & Storage',
+      hoverHint: 'Choose strategies for data persistence, caching, and inter-service communication.',
       components: architectureComponents.filter(c => ['database-strategies', 'caching-strategies', 'shared-state-data-plane'].includes(c.id)),
     },
     {
       category: 'Operations, Scaling & Security',
+      hoverHint: 'Define how your system will be discovered, monitored, deployed, scaled, and secured.',
       components: architectureComponents.filter(c => ['service-discovery-control-plane', 'observability-ops', 'deployment-cicd', 'autoscaling-resilience', 'security-architecture-principles', 'cost-management'].includes(c.id)),
     },
   ];
@@ -87,6 +104,7 @@ export default function MasterFlowPage() {
   if (uncategorizedComponents.length > 0) {
     categorizedComponents.push({
         category: 'Other Components',
+        hoverHint: 'Explore other specialized architectural components.',
         components: uncategorizedComponents
     });
   }
@@ -281,13 +299,25 @@ export default function MasterFlowPage() {
 
   const isAnalyzeButtonDisabled = countSelectedTypes() === 0 || interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading);
 
-  const renderAnalysisSection = <T,>(title: string, icon: React.ElementType, state: AnalysisState<T>, contentRenderer: (data: T) => React.ReactNode, description?: string) => {
+  const renderAnalysisSection = <T,>(
+    title: string, 
+    icon: React.ElementType, 
+    state: AnalysisState<T>, 
+    contentRenderer: (data: T) => React.ReactNode, 
+    description?: string,
+    hoverHint?: string
+  ) => {
     if (!state.attempted && !state.isLoading && !analysesTriggered) return null; 
 
     return (
-    <Card className="shadow-xl rounded-xl">
+    <Card 
+      className="shadow-xl rounded-xl group"
+      onMouseEnter={hoverHint ? () => triggerHoverMessage(hoverHint) : undefined}
+    >
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-primary flex items-center">
+        <CardTitle 
+          className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150"
+        >
           {React.createElement(icon, { className: "h-6 w-6 mr-3" })}
           {title}
         </CardTitle>
@@ -347,16 +377,23 @@ export default function MasterFlowPage() {
             {categorizedComponents.map(categoryGroup => (
               categoryGroup.components.length > 0 && (
                 <section key={categoryGroup.category}>
-                  <h4 className="text-xl font-semibold tracking-tight mb-6 text-center text-gray-700 dark:text-gray-200 border-b-2 border-primary/20 pb-2">
+                  <h4 
+                    className="text-xl font-semibold tracking-tight mb-6 text-center text-gray-700 dark:text-gray-200 border-b-2 border-primary/20 pb-2 hover:text-primary transition-colors duration-150 group"
+                    onMouseEnter={() => triggerHoverMessage(categoryGroup.hoverHint)}
+                  >
                     {categoryGroup.category}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {categoryGroup.components.map((component) => (
-                      <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
-                        <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
-                          <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
+                      <Card 
+                        key={component.id} 
+                        className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70 hover:border-primary group"
+                        onMouseEnter={() => triggerHoverMessage(`Configure ${component.title}: ${component.eli5Summary}`)}
+                      >
+                        <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30 group-hover:bg-primary/5 transition-colors duration-150">
+                          <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0 group-hover:text-primary transition-colors duration-150" />
                           <div className="flex-grow">
-                            <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                            <CardTitle className="text-md font-semibold leading-tight text-foreground group-hover:text-primary transition-colors duration-150">{component.title}</CardTitle>
                             <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
                               {component.complexity}
                             </Badge>
@@ -410,7 +447,13 @@ export default function MasterFlowPage() {
             <h3 className="text-2xl font-semibold tracking-tight mb-6 text-center text-primary">
               2. Generate Comprehensive Analysis
             </h3>
-          <Button size="lg" disabled={isAnalyzeButtonDisabled} onClick={handleAnalyzeProfile} className="px-10 py-3 text-md">
+          <Button 
+            size="lg" 
+            disabled={isAnalyzeButtonDisabled} 
+            onClick={handleAnalyzeProfile} 
+            className="px-10 py-3 text-md hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+            onMouseEnter={() => triggerHoverMessage("Click to get a full AI-driven analysis of your selected architecture.")}
+          >
             <Maximize className="mr-2 h-5 w-5" />
             {isAnalyzeButtonDisabled && (interactionAnalysis.isLoading || capacityAnalysis.isLoading || tierSuggestion.isLoading || securityPostureAnalysis.isLoading || (isMicroservicesFlowApplicable(currentFlowInput) && microserviceSuggestions.isLoading)) ? "Analyzing Full Profile..." : "Analyze Full Architectural Profile"}
           </Button>
@@ -438,6 +481,8 @@ export default function MasterFlowPage() {
                         disabled={isGeneratingDocument}
                         variant="outline"
                         size="lg"
+                        className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+                        onMouseEnter={() => triggerHoverMessage("Download a Markdown document summarizing your selections and AI analyses.")}
                     >
                         <FileText className="mr-2 h-5 w-5" />
                         {isGeneratingDocument ? "Generating Document..." : "Download Conceptual Document"}
@@ -455,9 +500,9 @@ export default function MasterFlowPage() {
             )}
             
             {currentFlowInput && currentFlowInput.components.length > 0 && (
-              <Card className="shadow-xl rounded-xl">
+              <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("A summary of the components and types you've chosen for analysis.")}>
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                  <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                     <ClipboardList className="h-6 w-6 mr-3" />
                     Your Selected Architectural Blueprint
                   </CardTitle>
@@ -494,11 +539,11 @@ export default function MasterFlowPage() {
 
             {renderAnalysisSection<AnalyzeSystemOutput>("Interaction Analysis", Layers, interactionAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
-            ), "Explores how selected components might work together, including a conceptual data flow if applicable.")}
+            ), "Explores how selected components might work together, including a conceptual data flow if applicable.", "AI insights on component synergies and potential data flow.")}
 
             {renderAnalysisSection<AnalyzeCapacityOutput>("Conceptual Scaling Potential", Scaling, capacityAnalysis, (data) => (
               <div dangerouslySetInnerHTML={{ __html: data.analysis.replace(/\n/g, '<br />') }} />
-            ), "Analyzes how the selected components contribute to handling large user loads and overall system scalability.")}
+            ), "Analyzes how the selected components contribute to handling large user loads and overall system scalability.", "AI's take on scalability strengths and potential bottlenecks.")}
 
             {renderAnalysisSection<SuggestCapacityTierOutput>("Suggested Capacity Tier & Reasoning", Zap, tierSuggestion, (data) => (
               <div>
@@ -535,7 +580,7 @@ export default function MasterFlowPage() {
                   </div>
                 )}
               </div>
-            ), "Suggests a conceptual user capacity tier the system might be suitable for, with detailed reasoning and key assumptions.")}
+            ), "Suggests a conceptual user capacity tier the system might be suitable for, with detailed reasoning and key assumptions.", "AI's conceptual estimate of user capacity tier and supporting factors.")}
 
             {renderAnalysisSection<AnalyzeSecurityPostureOutput>("Conceptual Security Posture", Shield, securityPostureAnalysis, (data) => (
               <div>
@@ -568,7 +613,7 @@ export default function MasterFlowPage() {
                   </div>
                 )}
               </div>
-            ), "Provides a high-level AI assessment of security strengths, vulnerabilities, and recommendations.")}
+            ), "Provides a high-level AI assessment of security strengths, vulnerabilities, and recommendations.", "AI-driven conceptual security overview and advice.")}
 
             {microserviceSuggestions.attempted && isMicroservicesFlowApplicable(currentFlowInput) && renderAnalysisSection<SuggestMicroservicesOutput>("AI-Suggested Potential Microservices", Cpu, microserviceSuggestions, (data) => (
                data.suggestedServices && data.suggestedServices.length > 0 && data.suggestedServices[0].name !== "Context Needed" ? (
@@ -583,11 +628,11 @@ export default function MasterFlowPage() {
               ) : (
                  <p className="text-muted-foreground">Microservice suggestions were not applicable for the current selection, or no specific suggestions could be generated. Ensure 'Microservices Architecture' and other relevant infrastructure components are selected.</p>
               )
-            ), "If 'Microservices Architecture' is selected with relevant infra, suggests potential application-level microservices.")}
+            ), "If 'Microservices Architecture' is selected with relevant infra, suggests potential application-level microservices.", "AI-generated microservice ideas based on your infrastructure choices.")}
             
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for future cost and performance simulation features.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                   <DollarSign className="h-6 w-6 mr-3" />
                   Advanced Simulation (Conceptual)
                 </CardTitle>
@@ -600,6 +645,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -612,9 +658,9 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for a future advanced security assessment tool.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                   <ShieldAlert className="h-6 w-6 mr-3" />
                   Advanced Security Assessment (Conceptual)
                 </CardTitle>
@@ -627,6 +673,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -639,9 +686,9 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for a future plugin and API ecosystem.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                   <Share2 className="h-6 w-6 mr-3" />
                   Plugin &amp; API Ecosystem (Conceptual)
                 </CardTitle>
@@ -653,6 +700,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -665,9 +713,9 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for saving and sharing architectural profiles and templates.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                   <Bookmark className="h-6 w-6 mr-3" />
                   Saved Profiles &amp; Templates (Conceptual)
                 </CardTitle>
@@ -678,6 +726,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -690,9 +739,9 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for integrating with live infrastructure for drift detection.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
                   <BellRing className="h-6 w-6 mr-3" />
                   Alerting &amp; Drift Detection (Conceptual)
                 </CardTitle>
@@ -703,6 +752,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -715,10 +765,10 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for integrating Rustik into CI/CD pipelines.")}>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                  <WorkflowIcon className="h-6 w-6 mr-3" />
+                <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
+                  <WorkflowIconLucide className="h-6 w-6 mr-3" /> {/* Renamed import */}
                   CI/CD Integration (Conceptual)
                 </CardTitle>
               </CardHeader>
@@ -729,6 +779,7 @@ export default function MasterFlowPage() {
                 </p>
                 <Button 
                   variant="outline"
+                  className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
                   onClick={() => {
                     toast({
                       title: "Feature in Development",
@@ -741,115 +792,132 @@ export default function MasterFlowPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                  <FlaskConical className="h-6 w-6 mr-3" />
-                  Digital Twin &amp; “What-If” Simulator (Conceptual)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 text-foreground/90 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Spin up a sandboxed, code-generated replica of your design (e.g. in Docker or Kubernetes) 
-                  and run synthetic load tests to validate performance and failure modes before you build.
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Feature in Development",
-                      description: "Digital Twin & Simulator feature is coming soon!",
-                    });
-                  }}
-                >
-                  Explore Digital Twin &amp; Simulator (Coming Soon)
-                </Button>
-              </CardContent>
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for a digital twin and simulation environment.")}>
+                <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
+                        <FlaskConical className="h-6 w-6 mr-3" />
+                        Digital Twin &amp; “What-If” Simulator (Conceptual)
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 text-foreground/90 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                    Spin up a sandboxed, code-generated replica of your design (e.g. in Docker or Kubernetes) 
+                    and run synthetic load tests to validate performance and failure modes before you build.
+                    </p>
+                    <Button 
+                        variant="outline"
+                        className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+                        onClick={() => {
+                            toast({
+                            title: "Feature in Development",
+                            description: "Digital Twin & Simulator feature is coming soon!",
+                            });
+                        }}
+                    >
+                    Explore Digital Twin &amp; Simulator (Coming Soon)
+                    </Button>
+                </CardContent>
+            </Card>
+            
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for AI-driven architectural optimization.")}>
+                <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
+                    <BrainCircuitIcon className="h-6 w-6 mr-3" /> {/* Use aliased import */}
+                    Adaptive Blueprint Optimization (Conceptual)
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 text-foreground/90 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                    Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
+                    </p>
+                    <Button 
+                        variant="outline"
+                        className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+                        onClick={() => {
+                            toast({
+                            title: "Feature in Development",
+                            description: "Adaptive Blueprint Optimization is coming soon!",
+                            });
+                        }}
+                    >
+                    Explore Adaptive Blueprint Optimization (Coming Soon)
+                    </Button>
+                </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                  <BrainCircuitIcon className="h-6 w-6 mr-3" />
-                  Adaptive Blueprint Optimization (Conceptual)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 text-foreground/90 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Use reinforcement-learning or genetic-algorithms to evolve your design automatically based on cost, latency, and resilience objectives—letting the AI propose “next-generation” topologies.
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Feature in Development",
-                      description: "Adaptive Blueprint Optimization is coming soon!",
-                    });
-                  }}
-                >
-                  Explore Adaptive Blueprint Optimization (Coming Soon)
-                </Button>
-              </CardContent>
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for automated compliance and audit reporting features.")}>
+                <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
+                    <ClipboardCheck className="h-6 w-6 mr-3" />
+                    Compliance &amp; Audit Reporting (Conceptual)
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 text-foreground/90 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                    Bake in templates for standards like PCI-DSS, HIPAA, ISO 27001 or GDPR, then generate compliance reports that map each architectural decision to required controls.
+                    </p>
+                    <Button 
+                        variant="outline"
+                        className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+                        onClick={() => {
+                            toast({
+                            title: "Feature in Development",
+                            description: "Compliance & Audit Reporting is coming soon!",
+                            });
+                        }}
+                    >
+                    Explore Compliance Reporting (Coming Soon)
+                    </Button>
+                </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                  <ClipboardCheck className="h-6 w-6 mr-3" />
-                  Compliance &amp; Audit Reporting (Conceptual)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 text-foreground/90 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Bake in templates for standards like PCI-DSS, HIPAA, ISO 27001 or GDPR, then generate compliance reports that map each architectural decision to required controls.
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Feature in Development",
-                      description: "Compliance & Audit Reporting is coming soon!",
-                    });
-                  }}
-                >
-                  Explore Compliance Reporting (Coming Soon)
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-xl rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                  <Store className="h-6 w-6 mr-3" />
-                  Extensible Plugin Marketplace (Conceptual)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 text-foreground/90 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Let users publish and share new component definitions, AI flow templates, compliance policies, or even custom cost-model providers.
-                </p>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    toast({
-                      title: "Feature in Development",
-                      description: "Extensible Plugin Marketplace is coming soon!",
-                    });
-                  }}
-                >
-                  Explore Plugin Marketplace (Coming Soon)
-                </Button>
-              </CardContent>
+            <Card className="shadow-xl rounded-xl group" onMouseEnter={() => triggerHoverMessage("Conceptual placeholder for a community-driven plugin marketplace.")}>
+                <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-primary flex items-center group-hover:text-accent transition-colors duration-150">
+                    <Store className="h-6 w-6 mr-3" />
+                    Extensible Plugin Marketplace (Conceptual)
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 text-foreground/90 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                    Let users publish and share new component definitions, AI flow templates, compliance policies, or even custom cost-model providers.
+                    </p>
+                    <Button 
+                        variant="outline"
+                        className="hover:border-primary focus:border-primary border-2 border-transparent transition-all"
+                        onClick={() => {
+                            toast({
+                            title: "Feature in Development",
+                            description: "Extensible Plugin Marketplace is coming soon!",
+                            });
+                        }}
+                    >
+                    Explore Plugin Marketplace (Coming Soon)
+                    </Button>
+                </CardContent>
             </Card>
 
           </div>
         )}
       </main>
+      {hoverMessage && (
+        <div 
+          key={Date.now()} // Re-trigger animation on message change
+          className="fixed bottom-5 right-5 p-4 bg-accent text-accent-foreground rounded-lg shadow-2xl z-[100] w-auto max-w-md animate-fade-in-out-message border-2 border-primary/50"
+        >
+          <div className="flex items-center">
+            <div className="flex space-x-1.5 mr-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-ping opacity-80" style={{animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-300 animate-ping opacity-80" style={{animationDelay: '0.25s', animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400 animate-ping opacity-80" style={{animationDelay: '0.5s', animationDuration: '1.5s'}}></span>
+            </div>
+            <p className="text-sm">{hoverMessage}</p>
+          </div>
+        </div>
+      )}
       <footer className="py-8 text-center text-muted-foreground border-t border-border/50 mt-16">
         <p>&copy; {new Date().getFullYear()} Rustik. Orchestrating architectural wisdom.</p>
       </footer>
     </div>
   );
 }
-
-    
