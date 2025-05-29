@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, Bird
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, Bird, Cpu
 } from 'lucide-react';
 import type React from 'react';
 
@@ -38,6 +38,7 @@ interface BasicInterviewQuestion {
   tradeOffs?: string;
   examples?: Array<{ model: string; description: string; managedByCustomer: string[]; managedByProvider: string[]; examples: string[] }>;
   keyDifferences?: string[];
+  keyDifferencesTable?: { header: string[]; rows: string[][] }; // For Process vs Thread
   whenToChoose?: string[];
   keyTrends?: string[];
   architecturalConsiderations?: string[];
@@ -616,6 +617,46 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
       "Rate limiting and preventing abuse (spam, bots).",
       "Consistency models (e.g., eventual consistency for timelines).",
       "Key metrics to monitor for a system like Twitter."
+    ]
+  },
+  {
+    id: "process-vs-thread",
+    title: "What is the difference between Process and Thread?",
+    icon: Cpu,
+    explanation: `A **Process** is an instance of a computer program that is being executed. It contains the program code and its current activity. Each process has its own independent memory space (address space), system resources (like file handles), and execution state.
+
+A **Thread** is the smallest unit of execution within a process. A process can have multiple threads, all sharing the same memory space and resources of the parent process. Threads allow a process to perform multiple tasks concurrently.`,
+    keyDifferencesTable: {
+      header: ["Feature", "Process", "Thread"],
+      rows: [
+        ["Memory Space", "Independent, isolated memory space for each process.", "Shares the memory space of its parent process with other threads."],
+        ["Creation Overhead", "Relatively high (requires OS to allocate new memory space, resources).", "Relatively low (lighter weight, shares existing process resources)."],
+        ["Communication", "Inter-Process Communication (IPC) is more complex (e.g., pipes, sockets, shared memory segments managed by OS).", "Inter-thread communication is simpler (can use shared variables), but requires careful synchronization (e.g., mutexes, semaphores) to avoid race conditions."],
+        ["Fault Isolation", "A crash in one process generally does not affect other processes.", "If one thread crashes, it can bring down the entire process (all threads within it)."],
+        ["Resource Usage", "Consumes more system resources (memory, OS structures) per instance.", "Consumes fewer resources per instance as they share process resources."],
+        ["Context Switching", "Context switching between processes is generally slower.", "Context switching between threads of the same process is generally faster."]
+      ]
+    },
+    relevantRustikComponents: [
+      "Rust App Nodes",
+      "Async IO + Epoll + Tokio",
+      "Per-core Socket Accept + Sharding",
+      "Microservices Architecture"
+    ],
+    rustikRelevanceNote: `Understanding process and thread models is fundamental for designing efficient Rust applications.
+- **Rust App Nodes**: A Rust application node runs as a process. Within this process, especially when using libraries like Tokio for asynchronous programming, multiple threads (or a thread pool managed by Tokio) are used to handle concurrent operations efficiently without blocking.
+- **Async IO + Epoll + Tokio**: Tokio's runtime leverages a multi-threaded scheduler to execute asynchronous tasks. Your \`async fn\`s are broken down into smaller tasks that can be run on any available thread in the pool, allowing for high concurrency with fewer OS threads than a traditional thread-per-connection model.
+- **Per-core Socket Accept + Sharding**: This pattern can be implemented using multiple processes (each binding to the same port with SO_REUSEPORT, thus each is an OS process) or a single process with multiple threads, where each thread is responsible for a subset of connections or is pinned to a CPU core.
+- **Microservices Architecture**: Each microservice is typically deployed as an independent OS process (often within its own container). The isolation provided by processes is a key benefit of this architecture.`,
+    discussionPoints: [
+      "Advantages and disadvantages of multi-processing versus multi-threading.",
+      "What is context switching, and how does its overhead compare?",
+      "Define concurrency and parallelism. How do processes/threads relate?",
+      "What are race conditions and deadlocks in multi-threaded environments? How can they be prevented?",
+      "Common use cases for multi-processing (e.g., leveraging multiple CPU cores for CPU-bound tasks, fault isolation for unrelated tasks).",
+      "Common use cases for multi-threading (e.g., responsive UIs, I/O-bound tasks in a server, parallel processing of tasks within a single application).",
+      "How do operating systems manage and schedule processes and threads?",
+      "User-level threads vs. kernel-level threads."
     ]
   }
 ];
@@ -1327,7 +1368,7 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
     ],
     relevantRustikComponents: [
       "Microservices Architecture (e.g., Upload Service, Video Processing Service, Metadata Service, User Service, Search Service, Recommendation Service, Streaming Service, Comment Service, Notification Service).",
-      "API Design Styles & Protocols (REST/GraphQL for client-server interactions; streaming protocols like HLS/DASH for video delivery).",
+      "API Design Styles & Protocols (REST/GraphQL for client interactions; streaming protocols like HLS/DASH for video delivery).",
       "Database Strategies:",
       "  - Relational DB (e.g., PostgreSQL) for user profiles, channel information, video metadata (titles, descriptions).",
       "  - NoSQL DB (e.g., Cassandra, DynamoDB) for high-volume, scalable data like view counts, likes, comments, user activity logs.",
@@ -1489,7 +1530,7 @@ export default function SystemDesignInterviewPage() {
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="w-full max-w-5xl mx-auto space-y-6">
+        <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <TooltipProvider>
               <Tooltip>
@@ -1687,6 +1728,31 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
+                      {question.keyDifferencesTable && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Differences:</h5>
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full text-sm border border-border/50">
+                              <thead className="bg-muted/30">
+                                <tr>
+                                  {question.keyDifferencesTable.header.map((header, hIdx) => (
+                                    <th key={`h-${question.id}-${hIdx}`} className="p-2 border-b border-r border-border/50 text-left font-medium text-foreground/90">{header}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {question.keyDifferencesTable.rows.map((row, rIdx) => (
+                                  <tr key={`r-${question.id}-${rIdx}`} className="border-b border-border/50">
+                                    {row.map((cell, cIdx) => (
+                                      <td key={`c-${question.id}-${rIdx}-${cIdx}`} className="p-2 border-r border-border/50 text-foreground/80">{cell}</td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                        {question.benefits && question.benefits.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Benefits:</h5>
@@ -1765,87 +1831,87 @@ export default function SystemDesignInterviewPage() {
                         </AccordionTrigger>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Tackle complex system design questions with detailed breakdowns and solution outlines.</p>
+                        <p>Unlock strategies to solve complex, large-scale system design problems effectively.</p>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
             <AccordionContent className="p-6 space-y-8">
-                <Accordion type="multiple" className="w-full space-y-6">
-                    <AccordionItem value="scaling-journey-item" className="border-none p-0">
-                        <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                            <div className="flex items-center gap-3">
-                            <TrendingUp className="h-7 w-7" />
-                            Understanding the Scaling Journey: 0 to Millions of Users
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pb-0 pl-1 pr-1">
-                            <Card className="shadow-md rounded-lg border-none bg-transparent">
-                            <CardHeader className="pb-2 pt-0 px-0">
-                                <CardDescription className="text-sm text-muted-foreground pt-1">
-                                Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="pt-4 space-y-4 px-0">
-                                {scalingJourneyPhases.map((phase, index) => (
-                                <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50 bg-card">
-                                    <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
-                                    <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
-                                    <div className="flex-grow">
-                                        <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
-                                        <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
+             <Accordion type="multiple" className="w-full space-y-6">
+                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
+                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
+                        <div className="flex items-center gap-3">
+                        <TrendingUp className="h-7 w-7" />
+                        Understanding the Scaling Journey: 0 to Millions of Users
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-0 pl-1 pr-1">
+                        <Card className="shadow-md rounded-lg border-none bg-transparent">
+                        <CardHeader className="pb-2 pt-0 px-0">
+                            <CardDescription className="text-sm text-muted-foreground pt-1">
+                            Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-4 px-0">
+                            {scalingJourneyPhases.map((phase, index) => (
+                            <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50 bg-card">
+                                <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
+                                <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
+                                <div className="flex-grow">
+                                    <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
+                                    <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
+                                </div>
+                                </CardHeader>
+                                <CardContent className="p-4 text-xs space-y-2">
+                                {phase.characteristics && (
+                                    <div>
+                                    <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
+                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                        {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
+                                    </ul>
                                     </div>
-                                    </CardHeader>
-                                    <CardContent className="p-4 text-xs space-y-2">
-                                    {phase.characteristics && (
-                                        <div>
-                                        <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
-                                        <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                            {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
-                                        </ul>
-                                        </div>
-                                    )}
-                                    {phase.actions && (
-                                        <div className="mt-2">
-                                        <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
-                                        <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                            {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
-                                        </ul>
-                                        </div>
-                                    )}
-                                    {phase.pros && (
-                                        <div className="mt-2">
-                                        <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
-                                        <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                            {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
-                                        </ul>
-                                        </div>
-                                    )}
-                                    {phase.challenges && (
-                                        <div className="mt-2">
-                                        <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
-                                        <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                            {phase.challenges.map((challengeText, i) => <li key={`chall-${index}-${i}`}>{challengeText}</li>)}
-                                        </ul>
-                                        </div>
-                                    )}
-                                    {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
-                                        <div className="mt-2 pt-2 border-t border-border/30">
-                                        <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
-                                        <div className="flex flex-wrap gap-1">
-                                            {phase.rustikRelevance.map((compName, i) => (
-                                            <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
-                                                {compName}
-                                            </span>
-                                            ))}
-                                        </div>
-                                        </div>
-                                    )}
-                                    </CardContent>
-                                </Card>
-                                ))}
-                            </CardContent>
+                                )}
+                                {phase.actions && (
+                                    <div className="mt-2">
+                                    <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
+                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                        {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
+                                    </ul>
+                                    </div>
+                                )}
+                                {phase.pros && (
+                                    <div className="mt-2">
+                                    <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
+                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                        {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
+                                    </ul>
+                                    </div>
+                                )}
+                                {phase.challenges && (
+                                    <div className="mt-2">
+                                    <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
+                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                        {phase.challenges.map((challengeText, i) => <li key={`chall-${index}-${i}`}>{challengeText}</li>)}
+                                    </ul>
+                                    </div>
+                                )}
+                                {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
+                                    <div className="mt-2 pt-2 border-t border-border/30">
+                                    <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
+                                    <div className="flex flex-wrap gap-1">
+                                        {phase.rustikRelevance.map((compName, i) => (
+                                        <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                                            {compName}
+                                        </span>
+                                        ))}
+                                    </div>
+                                    </div>
+                                )}
+                                </CardContent>
                             </Card>
-                        </AccordionContent>
+                            ))}
+                        </CardContent>
+                        </Card>
+                    </AccordionContent>
                     </AccordionItem>
 
                     <AccordionItem value="framework-item" className="border-none p-0">
