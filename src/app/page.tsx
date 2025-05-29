@@ -1,8 +1,12 @@
 
 import { AppHeader } from '@/components/layout/app-header';
-import ArchitectureBlock from '@/components/architecture-block';
 import { architectureComponents, type ArchitectureComponent } from '@/data/architecture-data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ArchitectureBlock from '@/components/architecture-block';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface CategorizedComponents {
   category: string;
@@ -37,7 +41,6 @@ export default function Home() {
     },
   ];
 
-  // Fallback for any components not categorized explicitly (though all current ones should be)
   const allCategorizedComponentIds = categorizedComponents.flatMap(cat => cat.components.map(comp => comp.id));
   const uncategorizedComponents = architectureComponents
     .filter(c => !allCategorizedComponentIds.includes(c.id))
@@ -49,7 +52,6 @@ export default function Home() {
         components: uncategorizedComponents
     });
   }
-
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -63,6 +65,34 @@ export default function Home() {
             Discover the core architectural components that empower robust, high-performance applications. Each element detailed below is a vital piece in constructing globally distributed and resilient services. Explore categories to learn more.
           </p>
         </div>
+
+        <Card className="my-12 shadow-xl rounded-xl overflow-hidden bg-card">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 w-full p-6 md:p-8">
+              <Image
+                src="https://placehold.co/600x400.png"
+                alt="System Architecture Conceptual Image"
+                width={600}
+                height={400}
+                className="rounded-lg object-cover shadow-md w-full"
+                data-ai-hint="network abstract"
+              />
+            </div>
+            <div className="md:w-1/2 w-full p-6 md:p-8 flex flex-col justify-center">
+              <CardHeader className="px-0 pb-4 pt-0">
+                <CardTitle className="text-2xl lg:text-3xl font-bold text-primary">New to System Architecture?</CardTitle>
+              </CardHeader>
+              <CardContent className="px-0">
+                <p className="text-muted-foreground mb-6 text-base lg:text-lg">
+                  Feeling unsure where to begin? Dive into our System Visualizer to interactively explore components and see how they connect. Start building your conceptual understanding today!
+                </p>
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link href="/system-visualizer">Explore the Visualizer</Link>
+                </Button>
+              </CardContent>
+            </div>
+          </div>
+        </Card>
         
         <Accordion type="multiple" className="w-full max-w-6xl mx-auto space-y-6">
           {categorizedComponents.map((categoryGroup, index) => (
