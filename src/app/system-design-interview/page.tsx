@@ -1,5 +1,6 @@
 
 'use client';
+import { useState, useRef } from 'react'; // Added useState, useRef
 import { AppHeader } from '@/components/layout/app-header';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -63,6 +64,7 @@ interface BasicInterviewQuestion {
 const systemDesignFramework = {
   title: "A Framework for System Design Interviews",
   icon: ClipboardList,
+  hoverHint: "Get a structured approach to tackle interview questions effectively.",
   introduction: "Approaching a system design interview with a structured framework can help you cover all essential aspects and articulate your thoughts clearly. Here’s a general guide:",
   steps: [
     "**1. Understand Requirements & Scope (5-10 mins):**",
@@ -496,7 +498,7 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
   {
     id: "db-guide",
     title: "Choosing the Right Database: A Conceptual Guide",
-    icon: DatabaseIcon,
+    icon: DatabaseIcon, // Changed from DatabaseSearch
     explanation: "Selecting the appropriate database is a critical architectural decision. Different database types are optimized for different data models, query patterns, and scalability requirements. This guide provides a high-level overview.",
     decisionFactors: [
       "**Data Model**: How is your data structured (relational, document, key-value, graph, time-series)?",
@@ -1112,12 +1114,12 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
+      "  - Respect \`robots.txt\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \`robots.txt\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -1128,7 +1130,7 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
+      "  - Databases for storing visited URLs, \`robots.txt\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -1169,11 +1171,11 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \`robots.txt\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \`robots.txt\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1572,13 +1574,29 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
 
 
 export default function SystemDesignInterviewPage() {
+  const [hoverMessage, setHoverMessage] = useState<string | null>(null);
+  const hoverMessageTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerHoverMessage = (message: string) => {
+    if (hoverMessageTimerRef.current) {
+      clearTimeout(hoverMessageTimerRef.current);
+    }
+    setHoverMessage(message);
+    hoverMessageTimerRef.current = setTimeout(() => {
+      setHoverMessage(null);
+    }, 5000);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 py-10 sm:py-16">
-        <div className="text-center mb-12 sm:mb-16">
-          <Brain className="h-24 w-24 text-primary mb-8 mx-auto" />
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100">
+        <div 
+          className="text-center mb-12 sm:mb-16 group"
+          onMouseEnter={() => triggerHoverMessage("System Design Interview Prep: Your guide to acing technical interviews.")}
+        >
+          <Brain className="h-24 w-24 text-primary mb-8 mx-auto group-hover:text-accent transition-colors" />
+          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-gray-800 dark:text-gray-100 group-hover:text-accent transition-colors">
             System Design Interview Prep with Rustik
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -1586,13 +1604,16 @@ export default function SystemDesignInterviewPage() {
           </p>
         </div>
 
-        <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
+        <Accordion type="single" collapsible className="w-full max-w-5xl mx-auto space-y-6">
           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
-                    <div className="flex items-center gap-3">
+                  <AccordionTrigger 
+                    className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70 group"
+                    onMouseEnter={() => triggerHoverMessage("Understand fundamental concepts crucial for any system architect.")}
+                  >
+                    <div className="flex items-center gap-3 group-hover:text-accent transition-colors">
                       <Puzzle className="h-8 w-8 text-primary" />
                       <span className="text-gray-700 dark:text-gray-200 text-left">Basic-Piece System Design</span>
                     </div>
@@ -1607,8 +1628,11 @@ export default function SystemDesignInterviewPage() {
               <Accordion type="multiple" className="w-full space-y-4">
                 {basicDesignQuestions.map((question) => (
                   <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
-                    <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
-                      <div className="flex items-center gap-3 text-left">
+                    <AccordionTrigger 
+                      className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50 group"
+                      onMouseEnter={() => triggerHoverMessage(`Learn about: ${question.title}`)}
+                    >
+                      <div className="flex items-center gap-3 text-left group-hover:text-accent transition-colors">
                         <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
                       </div>
@@ -1880,12 +1904,16 @@ export default function SystemDesignInterviewPage() {
             </AccordionContent>
           </AccordionItem>
 
+          {/* Master-Piece System Design Section */}
           <AccordionItem value="master-piece-system-design" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
              <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
-                            <div className="flex items-center gap-3">
+                        <AccordionTrigger 
+                          className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70 group"
+                          onMouseEnter={() => triggerHoverMessage("Explore complex, large-scale system design problems and strategies.")}
+                        >
+                            <div className="flex items-center gap-3 group-hover:text-accent transition-colors">
                                 <Brain className="h-8 w-8 text-primary" />
                                 <span className="text-gray-700 dark:text-gray-200 text-left">Master-Piece System Design</span>
                             </div>
@@ -1899,8 +1927,11 @@ export default function SystemDesignInterviewPage() {
             <AccordionContent className="p-6 space-y-8">
               <Accordion type="multiple" className="w-full space-y-4">
                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
-                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                      <div className="flex items-center gap-3">
+                  <AccordionTrigger 
+                    className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20 group"
+                    onMouseEnter={() => triggerHoverMessage("Learn how systems evolve from zero to millions of users.")}
+                  >
+                      <div className="flex items-center gap-3 group-hover:text-accent transition-colors">
                       <TrendingUp className="h-7 w-7" />
                       Understanding the Scaling Journey: 0 to Millions of Users
                       </div>
@@ -1976,8 +2007,11 @@ export default function SystemDesignInterviewPage() {
                 </AccordionItem>
 
                 <AccordionItem value="framework-item" className="border-none p-0">
-                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                      <div className="flex items-center gap-3">
+                  <AccordionTrigger 
+                    className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20 group"
+                    onMouseEnter={() => triggerHoverMessage(systemDesignFramework.hoverHint)}
+                  >
+                      <div className="flex items-center gap-3 group-hover:text-accent transition-colors">
                           <systemDesignFramework.icon className="h-7 w-7" />
                           {systemDesignFramework.title}
                       </div>
@@ -2004,8 +2038,11 @@ export default function SystemDesignInterviewPage() {
                 </AccordionItem>
 
                 <AccordionItem value="common-questions-item" className="border-none p-0">
-                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                      <div className="flex items-center gap-3">
+                  <AccordionTrigger 
+                    className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20 group"
+                    onMouseEnter={() => triggerHoverMessage("Practice with common system design interview questions.")}
+                  >
+                      <div className="flex items-center gap-3 group-hover:text-accent transition-colors">
                           <HelpCircle className="h-7 w-7" />
                           Common System Design Questions
                       </div>
@@ -2014,8 +2051,11 @@ export default function SystemDesignInterviewPage() {
                       <Accordion type="multiple" className="w-full space-y-4">
                       {systemDesignQuestions.map((question) => (
                           <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
-                          <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
-                              <div className="flex items-center gap-3 text-left">
+                          <AccordionTrigger 
+                            className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50 group"
+                            onMouseEnter={() => triggerHoverMessage(`Learn about: ${question.title}`)}
+                          >
+                              <div className="flex items-center gap-3 text-left group-hover:text-accent transition-colors">
                               <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
                               <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
                               </div>
@@ -2065,6 +2105,21 @@ export default function SystemDesignInterviewPage() {
           </AccordionItem>
         </Accordion>
       </main>
+      {hoverMessage && (
+        <div
+          key={Date.now()} 
+          className="fixed bottom-5 right-5 p-4 bg-accent text-accent-foreground rounded-lg shadow-2xl z-[100] w-auto max-w-md animate-fade-in-out-message border-2 border-primary/50"
+        >
+          <div className="flex items-center">
+            <div className="flex space-x-1.5 mr-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-ping opacity-80" style={{animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-300 animate-ping opacity-80" style={{animationDelay: '0.25s', animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400 animate-ping opacity-80" style={{animationDelay: '0.5s', animationDuration: '1.5s'}}></span>
+            </div>
+            <p className="text-sm">{hoverMessage}</p>
+          </div>
+        </div>
+      )}
       <footer className="py-8 text-center text-muted-foreground border-t border-border/50 mt-16">
         <p>&copy; {new Date().getFullYear()} Rustik. Ace your System Design Interview!</p>
       </footer>
@@ -2072,3 +2127,4 @@ export default function SystemDesignInterviewPage() {
   );
 }
 
+    
