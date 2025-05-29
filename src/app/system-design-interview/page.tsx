@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, Bird
 } from 'lucide-react';
 import type React from 'react';
 
@@ -51,6 +51,9 @@ interface BasicInterviewQuestion {
   conceptualSolutionOutline?: string;
   decisionFactors?: string[];
   databaseTypeGuidance?: Array<{ category: string; description: string; considerations: string[]; rustikLink: string; examples: string; }>;
+  // New fields for Twitter question
+  keyCoreFunctionalities?: string[];
+  keyArchitecturalChallenges?: string[];
 }
 
 
@@ -454,7 +457,92 @@ Several approaches exist, each with trade-offs:
       "How to assign and manage worker IDs in Snowflake-like systems."
     ]
   },
+  {
+    id: "twitter-how-it-works",
+    title: "How does Twitter (X) work? (High-Level Overview)",
+    icon: Bird,
+    explanation: "Twitter (X) is a real-time, public microblogging and social networking service where users post and interact with short messages known as 'tweets'. It's characterized by its fast-paced information flow and broad reach.",
+    keyCoreFunctionalities: [
+      "**Tweet Posting (Ingestion)**: Users can post short text messages, optionally with media (images, videos). These tweets are ingested and processed.",
+      "**Timeline Generation**: Users see a 'Home Timeline' (tweets from people they follow, plus recommendations) and can view specific 'User Timelines' (tweets from a particular user). This involves a complex 'fan-out' mechanism to distribute tweets to followers' timelines.",
+      "**Social Graph**: Users can follow and be followed by others, forming a social network. This graph is crucial for timeline generation.",
+      "**Search & Discovery**: Users can search for tweets, users, and topics. Trending topics are also highlighted.",
+      "**Media Handling**: Storage, processing (e.g., transcoding), and delivery of images and videos attached to tweets.",
+      "**Notifications**: Real-time alerts for mentions, likes, retweets, new followers, etc."
+    ],
+    keyArchitecturalChallenges: [
+      "**Massive Scale**: Handling millions of active users, billions of tweets, and extremely high read (timeline views) and write (tweet posts) loads.",
+      "**Real-Time Delivery**: Tweets need to appear in followers' timelines very quickly.",
+      "**Feed Aggregation & Ranking**: Efficiently collecting tweets from potentially thousands of followed users and ranking them (chronologically or algorithmically) for each user's home timeline.",
+      "**Data Storage**: Diverse data types (tweets, user profiles, social graph, media, analytics) require different storage solutions optimized for specific access patterns.",
+      "**High Availability & Fault Tolerance**: The service needs to be highly resilient to failures.",
+      "**Dealing with the 'Celebrity Problem'**: Efficiently fanning out tweets from users with millions of followers to all their followers' timelines."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture", 
+      "Database Strategies (e.g., NoSQL like Cassandra/Manhattan for tweets; Graph DB for social graph; In-memory/KV store like Redis for timelines)",
+      "Caching Strategies (Timelines, user profiles, hot tweets, media metadata)",
+      "Shared State & Data Plane (Message Queues like Kafka for tweet processing and fan-out)",
+      "API Design Styles & Protocols (For client communication and internal services)",
+      "Observability & Ops",
+      "Network Infrastructure Strategies (CDNs for media)"
+    ],
+    rustikRelevanceNote: "Rustik's architectural components provide the conceptual building blocks for a system like Twitter. 'Microservices Architecture' allows breaking down the platform into manageable services (tweets, users, timelines, search). Various 'Database Strategies' are employed – typically NoSQL solutions for tweet storage due to high write volume and flexible schema, graph databases for the social connections, and in-memory key-value stores like Redis for caching pre-computed timelines. 'Caching Strategies' are vital at every layer. 'Shared State & Data Plane' (using message queues like Kafka) is crucial for asynchronous tweet processing and the fan-out mechanism to deliver tweets to follower timelines. While Rustik outlines these components, the specific choice of database technologies, custom algorithms for feed ranking, and handling extreme scale (like the 'celebrity problem') involve deep, specialized engineering.",
+    discussionPoints: [
+      "Fan-out on write vs. fan-out on read strategies for timeline generation.",
+      "Database choices for tweets, user data, social graph, and timelines. Pros and cons.",
+      "Caching strategies: What to cache, where, and for how long?",
+      "How to ensure real-time delivery of tweets?",
+      "Architecture of the search and trending topics features.",
+      "Handling media uploads, storage, and delivery (CDNs).",
+      "Rate limiting and preventing abuse (spam, bots).",
+      "Consistency models (e.g., eventual consistency for timelines).",
+      "Key metrics to monitor for a system like Twitter."
+    ]
+  }
 ];
+
+const systemDesignFramework = {
+  title: "A Framework for System Design Interviews",
+  icon: ClipboardList,
+  introduction: "Approaching a system design interview with a structured framework can help you cover all essential aspects and articulate your thoughts clearly. Here’s a general guide:",
+  steps: [
+    "**1. Understand Requirements & Scope (5-10 mins):**",
+    "  - Actively listen and ask clarifying questions. Don't assume!",
+    "  - Identify core use cases and features (Functional Requirements).",
+    "  - Discuss scale: users (DAU/MAU), requests per second (QPS), data volume.",
+    "  - Clarify constraints: latency, consistency, availability (Non-Functional Requirements - NFRs).",
+    "  - Define what's out of scope.",
+    "**2. High-Level Design / API Design (10-15 mins):**",
+    "  - Sketch the major components and their interactions (e.g., client, API gateway, services, database, cache).",
+    "  - Define the primary APIs (e.g., REST endpoints, gRPC service definitions) between components.",
+    "  - Estimate system load based on requirements (e.g., read/write QPS, storage needs).",
+    "**3. Deep Dive into Components (15-20 mins):**",
+    "  - Detail the design of critical components. For example:",
+    "    - Database choice and schema design.",
+    "    - Caching strategies.",
+    "    - Load balancing mechanisms.",
+    "    - Service logic if designing microservices.",
+    "  - Justify your choices.",
+    "**4. Data Model / Database Design:**",
+    "  - Discuss your data model (e.g., relational schema, NoSQL document structure).",
+    "  - Explain data storage choices and why they fit the requirements (e.g., SQL for transactions, NoSQL for scale/flexibility).",
+    "  - Consider data partitioning, sharding, and replication if scale demands it.",
+    "**5. Identify Bottlenecks & Scale (5-10 mins):**",
+    "  - Proactively identify potential bottlenecks in your design (e.g., single points of failure, database contention, service hotspots).",
+    "  - Discuss how to scale the system (horizontal vs. vertical scaling for different components).",
+    "  - Explain how your design addresses the initial scale requirements and beyond.",
+    "**6. Security, Reliability & Other NFRs:**",
+    "  - Briefly touch upon security considerations (authentication, authorization, data encryption).",
+    "  - Discuss fault tolerance, redundancy, and monitoring.",
+    "  - Mention other relevant NFRs like maintainability, cost-effectiveness.",
+    "**7. Summarize & Discuss Trade-offs (5 mins):**",
+    "  - Briefly summarize your design.",
+    "  - Acknowledge any trade-offs made (e.g., consistency vs. availability, cost vs. performance).",
+    "  - Mention potential future improvements or areas for further investigation if time permitted."
+  ],
+  conclusion: "Throughout the interview, communicate your thought process, draw diagrams, and be open to feedback or changing requirements. The interviewer is often more interested in how you think than in a single 'correct' answer."
+};
 
 const scalingJourneyPhases = [
   {
@@ -530,48 +618,6 @@ const scalingJourneyPhases = [
     rustikRelevance: ["Microservices Architecture", "API Gateway", "Shared State & Data Plane (Message Queues)", "Database Strategies (NoSQL, Sharding)", "Observability & Ops", "Deployment & CI/CD", "Autoscaling & Resilience Patterns", "Security Architecture Principles"]
   }
 ];
-
-const systemDesignFramework = {
-  title: "A Framework for System Design Interviews",
-  icon: ClipboardList,
-  introduction: "Approaching a system design interview with a structured framework can help you cover all essential aspects and articulate your thoughts clearly. Here’s a general guide:",
-  steps: [
-    "**1. Understand Requirements & Scope (5-10 mins):**",
-    "  - Actively listen and ask clarifying questions. Don't assume!",
-    "  - Identify core use cases and features (Functional Requirements).",
-    "  - Discuss scale: users (DAU/MAU), requests per second (QPS), data volume.",
-    "  - Clarify constraints: latency, consistency, availability (Non-Functional Requirements - NFRs).",
-    "  - Define what's out of scope.",
-    "**2. High-Level Design / API Design (10-15 mins):**",
-    "  - Sketch the major components and their interactions (e.g., client, API gateway, services, database, cache).",
-    "  - Define the primary APIs (e.g., REST endpoints, gRPC service definitions) between components.",
-    "  - Estimate system load based on requirements (e.g., read/write QPS, storage needs).",
-    "**3. Deep Dive into Components (15-20 mins):**",
-    "  - Detail the design of critical components. For example:",
-    "    - Database choice and schema design.",
-    "    - Caching strategies.",
-    "    - Load balancing mechanisms.",
-    "    - Service logic if designing microservices.",
-    "  - Justify your choices.",
-    "**4. Data Model / Database Design:**",
-    "  - Discuss your data model (e.g., relational schema, NoSQL document structure).",
-    "  - Explain data storage choices and why they fit the requirements (e.g., SQL for transactions, NoSQL for scale/flexibility).",
-    "  - Consider data partitioning, sharding, and replication if scale demands it.",
-    "**5. Identify Bottlenecks & Scale (5-10 mins):**",
-    "  - Proactively identify potential bottlenecks in your design (e.g., single points of failure, database contention, service hotspots).",
-    "  - Discuss how to scale the system (horizontal vs. vertical scaling for different components).",
-    "  - Explain how your design addresses the initial scale requirements and beyond.",
-    "**6. Security, Reliability & Other NFRs:**",
-    "  - Briefly touch upon security considerations (authentication, authorization, data encryption).",
-    "  - Discuss fault tolerance, redundancy, and monitoring.",
-    "  - Mention other relevant NFRs like maintainability, cost-effectiveness.",
-    "**7. Summarize & Discuss Trade-offs (5 mins):**",
-    "  - Briefly summarize your design.",
-    "  - Acknowledge any trade-offs made (e.g., consistency vs. availability, cost vs. performance).",
-    "  - Mention potential future improvements or areas for further investigation if time permitted."
-  ],
-  conclusion: "Throughout the interview, communicate your thought process, draw diagrams, and be open to feedback or changing requirements. The interviewer is often more interested in how you think than in a single 'correct' answer."
-};
 
 const systemDesignQuestions: InterviewQuestion[] = [
   {
@@ -1443,7 +1489,7 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
@@ -1488,6 +1534,26 @@ export default function SystemDesignInterviewPage() {
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
+                        </div>
+                      )}
+                       {question.keyCoreFunctionalities && question.keyCoreFunctionalities.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Core Components/Functionalities:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyCoreFunctionalities.map((func, index) => (
+                              <li key={`func-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: func.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground/90">$1</strong>') }} />
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {question.keyArchitecturalChallenges && question.keyArchitecturalChallenges.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5 mt-3">Key Architectural Challenges:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyArchitecturalChallenges.map((chall, index) => (
+                             <li key={`chall-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: chall.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground/90">$1</strong>') }} />
+                            ))}
+                          </ul>
                         </div>
                       )}
                       {question.keyConcepts && question.keyConcepts.length > 0 && (
