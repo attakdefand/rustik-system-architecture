@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, DatabaseSearch
 } from 'lucide-react';
 import type React from 'react';
 
@@ -25,7 +25,7 @@ interface BasicInterviewQuestion {
   id: string;
   title: string;
   icon: React.ElementType;
-  explanation: string;
+  explanation?: string; // Made optional as some questions might lead with problemStatement
   purpose?: string;
   keyConcepts?: string[];
   howItWorks?: string;
@@ -45,9 +45,86 @@ interface BasicInterviewQuestion {
   relevantRustikComponents: string[];
   rustikRelevanceNote?: string;
   discussionPoints: string[];
+  decisionFactors?: string[];
+  databaseTypeGuidance?: Array<{ category: string; description: string; considerations: string[]; rustikLink: string; examples: string; }>;
+  // Fields to accommodate questions moved from InterviewQuestion structure
+  problemStatement?: string;
+  requirements?: string[];
+  conceptualSolutionOutline?: string;
 }
 
+
 const basicDesignQuestions: BasicInterviewQuestion[] = [
+  {
+    id: "unique-id-generator", // Moved from systemDesignQuestions
+    title: "Design a Unique ID Generator in Distributed Systems",
+    icon: Fingerprint,
+    problemStatement: "Design a service that generates unique, ideally sortable (e.g., by time), IDs at high throughput and low latency, suitable for use across a distributed system. These IDs are crucial for uniquely identifying entities like posts, users, or transactions.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Generate globally unique IDs.",
+      "Non-Functional Requirements:",
+      "  - Uniqueness: IDs must be unique across all services and instances.",
+      "  - High Availability: The ID generation service must be highly available.",
+      "  - Low Latency: ID generation should be very fast.",
+      "  - Scalability: Capable of generating a high volume of IDs per second.",
+      "  - Fault Tolerance: System should continue generating IDs even if some nodes fail.",
+      "  - (Optional but desirable) Roughly Time-Sortable: IDs generated around the same time should be numerically close. This helps with DB indexing and ordering."
+    ],
+    relevantRustikComponents: [
+      "Rust App Nodes (To build the ID generation service).",
+      "Service Discovery & Control Plane (If the ID generator is a centralized service that other services discover).",
+      "Database Strategies (If using database sequences or for coordination in some ID generation schemes).",
+      "Async IO + Epoll + Tokio (For high-performance network communication if it's a service).",
+      "Autoscaling & Resilience Patterns (To ensure the ID generation service is itself scalable and resilient)."
+    ],
+    conceptualSolutionOutline: `
+Several approaches exist, each with trade-offs:
+
+1.  **UUIDs (Universally Unique Identifiers):**
+    *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
+    *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
+    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
+    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
+
+2.  **Twitter Snowflake-like Approach:**
+    *   Combines:
+        *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
+        *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
+        *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
+    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
+    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
+
+3.  **Database Auto-Increment (with care):**
+    *   Use a database's auto-increment feature.
+    *   **Single DB:** Becomes a single point of failure and write bottleneck.
+    *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
+    *   **Pros:** Simple for single DB. IDs are sortable.
+    *   **Cons:** Scalability and availability challenges in distributed setups.
+
+4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
+    *   A central service manages sequence blocks.
+    *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
+    *   App instances then use IDs from their allocated batch locally.
+    *   **Pros:** Can be highly available if the central service is robust.
+    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
+
+5.  **Custom Solutions (e.g., Flickr's ticket servers):**
+    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
+`,
+    discussionPoints: [
+      "Uniqueness guarantees vs. collision probability.",
+      "Sortability needs: Is it critical? If so, how strictly sorted?",
+      "Scalability and throughput requirements (IDs per second).",
+      "Fault tolerance and availability of the ID generation scheme.",
+      "Latency of ID generation.",
+      "Impact of clock synchronization (for timestamp-based methods like Snowflake).",
+      "Complexity of implementation and operation.",
+      "ID size and storage implications (e.g., UUIDs are larger than 64-bit integers).",
+      "Decentralized vs. centralized approaches and their trade-offs.",
+      "How to assign and manage worker IDs in Snowflake-like systems."
+    ]
+  },
   {
     id: "how-to-learn-design-patterns",
     title: "How to Learn Design Patterns (e.g., GoF, Architectural Patterns)?",
@@ -305,9 +382,79 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
       "How to handle password resets securely.",
       "Defenses against credential stuffing and password spraying attacks."
     ]
+  },
+  {
+    id: "db-guide",
+    title: "Choosing the Right Database: A Conceptual Guide",
+    icon: DatabaseSearch,
+    explanation: "Selecting the appropriate database is a critical architectural decision. Different database types are optimized for different data models, query patterns, and scalability requirements. This guide provides a high-level overview.",
+    decisionFactors: [
+      "**Data Model**: How is your data structured (relational, document, key-value, graph, time-series)?",
+      "**Consistency Needs (CAP Theorem)**: Do you need strong consistency (all reads see the latest write) or is eventual consistency acceptable?",
+      "**Scalability Requirements**: Will your data grow significantly? Do you need to scale reads, writes, or both? Horizontal vs. Vertical scaling.",
+      "**Query Patterns**: How will you query the data? Simple key lookups, complex joins, analytical queries, graph traversals, full-text search?",
+      "**Latency Requirements**: How fast do operations need to be?",
+      "**Durability & Availability**: How critical is data loss prevention? What level of uptime is required?",
+      "**Development & Operational Complexity**: Team familiarity, ease of use, managed vs. self-hosted.",
+      "**Cost**: Licensing, infrastructure, operational overhead."
+    ],
+    databaseTypeGuidance: [
+      {
+        category: "Relational (SQL) Databases",
+        description: "Store data in tables with predefined schemas, rows, and columns. Excel at enforcing relationships and ensuring strong consistency (ACID).",
+        considerations: ["Complex transactions and relationships", "Data integrity is paramount", "Structured data", "Well-understood query language (SQL)"],
+        rustikLink: "Relational (SQL) Databases",
+        examples: "PostgreSQL, MySQL, SQL Server, Oracle"
+      },
+      {
+        category: "Document Databases (NoSQL)",
+        description: "Store data in flexible, JSON-like documents (e.g., BSON). Schemas are dynamic and can vary per document.",
+        considerations: ["Flexible or evolving schema", "Semi-structured or hierarchical data", "Rapid development", "Horizontal scalability for reads/writes"],
+        rustikLink: "Document Databases (NoSQL)",
+        examples: "MongoDB, Firestore, Couchbase, ArangoDB"
+      },
+      {
+        category: "Key-Value Stores (NoSQL)",
+        description: "Store data as simple key-value pairs. Optimized for extremely fast reads and writes based on a unique key.",
+        considerations: ["Simple lookups by key", "Caching frequently accessed data", "Session management", "High throughput, low latency access"],
+        rustikLink: "Key-Value Stores (NoSQL)",
+        examples: "Redis, Memcached, Amazon DynamoDB (in KV mode), RocksDB"
+      },
+      {
+        category: "Wide-Column Stores (NoSQL)",
+        description: "Store data in tables, rows, and dynamic columns. Optimized for querying large datasets by column families.",
+        considerations: ["Very high write throughput", "Massive datasets (Big Data)", "Queries on specific columns over many rows", "Time-series data (sometimes)"],
+        rustikLink: "Wide-Column Stores (NoSQL)",
+        examples: "Apache Cassandra, HBase, ScyllaDB"
+      },
+      {
+        category: "Graph Databases (NoSQL)",
+        description: "Store data as nodes and relationships (edges). Optimized for traversing and querying complex relationships.",
+        considerations: ["Highly interconnected data", "Social networks", "Recommendation engines", "Fraud detection", "Knowledge graphs"],
+        rustikLink: "Graph Databases (NoSQL)",
+        examples: "Neo4j, Amazon Neptune, JanusGraph"
+      },
+      {
+        category: "Time-Series Databases (NoSQL)",
+        description: "Optimized for handling time-stamped or time-series data, like metrics, sensor data, or events.",
+        considerations: ["Monitoring and IoT data", "Financial trading data", "Real-time analytics on events over time", "High ingest rates of time-ordered data"],
+        rustikLink: "Time-Series Databases (NoSQL)",
+        examples: "InfluxDB, Prometheus (metrics backend), TimescaleDB"
+      },
+    ],
+    relevantRustikComponents: ["Database Strategies"],
+    rustikRelevanceNote: "This guide helps you contextualize the various options available under Rustik's 'Database Strategies' component. When you select a type like 'Relational (SQL) Databases' or 'Key-Value Stores (NoSQL)' in Rustik, this framework helps you understand the 'why' behind that choice based on common decision factors and use cases.",
+    discussionPoints: [
+      "Explain the CAP Theorem and its implications for database choice.",
+      "When would you choose a relational database over a NoSQL database, and vice-versa?",
+      "Discuss different consistency models (strong, eventual, causal).",
+      "How do various databases handle scalability (read scaling, write scaling, sharding)?",
+      "Trade-offs between managed database services (PaaS) vs. self-hosting (IaaS).",
+      "Specific features of certain databases that make them suitable for particular tasks (e.g., Redis for caching, Elasticsearch for search, Neo4j for graphs).",
+      "Polyglot persistence: using multiple database types in one system."
+    ]
   }
 ];
-
 
 const scalingJourneyPhases = [
   {
@@ -811,76 +958,6 @@ Core Idea: Decouple post creation from feed generation. Hybrid push (fan-out-on-
     ]
   },
   {
-    id: "unique-id-generator",
-    title: "Design a Unique ID Generator in Distributed Systems",
-    icon: Fingerprint,
-    problemStatement: "Design a service that generates unique, ideally sortable (e.g., by time), IDs at high throughput and low latency, suitable for use across a distributed system. These IDs are crucial for uniquely identifying entities like posts, users, or transactions.",
-    requirements: [
-      "Functional Requirements:",
-      "  - Generate globally unique IDs.",
-      "Non-Functional Requirements:",
-      "  - Uniqueness: IDs must be unique across all services and instances.",
-      "  - High Availability: The ID generation service must be highly available.",
-      "  - Low Latency: ID generation should be very fast.",
-      "  - Scalability: Capable of generating a high volume of IDs per second.",
-      "  - Fault Tolerance: System should continue generating IDs even if some nodes fail.",
-      "  - (Optional but desirable) Roughly Time-Sortable: IDs generated around the same time should be numerically close. This helps with DB indexing and ordering."
-    ],
-    relevantRustikComponents: [
-      "Rust App Nodes (To build the ID generation service).",
-      "Service Discovery & Control Plane (If the ID generator is a centralized service that other services discover).",
-      "Database Strategies (If using database sequences or for coordination in some ID generation schemes).",
-      "Async IO + Epoll + Tokio (For high-performance network communication if it's a service).",
-      "Autoscaling & Resilience Patterns (To ensure the ID generation service is itself scalable and resilient)."
-    ],
-    conceptualSolutionOutline: `
-Several approaches exist, each with trade-offs:
-
-1.  **UUIDs (Universally Unique Identifiers):**
-    *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
-    *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
-    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
-    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
-
-2.  **Twitter Snowflake-like Approach:**
-    *   Combines:
-        *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
-        *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
-        *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
-    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
-    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
-
-3.  **Database Auto-Increment (with care):**
-    *   Use a database's auto-increment feature.
-    *   **Single DB:** Becomes a single point of failure and write bottleneck.
-    *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
-    *   **Pros:** Simple for single DB. IDs are sortable.
-    *   **Cons:** Scalability and availability challenges in distributed setups.
-
-4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
-    *   A central service manages sequence blocks.
-    *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
-    *   App instances then use IDs from their allocated batch locally.
-    *   **Pros:** Can be highly available if the central service is robust.
-    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
-
-5.  **Custom Solutions (e.g., Flickr's ticket servers):**
-    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
-`,
-    discussionPoints: [
-      "Uniqueness guarantees vs. collision probability.",
-      "Sortability needs: Is it critical? If so, how strictly sorted?",
-      "Scalability and throughput requirements (IDs per second).",
-      "Fault tolerance and availability of the ID generation scheme.",
-      "Latency of ID generation.",
-      "Impact of clock synchronization (for timestamp-based methods like Snowflake).",
-      "Complexity of implementation and operation.",
-      "ID size and storage implications (e.g., UUIDs are larger than 64-bit integers).",
-      "Decentralized vs. centralized approaches and their trade-offs.",
-      "How to assign and manage worker IDs in Snowflake-like systems."
-    ]
-  },
-  {
     id: "web-crawler",
     title: "Design a Web Crawler",
     icon: SearchCode,
@@ -891,12 +968,12 @@ Several approaches exist, each with trade-offs:
       "  - Fetch web pages corresponding to URLs.",
       "  - Parse HTML content to extract new URLs.",
       "  - Store discovered URLs for future crawling.",
-      "  - Respect `robots.txt` exclusion rules and crawl-delay directives.",
+      "  - Respect \\\`robots.txt\\\` exclusion rules and crawl-delay directives.",
       "  - Handle various content types (HTML, PDF, images - focus on HTML for link extraction).",
       "  - (Optional) Store fetched page content.",
       "Non-Functional Requirements:",
       "  - Scalability: Ability to crawl a significant portion of the web (billions of pages).",
-      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey `robots.txt`).",
+      "  - Politeness: Avoid overloading web servers (rate limiting per domain, obey \\\`robots.txt\\\`).",
       "  - Robustness: Handle network errors, server errors, malformed HTML, and crawl traps gracefully.",
       "  - Extensibility: Allow easy addition of new modules for content processing (e.g., indexing, data extraction).",
       "  - Freshness: Ability to re-crawl pages to detect updates (not primary focus for initial design).",
@@ -907,7 +984,7 @@ Several approaches exist, each with trade-offs:
       "Async IO + Epoll + Tokio (Essential for handling thousands of concurrent HTTP requests efficiently).",
       "Shared State & Data Plane:",
       "  - Message Queues (e.g., Kafka, RabbitMQ) for the URL Frontier (queue of URLs to visit).",
-      "  - Databases for storing visited URLs, `robots.txt` rules, page metadata.",
+      "  - Databases for storing visited URLs, \\\`robots.txt\\\` rules, page metadata.",
       "Database Strategies:",
       "  - Key-Value Store (e.g., Redis, RocksDB) for managing seen URLs (bloom filter + persistent store).",
       "  - Document Store or Object Storage for storing crawled page content.",
@@ -948,11 +1025,11 @@ Several approaches exist, each with trade-offs:
 `,
     discussionPoints: [
       "Scalability: How to distribute crawl load? How to manage a massive URL frontier?",
-      "Politeness: `robots.txt` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
+      "Politeness: \\\`robots.txt\\\` parsing and adherence, crawl-delay, adaptive rate limiting per server.",
       "Crawl Traps: Detecting and avoiding spider traps (e.g., calendar links, infinitely deep paths).",
       "URL Normalization and Canonicalization: Handling relative URLs, different schemes, etc.",
       "Duplicate Content Detection: Identifying and handling identical or very similar pages.",
-      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, `robots.txt` cache, page content.",
+      "Data Storage: Choosing appropriate stores for URL frontier, seen URLs, \\\`robots.txt\\\` cache, page content.",
       "Fault Tolerance: How to handle worker failures, network errors, unresponsive servers.",
       "Freshness: Strategies for re-crawling pages to keep content updated.",
       "Managing different content types beyond HTML.",
@@ -1366,7 +1443,7 @@ export default function SystemDesignInterviewPage() {
         </div>
 
         <Accordion type="multiple" className="w-full max-w-5xl mx-auto space-y-6">
-           <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
+          <AccordionItem value="basic-piece-system-design-section" className="border border-border/70 rounded-xl shadow-lg overflow-hidden bg-card">
             <AccordionTrigger className="px-6 py-4 text-2xl font-semibold hover:no-underline bg-muted/30 hover:bg-muted/50 data-[state=open]:border-b data-[state=open]:border-border/70">
               <div className="flex items-center gap-3">
                 <Puzzle className="h-8 w-8 text-primary" />
@@ -1387,11 +1464,27 @@ export default function SystemDesignInterviewPage() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-6 space-y-5">
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
-                        <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
-                      </div>
-                      {question.purpose && (
+                      {question.problemStatement && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.problemStatement}</p>
+                        </div>
+                      )}
+                      {question.explanation && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Explanation:</h5>
+                          <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
+                        </div>
+                      )}
+                      {question.requirements && question.requirements.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
+                            {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                       {question.purpose && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Purpose:</h5>
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.purpose}</p>
@@ -1453,6 +1546,41 @@ export default function SystemDesignInterviewPage() {
                          <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Trade-offs:</h5>
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.tradeOffs}</p>
+                        </div>
+                      )}
+                       {question.decisionFactors && question.decisionFactors.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Key Decision Factors:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.decisionFactors.map((factor, index) => (
+                              <li key={`factor-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: factor.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground/90">$1</strong>') }} />
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                       {question.databaseTypeGuidance && question.databaseTypeGuidance.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-2.5 mt-3">Database Type Guidance:</h5>
+                          <div className="space-y-3">
+                            {question.databaseTypeGuidance.map((dbType, index) => (
+                              <Card key={`db-type-${question.id}-${index}`} className="bg-muted/30 p-3 border-border/50 shadow-sm">
+                                <CardHeader className="p-0 pb-1.5">
+                                  <CardTitle className="text-sm font-semibold text-primary">{dbType.category}</CardTitle>
+                                  <CardDescription className="text-xs">{dbType.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-0 text-xs space-y-1">
+                                  <div>
+                                    <strong className="text-foreground/80">Considerations/Use Cases:</strong>
+                                    <ul className="list-disc list-inside pl-3 space-y-0.5 text-foreground/70">
+                                      {dbType.considerations.map((con, cIdx) => <li key={`con-${question.id}-${index}-${cIdx}`}>{con}</li>)}
+                                    </ul>
+                                  </div>
+                                  <p><strong className="text-foreground/80">Rustik Component Link:</strong> <span className="italic">{dbType.rustikLink}</span></p>
+                                  <p><strong className="text-foreground/80">Examples:</strong> {dbType.examples}</p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
                         </div>
                       )}
                       {question.examples && question.examples.length > 0 && (
@@ -1517,6 +1645,12 @@ export default function SystemDesignInterviewPage() {
                           </ul>
                         </div>
                       )}
+                      {question.conceptualSolutionOutline && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
+                          <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
+                        </div>
+                      )}
                       <div>
                         <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
                          <div className="flex flex-wrap gap-1.5">
@@ -1552,8 +1686,8 @@ export default function SystemDesignInterviewPage() {
             </AccordionTrigger>
             <AccordionContent className="p-6 space-y-8">
               <Accordion type="multiple" className="w-full space-y-6">
-                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
-                   <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                <AccordionItem value="scaling-journey-item" className="border-none p-0">
+                   <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
                     <div className="flex items-center gap-3">
                       <TrendingUp className="h-7 w-7" />
                       Understanding the Scaling Journey: 0 to Millions of Users
@@ -1562,7 +1696,7 @@ export default function SystemDesignInterviewPage() {
                   <AccordionContent className="pb-0 pl-1 pr-1">
                     <Card className="shadow-md rounded-lg border-none bg-transparent">
                       <CardHeader className="pb-2 pt-0 px-0">
-                        <CardDescription className="text-xs text-muted-foreground pt-1">
+                        <CardDescription className="text-sm text-muted-foreground pt-1">
                           Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
                         </CardDescription>
                       </CardHeader>
@@ -1630,7 +1764,7 @@ export default function SystemDesignInterviewPage() {
                 </AccordionItem>
 
                 <AccordionItem value="framework-item" className="border-none p-0">
-                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
                      <div className="flex items-center gap-3">
                         <systemDesignFramework.icon className="h-7 w-7" />
                         {systemDesignFramework.title}
@@ -1639,7 +1773,7 @@ export default function SystemDesignInterviewPage() {
                   <AccordionContent className="pb-0 pl-1 pr-1">
                     <Card className="shadow-md rounded-lg border-none bg-transparent">
                        <CardHeader className="pb-2 pt-0 px-0">
-                         <CardDescription className="text-xs text-muted-foreground pt-1 whitespace-pre-line">
+                         <CardDescription className="text-sm text-muted-foreground pt-1 whitespace-pre-line">
                           {systemDesignFramework.introduction}
                         </CardDescription>
                       </CardHeader>
@@ -1658,7 +1792,7 @@ export default function SystemDesignInterviewPage() {
                 </AccordionItem>
 
                 <AccordionItem value="common-questions-item" className="border-none p-0">
-                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
                      <div className="flex items-center gap-3">
                         <HelpCircle className="h-7 w-7" />
                         Common System Design Questions
@@ -1677,7 +1811,7 @@ export default function SystemDesignInterviewPage() {
                           <AccordionContent className="p-6 space-y-5">
                             <div>
                               <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
-                              <p className="text-sm text-foreground/80">{question.problemStatement}</p>
+                              <p className="text-sm text-foreground/80 whitespace-pre-line">{question.problemStatement}</p>
                             </div>
                             <div>
                               <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
