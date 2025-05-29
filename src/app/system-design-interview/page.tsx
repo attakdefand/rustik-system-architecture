@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   Brain, Lightbulb, Users, LinkIcon, Newspaper, Server as ServerIcon, Database as DatabaseIcon, Network, Scaling, Shield, Layers, HelpCircle, Car, TrendingUp,
   WorkflowIcon, ClipboardList, Gauge, Shuffle, DatabaseZap, ListChecks, Fingerprint, SearchCode, BellRing, MessageSquarePlus, Type,
-  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, Bird, Cpu
+  Youtube, FolderGit2, Puzzle, CloudCog, Info, Landmark, BarChart3, ChevronsUp, Beaker, ActivitySquare, LockKeyhole, CloudLightning, Binary, FunctionSquare, PackageSearch, KeyRound, ShieldCheck, Lock, GraduationCap, Bird, Cpu, FilePen
 } from 'lucide-react';
 import type React from 'react';
 
@@ -20,6 +20,7 @@ interface InterviewQuestion {
   relevantRustikComponents: string[];
   conceptualSolutionOutline: string;
   discussionPoints: string[];
+  rustikRelevanceNote?: string;
 }
 
 interface BasicInterviewQuestion {
@@ -50,6 +51,7 @@ interface BasicInterviewQuestion {
   problemStatement?: string;
   requirements?: string[];
   conceptualSolutionOutline?: string;
+  discussionPoints?: string[];
   // New fields for database guide
   decisionFactors?: string[];
   databaseTypeGuidance?: Array<{ category: string; description: string; considerations: string[]; rustikLink: string; examples: string; }>;
@@ -176,7 +178,7 @@ const scalingJourneyPhases = [
 ];
 
 const basicDesignQuestions: BasicInterviewQuestion[] = [
-  {
+   {
     id: "unique-id-generator",
     title: "Design a Unique ID Generator in Distributed Systems",
     icon: Fingerprint,
@@ -205,33 +207,30 @@ Several approaches exist, each with trade-offs:
 1.  **UUIDs (Universally Unique Identifiers):**
     *   **UUID v1 (Time-based):** Combines timestamp, clock sequence, and MAC address. Roughly sortable by time. Potential MAC address privacy concerns (though often randomized).
     *   **UUID v4 (Random):** 122 bits of randomness. Extremely low collision probability. Not sortable by time.
-    *   **Pros:** Simple to generate in a decentralized way (no coordination needed).
-    *   **Cons:** Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
+    *   Pros: Simple to generate in a decentralized way (no coordination needed).
+    *   Cons: Can be long (128 bits / 36 chars with hyphens). V4 not sortable.
 
 2.  **Twitter Snowflake-like Approach:**
     *   Combines:
         *   Timestamp (e.g., milliseconds since a custom epoch) - 41 bits.
         *   Worker/Machine ID (datacenter ID + worker ID) - 10 bits.
         *   Sequence Number (per worker, per millisecond, resets every ms) - 12 bits.
-    *   **Pros:** Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
-    *   **Cons:** Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
+    *   Pros: Globally unique, roughly time-sortable. Compact (64-bit integer). High throughput.
+    *   Cons: Requires careful management of worker IDs. Sensitive to clock skew between machines (NTP synchronization is critical).
 
 3.  **Database Auto-Increment (with care):**
     *   Use a database's auto-increment feature.
     *   **Single DB:** Becomes a single point of failure and write bottleneck.
     *   **Multiple DBs (sharded):** Can use different offsets/increments per shard (e.g., server 1 generates 1, 3, 5...; server 2 generates 2, 4, 6...). More complex to manage.
-    *   **Pros:** Simple for single DB. IDs are sortable.
-    *   **Cons:** Scalability and availability challenges in distributed setups.
+    *   Pros: Simple for single DB. IDs are sortable.
+    *   Cons: Scalability and availability challenges in distributed setups.
 
 4.  **Centralized ID Service with Batching (e.g., using ZooKeeper/etcd/Redis):**
     *   A central service manages sequence blocks.
     *   Application instances request a batch of IDs (e.g., 1000 IDs) from this service.
     *   App instances then use IDs from their allocated batch locally.
-    *   **Pros:** Can be highly available if the central service is robust.
-    *   **Cons:** Latency to fetch batches. Central service can be a bottleneck if not designed well.
-
-5.  **Custom Solutions (e.g., Flickr's ticket servers):**
-    *   Often involve dedicated servers that hand out unique IDs, sometimes using database-backed sequences with careful replication and failover.
+    *   Pros: Can be highly available if the central service is robust.
+    *   Cons: Latency to fetch batches. Central service can be a bottleneck if not designed well.
 `,
     discussionPoints: [
       "Uniqueness guarantees vs. collision probability.",
@@ -264,7 +263,7 @@ Several approaches exist, each with trade-offs:
     ],
     tradeOffs: "There is a fundamental trade-off: higher isolation levels provide stronger data consistency and prevent more concurrency issues, but they typically reduce concurrency and can negatively impact performance due to increased locking or versioning overhead.",
     relevantRustikComponents: ["Database Strategies"],
-    rustikRelevanceNote: "Understanding database isolation levels is crucial when selecting or configuring any of Rustik's 'Database Strategies'. For example, choosing a Relational DB type implies needing to decide on an appropriate isolation level (like Read Committed or Serializable) which directly impacts data consistency and performance. Similarly, when using Read Replicas, the primary's isolation level and replication mechanism influence the data seen by replicas. Even with NoSQL options, understanding isolation principles helps evaluate their different consistency models.",
+    rustikRelevanceNote: "Understanding database isolation levels is crucial when selecting or configuring any of Rustik's 'Database Strategies'. For example, choosing a 'Relational (SQL) Databases' type implies needing to decide on an appropriate isolation level which directly impacts data consistency and performance. Similarly, when using 'Read Replicas for Read Scalability', the primary's isolation level and replication mechanism influence the data seen by replicas. Even with NoSQL options, understanding isolation principles helps evaluate their different consistency models.",
     discussionPoints: [
       "Why are isolation levels important in concurrent systems?",
       "Explain each standard isolation level and the phenomena it prevents.",
@@ -318,7 +317,7 @@ Several approaches exist, each with trade-offs:
       "Deployment & CI/CD (Workflow differs based on IaaS/PaaS target)",
       "Autoscaling & Resilience Patterns (Provider-managed features in PaaS vs. self-configured in IaaS)"
     ],
-    rustikRelevanceNote: "Understanding IaaS, PaaS, and SaaS is fundamental because your choice of cloud service model significantly impacts how you'd implement, deploy, and manage many of Rustik's architectural components. For instance, 'Containerized Rust App Nodes' can be deployed on IaaS (e.g., running Kubernetes on your own VMs) or on a PaaS (e.g., Google Kubernetes Engine, AWS ECS/EKS, or simpler platforms like Cloud Run). Similarly, 'Database Strategies' might involve self-hosting a database on IaaS or using a managed PaaS database service. This choice affects operational overhead, scalability control, cost, and development speed.",
+    rustikRelevanceNote: "Understanding IaaS, PaaS, and SaaS is fundamental because your choice of cloud service model significantly impacts how you'd implement, deploy, and manage many of Rustik's architectural components. For instance, 'Rust App Nodes (Containerized)' can be deployed on IaaS (e.g., running Kubernetes on your own VMs) or on a PaaS (e.g., Google Kubernetes Engine, AWS ECS/EKS). Similarly, 'Database Strategies' might involve self-hosting a database on IaaS or using a managed PaaS database service. This choice affects operational overhead, scalability control, cost, and development speed.",
     discussionPoints: [
       "Define IaaS, PaaS, SaaS and give examples of each.",
       "Explain the shared responsibility model for each (who manages what).",
@@ -345,15 +344,15 @@ Several approaches exist, each with trade-offs:
       "Biometric Authentication: Using fingerprints, facial recognition for enhanced security.",
     ],
     architecturalConsiderations: [
-      "Scalability & Performance: 'Async IO + Epoll + Tokio' and 'Rust App Nodes' for handling high transaction volumes. 'Load Balancers' for distribution.",
-      "Security: 'Security Architecture Principles' are paramount (encryption, IAM, fraud detection layers). 'API Gateway' for secure exposure of payment APIs.",
-      "Modularity & Extensibility: 'Microservices Architecture' to easily integrate new payment methods, compliance modules, or fraud systems.",
-      "Data Management: 'Database Strategies' for robust, auditable transaction logs (potentially Event Sourcing), and managing user payment preferences securely. 'Observability & Ops' for monitoring real-time transaction health and fraud patterns.",
-      "Interoperability: 'API Design Styles & Protocols' to ensure systems can communicate with diverse payment networks and financial institutions.",
-      "Resilience: 'Autoscaling & Resilience Patterns' to ensure payment systems are always available."
+      "Scalability & Performance: 'Rust App Nodes' and 'Async IO + Epoll + Tokio' for high transaction volumes. 'Load Balancers' for distribution.",
+      "Security: 'Security Architecture Principles' are paramount. 'API Gateway' for secure API exposure.",
+      "Modularity & Extensibility: 'Microservices Architecture' to easily integrate new payment methods.",
+      "Data Management: 'Database Strategies' for robust transaction logs. 'Observability & Ops' for monitoring.",
+      "Interoperability: 'API Design Styles & Protocols' for communication with diverse payment networks.",
+      "Resilience: 'Autoscaling & Resilience Patterns' for high availability."
     ],
     relevantRustikComponents: ["API Design Styles & Protocols", "Microservices Architecture", "Security Architecture Principles", "Database Strategies", "Async IO + Epoll + Tokio", "Observability & Ops", "Autoscaling & Resilience Patterns"],
-    rustikRelevanceNote: `Building systems for the future of payments requires leveraging several Rustik architectural concepts to address the demands of new technologies like crypto, CBDCs, and RTP, while ensuring security, scalability, and interoperability.`,
+    rustikRelevanceNote: `Building systems for the future of payments requires leveraging several Rustik architectural concepts to address the demands of new technologies like crypto, CBDCs, and RTP, while ensuring security, scalability, and interoperability. For example, the high throughput and low latency needed for RTP can be supported by 'Rust App Nodes' using 'Async IO', while 'Microservices Architecture' allows for flexible integration of new payment methods.`,
     discussionPoints: [
       "The impact of evolving regulations on new payment technologies (e.g., crypto, CBDCs).",
       "Security and privacy challenges associated with digital currencies and real-time payment data.",
@@ -379,28 +378,24 @@ Several approaches exist, each with trade-offs:
 Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer for identity).`,
     benefits: [
       "Improved User Experience: Users only need to remember one set of credentials and log in once to access multiple applications.",
-      "Enhanced Security: Centralizes authentication, making it easier to enforce strong password policies, multi-factor authentication (MFA), and monitor login activity. Reduces password fatigue, which can lead to users choosing weaker or reused passwords.",
+      "Enhanced Security: Centralizes authentication, making it easier to enforce strong password policies, multi-factor authentication (MFA), and monitor login activity. Reduces password fatigue.",
       "Simplified Administration: Central user account management. Easier to provision/deprovision user access across multiple applications.",
       "Reduced Helpdesk Calls: Fewer password reset requests."
     ],
     challenges: [
       "IdP as a Single Point of Failure: If the IdP is unavailable, users may not be able to log in to any integrated applications.",
       "IdP as a High-Value Target: A compromised IdP can grant attackers access to multiple systems.",
-      "Complexity of Setup: Integrating applications with an SSO system, especially with protocols like SAML, can be complex.",
+      "Complexity of Setup: Integrating applications with an SSO system can be complex.",
       "Reliance on IdP Security: The security of all connected applications heavily depends on the security of the IdP.",
       "Session Management: Ensuring secure logout across all applications (single log-out) can be tricky."
     ],
-    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Microservices Architecture", "Rust App Nodes"],
-    rustikRelevanceNote: `Understanding SSO is vital when architecting systems.
-- **Security Architecture Principles**: SSO is a core pattern for robust Identity and Access Management (IAM).
-- **API Gateway**: Often acts as the enforcement point for authentication, integrating with an IdP to validate SSO tokens before requests reach backend microservices.
-- **Microservices Architecture**: In a distributed system, SSO provides a consistent authentication mechanism across all services. Instead of each microservice implementing its own authentication, they delegate to or trust tokens validated by a central component (like an API Gateway or a dedicated AuthN/AuthZ service) that handles SSO.
-- **Rust App Nodes**: Individual services (Rust App Nodes) in a microservices setup would either be configured as Service Providers themselves or, more commonly, be protected by an API Gateway that handles the SSO token validation and passes user identity information downstream.`,
+    relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Microservices Architecture"],
+    rustikRelevanceNote: `Understanding SSO is vital. 'Security Architecture Principles' include robust IAM, where SSO is a core pattern. An 'API Gateway' often acts as the enforcement point, integrating with an IdP. In a 'Microservices Architecture', SSO provides consistent authentication across services, typically via the gateway or a dedicated auth service. 'Rust App Nodes' would either be configured as SPs or be protected by a gateway handling SSO.`,
     discussionPoints: [
       "Key differences between SAML, OAuth 2.0, and OpenID Connect (OIDC) in the context of SSO.",
       "IdP-initiated vs. SP-initiated SSO flows.",
       "Security implications and best practices for implementing or integrating with SSO.",
-      "Common SSO providers (e.g., Okta, Auth0, Azure AD, Keycloak, Ping Identity).",
+      "Common SSO providers (e.g., Okta, Auth0, Azure AD, Keycloak).",
       "How does MFA fit into an SSO strategy?",
       "Session management challenges in SSO (e.g., single log-out).",
       "Just-In-Time (JIT) provisioning of user accounts in SPs based on IdP assertions."
@@ -412,22 +407,22 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
     icon: ShieldCheck,
     explanation: "Storing passwords directly in plaintext in a database is a severe security vulnerability. If the database is compromised, all user passwords become exposed. The standard best practice is to store password hashes, not the passwords themselves.",
     keyConcepts: [
-      "Hashing: A one-way cryptographic function that transforms input data (password) into a fixed-size string of characters (the hash). It's computationally infeasible to reverse the hash to get the original password.",
-      "Strong Hashing Algorithms: Use modern, robust algorithms designed for password hashing, such as Argon2 (current recommendation), scrypt, bcrypt, or PBKDF2. Avoid outdated algorithms like MD5 or SHA-1.",
-      "Salting: A unique, randomly generated string (the salt) is added to each user's password before hashing. This salt is then stored alongside the hashed password (e.g., in the same database row). Salting prevents attackers from using pre-computed rainbow tables for common passwords, as each password+salt combination will produce a unique hash.",
-      "Iterative Hashing (Work Factor / Cost Factor): The hashing algorithm should be run multiple times (iterations) or configured with a work/cost factor to make it computationally expensive and slow. This significantly hinders brute-force and dictionary attacks, as attackers need more time and resources for each guess.",
-      "Peppering (Optional): A system-wide secret (the pepper) can be added to the password (or hash) before final storage. Unlike salts, the pepper is not stored with the user's data but kept secure in application configuration or a secret manager. It adds another layer of protection if the database (including salts) is compromised, but its management can be complex."
+      "**Hashing**: A one-way cryptographic function that transforms input data (password) into a fixed-size string of characters (the hash). It's computationally infeasible to reverse the hash to get the original password.",
+      "**Strong Hashing Algorithms**: Use modern, robust algorithms designed for password hashing, such as Argon2 (current recommendation), scrypt, bcrypt, or PBKDF2. Avoid outdated algorithms like MD5 or SHA-1.",
+      "**Salting**: A unique, randomly generated string (the salt) is added to each user's password *before* hashing. This salt is then stored alongside the hashed password. Salting prevents attackers from using pre-computed rainbow tables for common passwords.",
+      "**Iterative Hashing (Work Factor / Cost Factor)**: The hashing algorithm should be run multiple times (iterations) or configured with a work/cost factor to make it computationally expensive and slow. This significantly hinders brute-force and dictionary attacks.",
+      "**Peppering (Optional)**: A system-wide secret (the pepper) can be added to the password (or hash) before final storage. The pepper is not stored with user data but kept secure in application configuration or a secret manager."
     ],
     verificationProcess: `During login:
-1.  The user submits their password.
+1.  User submits their password.
 2.  Retrieve the user's stored salt from the database.
 3.  Combine the submitted password with the retrieved salt.
 4.  Hash the combined password+salt using the same hashing algorithm and work factor as when the password was originally stored.
 5.  Compare the newly generated hash with the hash stored in the database.
 6.  If they match, the password is correct. If not, it's incorrect.`,
     whyNotEncryption: "Encryption is a two-way process; encrypted data can be decrypted back to its original form using the correct key. If an attacker gains access to the encryption key, they can decrypt all passwords. Hashing is one-way, making it impossible to recover the original password from the hash, which is much safer for password storage.",
-    relevantRustikComponents: ["Security Architecture Principles", "Database Strategies", "Rust App Nodes"],
-    rustikRelevanceNote: "Secure password storage is a fundamental aspect of the 'Security Architecture Principles' component. Any system built with Rustik components that handles user accounts (e.g., a User Service within a 'Microservices Architecture' or any application running on 'Rust App Nodes' that authenticates users) must implement these best practices. 'Database Strategies' are also relevant, as the chosen database will store these hashed passwords and salts.",
+    relevantRustikComponents: ["Security Architecture Principles", "Database Strategies"],
+    rustikRelevanceNote: "Secure password storage is a fundamental aspect of 'Security Architecture Principles'. Any system built with Rustik components that handles user accounts (e.g., within a 'Microservices Architecture' or on 'Rust App Nodes') must implement these best practices. The chosen 'Database Strategies' will store these hashed passwords and salts.",
     discussionPoints: [
       "Which hashing algorithms are currently considered secure and why?",
       "How should salts be generated and stored?",
@@ -443,66 +438,59 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
     id: "httpsso-how-it-works",
     title: "How does HTTPS work?",
     icon: Lock,
-    explanation: "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between your browser and the website that you are connected to. The 'S' at the end of HTTPS stands for 'Secure'. It means all communications between your browser and the website are encrypted. HTTPS is used to protect the privacy and integrity of the exchanged data.",
+    explanation: "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP. It means all communications between your browser and the website are encrypted. HTTPS protects the privacy and integrity of exchanged data.",
     purpose: `The primary goals of HTTPS are:
-  - **Encryption**: To ensure that the data exchanged between the client and the server is unreadable to anyone who might intercept it. This provides confidentiality.
+  - **Encryption**: To ensure that the data exchanged between the client and the server is unreadable to anyone who might intercept it (confidentiality).
   - **Authentication**: To verify that the client is communicating with the legitimate server it intends to connect to (preventing impersonation).
   - **Integrity**: To ensure that the data has not been tampered with during transit.`,
-    keyStepsInHandshake: `The security is provided by SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols. Here's a simplified overview of the TLS handshake:
-  1.  **Client Hello**: The client (e.g., your browser) initiates the handshake by sending a "ClientHello" message to the server. This message includes the TLS versions the client supports, a list of supported cipher suites (encryption algorithms), and a random string of bytes known as the "client random".
-  2.  **Server Hello**: The server responds with a "ServerHello" message. This message includes the server's chosen TLS version, the selected cipher suite from the client's list, the server's digital certificate, and another random string of bytes known as the "server random". The certificate contains the server's public key and is signed by a trusted Certificate Authority (CA).
-  3.  **Client Verification & Key Exchange**:
-      *   The client verifies the server's certificate (checking if it's issued by a trusted CA, not expired, and matches the domain).
-      *   The client generates a "pre-master secret" (a random string of bytes). It encrypts this pre-master secret with the server's public key (obtained from the server's certificate) and sends it to the server.
-  4.  **Server Decryption & Session Key Generation**:
-      *   The server uses its private key to decrypt the pre-master secret sent by the client.
-      *   Both the client and the server now use the client random, server random, and the pre-master secret to independently generate the same symmetric "session keys". These session keys will be used for encrypting and decrypting the actual application data.
-  5.  **Secure Communication Established**:
-      *   The client sends a "Finished" message, encrypted with the session key, indicating it's ready for secure communication.
-      *   The server sends its own "Finished" message, also encrypted with the session key.
-      *   The handshake is complete, and all subsequent HTTP data exchanged between the client and server is encrypted using the agreed-upon session keys.`,
+    keyStepsInHandshake: `The security is provided by SSL/TLS (Secure Sockets Layer/Transport Layer Security) protocols. Simplified TLS handshake:
+  1.  **Client Hello**: Client sends supported TLS versions, cipher suites, and a "client random" string.
+  2.  **Server Hello**: Server responds with chosen TLS version, cipher suite, its digital certificate (containing its public key, signed by a trusted Certificate Authority - CA), and a "server random" string.
+  3.  **Client Verification & Key Exchange**: Client verifies server's certificate. Generates a "pre-master secret", encrypts it with the server's public key, and sends it to the server.
+  4.  **Server Decryption & Session Key Generation**: Server uses its private key to decrypt the pre-master secret. Both client and server now independently generate the same symmetric "session keys" using the client random, server random, and pre-master secret.
+  5.  **Secure Communication Established**: Client and server send "Finished" messages, encrypted with the session key. All subsequent HTTP data is encrypted using these session keys.`,
     relevantRustikComponents: ["Security Architecture Principles", "API Gateway", "Load Balancer(s)", "Rust App Nodes"],
-    rustikRelevanceNote: "HTTPS is fundamental to the 'Security Architecture Principles', ensuring data in transit is protected. 'API Gateway' and 'Load Balancers' (especially Layer-7) often handle TLS termination, managing certificates and offloading encryption from backend 'Rust App Nodes'. Any Rustik component involved in web communication should enforce or operate behind HTTPS.",
+    rustikRelevanceNote: "HTTPS is fundamental to 'Security Architecture Principles'. 'API Gateway' and 'Load Balancers' (especially Layer-7) often handle TLS termination, managing certificates and offloading encryption from backend 'Rust App Nodes'. Any Rustik component involved in web communication should enforce or operate behind HTTPS.",
     discussionPoints: [
-      "What is the difference between HTTP and HTTPS?",
-      "Explain the role of SSL/TLS in HTTPS.",
-      "What are digital certificates and Certificate Authorities (CAs)? How does certificate validation work?",
-      "Describe the main steps of the TLS handshake.",
-      "What is symmetric vs. asymmetric encryption, and how are they used in HTTPS?",
+      "Difference between HTTP and HTTPS.",
+      "Role of SSL/TLS.",
+      "Digital certificates and Certificate Authorities (CAs). How certificate validation works.",
+      "Main steps of the TLS handshake.",
+      "Symmetric vs. Asymmetric encryption and their roles in HTTPS.",
       "What are cipher suites?",
-      "Are there any performance implications of using HTTPS? (Generally minimal with modern hardware).",
-      "How does HTTPS help prevent Man-in-the-Middle (MITM) attacks?",
-      "What is HTTP Strict Transport Security (HSTS)?",
-      "Discuss different TLS versions (e.g., TLS 1.2, TLS 1.3) and their improvements."
+      "Performance implications of HTTPS (generally minimal with modern hardware).",
+      "How HTTPS helps prevent Man-in-the-Middle (MITM) attacks.",
+      "HTTP Strict Transport Security (HSTS).",
+      "TLS versions (e.g., TLS 1.2, TLS 1.3) and their improvements."
     ]
   },
   {
     id: "how-to-learn-design-patterns",
     title: "How to Learn Design Patterns (e.g., GoF, Architectural Patterns)?",
     icon: GraduationCap,
-    explanation: `Design patterns are general, reusable solutions to commonly occurring problems within a given context in software design. It's crucial to distinguish between:
-- **Software Design Patterns (e.g., Gang of Four - GoF)**: These address specific problems in the design of software at the class and object level. They focus on object creation, composition, and interaction (e.g., Factory, Singleton, Observer, Strategy).
-- **Architectural Patterns**: These are higher-level patterns that describe fundamental structural organization schemas for software systems. They define subsystems, their responsibilities, and rules/guidelines for their relationships (e.g., Microservices, Event-Driven Architecture, Layered Architecture).`,
+    explanation: `Design patterns are general, reusable solutions to commonly occurring problems within a given context. It's crucial to distinguish between:
+- **Software Design Patterns (e.g., Gang of Four - GoF)**: These address specific problems in the design of software at the class and object level (e.g., Factory, Singleton, Observer).
+- **Architectural Patterns**: These are higher-level patterns that describe fundamental structural organization schemas for software systems (e.g., Microservices, Event-Driven Architecture).`,
     learningStrategies: [
-      "**Books & Resources**: Start with foundational texts like 'Design Patterns: Elements of Reusable Object-Oriented Software' (GoF) for software patterns. For architectural patterns, explore books and articles on cloud patterns, microservices, domain-driven design, and system design principles.",
-      "**Understand the Problem First**: Don't just memorize pattern structures. Focus on the specific problem each pattern is trying to solve and the context in which it's applicable.",
-      "**Practical Application**: Implement simple examples of patterns in a programming language you are comfortable with. This solidifies understanding far more than just reading.",
-      "**Study Real Code**: Look for patterns in well-regarded open-source projects or in your workplace's production codebases. Analyze how and why they were used.",
-      "**Relate to Your Experience**: Think about problems you've faced in past projects and consider if a design pattern could have provided a better solution.",
-      "**Discuss and Teach**: Explaining a pattern to someone else is a great way to test and deepen your own understanding.",
-      "**Start Simple, Then Go Deeper**: Begin with more common and easily understood patterns before tackling more complex or niche ones.",
-      "**Context is Key**: Understand that patterns are not silver bullets. Always consider the trade-offs and whether a pattern truly fits the problem at hand or might lead to over-engineering."
+      "**Books & Resources**: Start with foundational texts like 'Design Patterns: Elements of Reusable Object-Oriented Software' (GoF). Explore resources on cloud patterns, microservices for architectural patterns.",
+      "**Understand the Problem First**: Focus on the problem each pattern solves and its context.",
+      "**Practical Application**: Implement simple examples in a programming language you know.",
+      "**Study Real Code**: Look for patterns in open-source projects or production codebases.",
+      "**Relate to Your Experience**: Think about past problems and if a pattern could have helped.",
+      "**Discuss and Teach**: Explaining patterns solidifies your understanding.",
+      "**Start Simple**: Begin with common patterns before tackling complex ones.",
+      "**Context is Key**: Patterns are not silver bullets; consider trade-offs and avoid over-engineering."
     ],
-    relevantRustikComponents: ["Application Design Principles for Scale", "Microservices Architecture", "Database Strategies", "API Design Styles & Protocols", "All other architectural components"],
-    rustikRelevanceNote: `Rustik itself is an excellent tool for learning about various **architectural patterns and components**. By exploring components like 'Microservices Architecture,' 'Load Balancers,' 'API Gateway,' etc., you are learning about common high-level solutions for system structure and behavior. The 'Application Design Principles for Scale' component explicitly mentions the importance of using established **software design patterns** (like GoF) for implementing the internal logic of the services built using Rustik's architectural blocks. The System Design Interview Prep page further helps by showing how these architectural patterns and components combine to solve common design problems. Effective system design requires a grasp of both architectural patterns (for the big picture) and software design patterns (for building the individual services within that architecture).`,
+    relevantRustikComponents: ["Application Design Principles for Scale", "Microservices Architecture", "API Design Styles & Protocols", "All other architectural components"],
+    rustikRelevanceNote: `Rustik is excellent for learning about **architectural patterns** (e.g., 'Microservices Architecture,' 'Load Balancers'). The 'Application Design Principles for Scale' component in Rustik also highlights the importance of using **software design patterns** (like GoF) for the internal logic of services. The System Design Interview Prep page further shows how these patterns combine. Effective system design requires a grasp of both.`,
     discussionPoints: [
-      "What is the difference between an architectural pattern and a software design pattern?",
-      "Can you describe a software design pattern you have used or find particularly useful? What problem did it solve?",
-      "Can you describe an architectural pattern and discuss its trade-offs?",
-      "When might applying a design pattern be a bad idea (i.e., lead to over-engineering)?",
-      "How do design patterns contribute to code quality attributes like maintainability, reusability, and flexibility?",
-      "What resources (books, websites, courses) have you found most helpful for learning design patterns?",
-      "How do you decide which pattern to apply to a given problem?"
+      "Difference between architectural and software design patterns?",
+      "Describe a software design pattern you've used. What problem did it solve?",
+      "Describe an architectural pattern and its trade-offs.",
+      "When might applying a design pattern be a bad idea (over-engineering)?",
+      "How do design patterns contribute to code quality (maintainability, reusability)?",
+      "Helpful resources for learning design patterns?",
+      "How do you decide which pattern to apply?"
     ]
   },
   {
@@ -606,7 +594,7 @@ Common Protocols: SAML 2.0, OAuth 2.0 (often with OpenID Connect - OIDC layer fo
       "Observability & Ops",
       "Network Infrastructure Strategies (CDNs for media)"
     ],
-    rustikRelevanceNote: "Rustik's architectural components provide the conceptual building blocks for a system like Twitter. 'Microservices Architecture' allows breaking down the platform into manageable services (tweets, users, timelines, search). Various 'Database Strategies' are employed – typically NoSQL solutions for tweet storage due to high write volume and flexible schema, graph databases for the social connections, and in-memory key-value stores like Redis for caching pre-computed timelines. 'Caching Strategies' are vital at every layer. 'Shared State & Data Plane' (using message queues like Kafka) is crucial for asynchronous tweet processing and the fan-out mechanism to deliver tweets to follower timelines. While Rustik outlines these components, the specific choice of database technologies, custom algorithms for feed ranking, and handling extreme scale (like the 'celebrity problem') involve deep, specialized engineering.",
+    rustikRelevanceNote: "Rustik's architectural components provide the conceptual building blocks for a system like Twitter. 'Microservices Architecture' allows breaking down the platform into manageable services (tweets, users, timelines, search). Various 'Database Strategies' are employed. 'Caching Strategies' are vital. 'Shared State & Data Plane' (using message queues) is crucial for asynchronous tweet processing and fan-out. While Rustik outlines these, the specific choice of database technologies and extreme scale handling involve deep engineering.",
     discussionPoints: [
       "Fan-out on write vs. fan-out on read strategies for timeline generation.",
       "Database choices for tweets, user data, social graph, and timelines. Pros and cons.",
@@ -644,22 +632,90 @@ A **Thread** is the smallest unit of execution within a process. A process can h
       "Microservices Architecture"
     ],
     rustikRelevanceNote: `Understanding process and thread models is fundamental for designing efficient Rust applications.
-- **Rust App Nodes**: A Rust application node runs as a process. Within this process, especially when using libraries like Tokio for asynchronous programming, multiple threads (or a thread pool managed by Tokio) are used to handle concurrent operations efficiently without blocking.
-- **Async IO + Epoll + Tokio**: Tokio's runtime leverages a multi-threaded scheduler to execute asynchronous tasks. Your \`async fn\`s are broken down into smaller tasks that can be run on any available thread in the pool, allowing for high concurrency with fewer OS threads than a traditional thread-per-connection model.
-- **Per-core Socket Accept + Sharding**: This pattern can be implemented using multiple processes (each binding to the same port with SO_REUSEPORT, thus each is an OS process) or a single process with multiple threads, where each thread is responsible for a subset of connections or is pinned to a CPU core.
-- **Microservices Architecture**: Each microservice is typically deployed as an independent OS process (often within its own container). The isolation provided by processes is a key benefit of this architecture.`,
+- **Rust App Nodes**: A Rust application node runs as a process. Within this process, especially when using libraries like Tokio for asynchronous programming, multiple threads (or a thread pool managed by Tokio) are used to handle concurrent operations efficiently.
+- **Async IO + Epoll + Tokio**: Tokio's runtime leverages a multi-threaded scheduler to execute asynchronous tasks.
+- **Per-core Socket Accept + Sharding**: This pattern can be implemented using multiple processes or a single process with multiple threads.
+- **Microservices Architecture**: Each microservice is typically deployed as an independent OS process.`,
     discussionPoints: [
       "Advantages and disadvantages of multi-processing versus multi-threading.",
       "What is context switching, and how does its overhead compare?",
       "Define concurrency and parallelism. How do processes/threads relate?",
       "What are race conditions and deadlocks in multi-threaded environments? How can they be prevented?",
-      "Common use cases for multi-processing (e.g., leveraging multiple CPU cores for CPU-bound tasks, fault isolation for unrelated tasks).",
-      "Common use cases for multi-threading (e.g., responsive UIs, I/O-bound tasks in a server, parallel processing of tasks within a single application).",
+      "Common use cases for multi-processing and multi-threading.",
       "How do operating systems manage and schedule processes and threads?",
       "User-level threads vs. kernel-level threads."
     ]
-  }
+  },
+  {
+    id: "google-docs-design",
+    title: "Design Google Docs (A Real-time Collaborative Editor)",
+    icon: FilePen,
+    problemStatement: "Design a system that allows multiple users to edit a document concurrently in real-time, with changes visible to all collaborators almost instantly. The system should support rich text formatting, version history, and sharing capabilities.",
+    requirements: [
+      "Functional Requirements:",
+      "  - Real-time collaborative editing by multiple users.",
+      "  - Rich text formatting (bold, italics, lists, headings, etc.).",
+      "  - Document saving and loading.",
+      "  - Version history and ability to restore previous versions.",
+      "  - Sharing documents with other users with different permission levels (view, comment, edit).",
+      "  - (Optional) Real-time cursors and selection highlighting for collaborators.",
+      "  - (Optional) Commenting functionality.",
+      "Non-Functional Requirements:",
+      "  - Low Latency: Edits should appear for other collaborators almost instantaneously.",
+      "  - High Availability: The service must be reliably available.",
+      "  - Scalability: Support a large number of concurrent users per document and a large number of documents.",
+      "  - Data Consistency: All users must see a consistent view of the document, even with concurrent edits (eventual consistency might be acceptable for short periods, but strong consistency is desired for conflict resolution).",
+      "  - Durability: Documents and their history must be durably stored and not lost."
+    ],
+    relevantRustikComponents: [
+      "Microservices Architecture (e.g., Document Service, Collaboration/Sync Service, User Service, Storage Service)",
+      "API Design Styles & Protocols (WebSockets for real-time collaboration; REST/GraphQL for document management, sharing, user auth)",
+      "Database Strategies (NoSQL like Document DBs for flexible document content and operational logs; Relational DBs for user accounts, permissions, document metadata)",
+      "Async IO + Epoll + Tokio (Essential for the real-time collaboration server managing many persistent WebSocket connections)",
+      "Caching Strategies (For frequently accessed documents, user session data, or operational transformation states)",
+      "Autoscaling & Resilience Patterns (For collaboration servers and backend services)"
+    ],
+    rustikRelevanceNote: "Rustik's components (like 'Microservices Architecture', 'API Design Styles', 'Database Strategies', 'Async IO') provide the foundational scalable backend infrastructure. The core challenge in designing a Google Docs-like system lies in the real-time synchronization algorithms (e.g., Operational Transformation (OT) or Conflict-free Replicated Data Types (CRDTs)) and managing concurrent user edit sessions. These specialized algorithms are built *on top of* the architectural components Rustik helps conceptualize.",
+    conceptualSolutionOutline: `
+1.  **Client-Side Architecture:**
+    *   Local Document Model: Represents the document structure and content in the browser.
+    *   Operation Generation: User actions (typing, formatting) are translated into 'operations' (e.g., insert character 'A' at position 5; apply bold from position 10 to 15).
+    *   Sends operations to the server via WebSockets.
+    *   Receives operations from other clients (broadcast by the server) and applies them to its local document model, potentially transforming them based on local unacknowledged operations (if using OT).
+
+2.  **Server-Side Architecture (Collaboration Engine):**
+    *   **WebSocket Manager**: Manages persistent WebSocket connections from all active clients for a document.
+    *   **Operation Handler/Transformation Engine**:
+        *   Receives operations from clients.
+        *   Implements a concurrency control algorithm:
+            *   **Operational Transformation (OT)**: Transforms incoming operations against previously acknowledged operations to ensure all clients converge to the same state despite concurrent edits. Requires a central server or a well-defined order of operations.
+            *   **Conflict-free Replicated Data Types (CRDTs)**: Data structures designed to inherently resolve conflicts and merge concurrently, often leading to simpler server logic but potentially more complex client-side data structures.
+        *   Validates and sequences operations.
+    *   **Broadcaster**: Sends validated/transformed operations to all other connected clients for that specific document.
+    *   **Document Persistence Service**:
+        *   Periodically snapshots the document state or stores a log of operations to a durable database (e.g., NoSQL for document structure, potentially a separate log store for operations).
+        *   Handles loading documents and their version history.
+
+3.  **Supporting Services (Microservices):**
+    *   **User Service**: Manages user authentication, profiles.
+    *   **Document Metadata Service**: Manages document names, ownership, sharing permissions (likely in a Relational DB).
+    *   **Storage Service**: Interacts with blob storage for images or other large media embedded in documents.
+`,
+    discussionPoints: [
+      "Deep dive into Operational Transformation (OT) vs. Conflict-free Replicated Data Types (CRDTs): pros, cons, complexity.",
+      "How to handle concurrent edits and ensure eventual consistency (or strong consistency for critical operations).",
+      "Data model for representing the document and the operations.",
+      "Scalability of the real-time collaboration engine (e.g., how to handle thousands of concurrent editors on a single document, or millions of documents). Sharding strategies for collaboration servers.",
+      "Persistence strategy: Storing snapshots vs. an operation log. Implications for version history and storage costs.",
+      "Presence features: Real-time cursors, list of active collaborators.",
+      "Undo/redo functionality in a collaborative environment.",
+      "Security and access control: Who can edit, view, comment? How are permissions enforced?",
+      "Offline editing support and subsequent synchronization.",
+      "Handling network latency and disconnections gracefully."
+    ]
+  },
 ];
+
 
 const systemDesignQuestions: InterviewQuestion[] = [
   {
@@ -1548,9 +1604,6 @@ export default function SystemDesignInterviewPage() {
               </Tooltip>
             </TooltipProvider>
             <AccordionContent className="p-6 space-y-8">
-               <p className="text-md text-muted-foreground mb-4">
-                This section covers foundational concepts and smaller, building-block design problems often encountered in system design interviews or as parts of larger questions.
-              </p>
               <Accordion type="multiple" className="w-full space-y-4">
                 {basicDesignQuestions.map((question) => (
                   <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
@@ -1573,7 +1626,7 @@ export default function SystemDesignInterviewPage() {
                           <p className="text-sm text-foreground/80 whitespace-pre-line">{question.explanation}</p>
                         </div>
                       )}
-                      {question.requirements && question.requirements.length > 0 && (
+                       {question.requirements && question.requirements.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
                           <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
@@ -1610,16 +1663,20 @@ export default function SystemDesignInterviewPage() {
                       {question.keyConcepts && question.keyConcepts.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Key Concepts / Best Practices:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
-                            {question.keyConcepts.map((concept, index) => <li key={`concept-${question.id}-${index}`}>{concept}</li>)}
+                           <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.keyConcepts.map((concept, index) => (
+                              <li key={`concept-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: concept.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground/90">$1</strong>') }} />
+                            ))}
                           </ul>
                         </div>
                       )}
                        {question.learningStrategies && question.learningStrategies.length > 0 && (
                         <div>
                           <h5 className="text-md font-semibold text-accent mb-1.5">Strategies for Learning:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4 whitespace-pre-line">
-                            {question.learningStrategies.map((strategy, index) => <li key={`strategy-${question.id}-${index}`}>{strategy}</li>)}
+                          <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80 pl-4">
+                            {question.learningStrategies.map((strategy, index) => (
+                              <li key={`strategy-${question.id}-${index}`} dangerouslySetInnerHTML={{ __html: strategy.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground/90">$1</strong>') }} />
+                            ))}
                           </ul>
                         </div>
                       )}
@@ -1793,25 +1850,29 @@ export default function SystemDesignInterviewPage() {
                           <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
                         </div>
                       )}
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
-                         <div className="flex flex-wrap gap-1.5">
-                          {question.relevantRustikComponents.map((compName, index) => (
-                            <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
-                              {compName}
-                            </span>
-                          ))}
+                      {question.relevantRustikComponents && question.relevantRustikComponents.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
+                          <div className="flex flex-wrap gap-1.5">
+                            {question.relevantRustikComponents.map((compName, index) => (
+                              <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                                {compName}
+                              </span>
+                            ))}
+                          </div>
+                          {question.rustikRelevanceNote && (
+                            <p className="text-xs text-muted-foreground mt-2 italic whitespace-pre-line">{question.rustikRelevanceNote}</p>
+                          )}
                         </div>
-                        {question.rustikRelevanceNote && (
-                          <p className="text-xs text-muted-foreground mt-2 italic whitespace-pre-line">{question.rustikRelevanceNote}</p>
-                        )}
-                      </div>
-                      <div>
-                        <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
-                        <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
-                          {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
-                        </ul>
-                      </div>
+                      )}
+                      {question.discussionPoints && question.discussionPoints.length > 0 && (
+                        <div>
+                          <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
+                            {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
+                          </ul>
+                        </div>
+                      )}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -1836,167 +1897,170 @@ export default function SystemDesignInterviewPage() {
                 </Tooltip>
             </TooltipProvider>
             <AccordionContent className="p-6 space-y-8">
-             <Accordion type="multiple" className="w-full space-y-6">
-                 <AccordionItem value="scaling-journey-item" className="border-none p-0">
-                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                        <div className="flex items-center gap-3">
-                        <TrendingUp className="h-7 w-7" />
-                        Understanding the Scaling Journey: 0 to Millions of Users
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-0 pl-1 pr-1">
-                        <Card className="shadow-md rounded-lg border-none bg-transparent">
-                        <CardHeader className="pb-2 pt-0 px-0">
-                            <CardDescription className="text-sm text-muted-foreground pt-1">
-                            Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-4 space-y-4 px-0">
-                            {scalingJourneyPhases.map((phase, index) => (
-                            <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50 bg-card">
-                                <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
-                                <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
-                                <div className="flex-grow">
-                                    <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
-                                    <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
-                                </div>
-                                </CardHeader>
-                                <CardContent className="p-4 text-xs space-y-2">
-                                {phase.characteristics && (
-                                    <div>
-                                    <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
-                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                        {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
-                                    </ul>
-                                    </div>
-                                )}
-                                {phase.actions && (
-                                    <div className="mt-2">
-                                    <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
-                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                        {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
-                                    </ul>
-                                    </div>
-                                )}
-                                {phase.pros && (
-                                    <div className="mt-2">
-                                    <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
-                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                        {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
-                                    </ul>
-                                    </div>
-                                )}
-                                {phase.challenges && (
-                                    <div className="mt-2">
-                                    <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
-                                    <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
-                                        {phase.challenges.map((challengeText, i) => <li key={`chall-${index}-${i}`}>{challengeText}</li>)}
-                                    </ul>
-                                    </div>
-                                )}
-                                {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
-                                    <div className="mt-2 pt-2 border-t border-border/30">
-                                    <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
-                                    <div className="flex flex-wrap gap-1">
-                                        {phase.rustikRelevance.map((compName, i) => (
-                                        <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
-                                            {compName}
-                                        </span>
-                                        ))}
-                                    </div>
-                                    </div>
-                                )}
-                                </CardContent>
-                            </Card>
-                            ))}
-                        </CardContent>
-                        </Card>
-                    </AccordionContent>
-                    </AccordionItem>
+              <Accordion type="multiple" className="w-full space-y-4">
+                <AccordionItem value="scaling-journey-item" className="border-none p-0">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
+                      <div className="flex items-center gap-3">
+                      <TrendingUp className="h-7 w-7" />
+                      Understanding the Scaling Journey: 0 to Millions of Users
+                      </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0 pl-1 pr-1">
+                      <Card className="shadow-md rounded-lg border-none bg-transparent">
+                      <CardHeader className="pb-2 pt-0 px-0">
+                          <CardDescription className="text-sm text-muted-foreground pt-1">
+                          Scaling a system is an iterative journey. This section outlines common phases and architectural shifts.
+                          </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-4 space-y-4 px-0">
+                          {scalingJourneyPhases.map((phase, index) => (
+                          <Card key={`scaling-phase-${index}`} className="shadow-sm rounded-lg border border-border/50 bg-card">
+                              <CardHeader className="flex flex-row items-start gap-3 pb-2 pt-3 px-4 bg-muted/20">
+                              <phase.icon className="h-6 w-6 text-accent mt-0.5 flex-shrink-0" />
+                              <div className="flex-grow">
+                                  <CardTitle className="text-md font-semibold text-accent">{phase.title}</CardTitle>
+                                  <p className="text-xs text-muted-foreground pt-0.5">{phase.description}</p>
+                              </div>
+                              </CardHeader>
+                              <CardContent className="p-4 text-xs space-y-2">
+                              {phase.characteristics && (
+                                  <div>
+                                  <h5 className="font-medium text-foreground/90 mb-1">Key Characteristics:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                      {phase.characteristics.map((char, i) => <li key={`char-${index}-${i}`}>{char}</li>)}
+                                  </ul>
+                                  </div>
+                              )}
+                              {phase.actions && (
+                                  <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Common Actions & Strategies:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                      {phase.actions.map((action, i) => <li key={`action-${index}-${i}`}>{action}</li>)}
+                                  </ul>
+                                  </div>
+                              )}
+                              {phase.pros && (
+                                  <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Pros at this stage:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                      {phase.pros.map((pro, i) => <li key={`pro-${index}-${i}`}>{pro}</li>)}
+                                  </ul>
+                                  </div>
+                              )}
+                              {phase.challenges && (
+                                  <div className="mt-2">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Common Challenges:</h5>
+                                  <ul className="list-disc list-inside space-y-0.5 text-foreground/70">
+                                      {phase.challenges.map((challengeText, i) => <li key={`chall-${index}-${i}`}>{challengeText}</li>)}
+                                  </ul>
+                                  </div>
+                              )}
+                              {phase.rustikRelevance && phase.rustikRelevance.length > 0 && (
+                                  <div className="mt-2 pt-2 border-t border-border/30">
+                                  <h5 className="font-medium text-foreground/90 mb-1">Relevant Rustik Components:</h5>
+                                  <div className="flex flex-wrap gap-1">
+                                      {phase.rustikRelevance.map((compName, i) => (
+                                      <span key={`rel-${index}-${i}`} className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded-full border border-border/50">
+                                          {compName}
+                                      </span>
+                                      ))}
+                                  </div>
+                                  </div>
+                              )}
+                              </CardContent>
+                          </Card>
+                          ))}
+                      </CardContent>
+                      </Card>
+                  </AccordionContent>
+                </AccordionItem>
 
-                    <AccordionItem value="framework-item" className="border-none p-0">
-                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                        <div className="flex items-center gap-3">
-                            <systemDesignFramework.icon className="h-7 w-7" />
-                            {systemDesignFramework.title}
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-0 pl-1 pr-1">
-                        <Card className="shadow-md rounded-lg border-none bg-transparent">
-                        <CardHeader className="pb-2 pt-0 px-0">
-                            <CardDescription className="text-sm text-muted-foreground pt-1 whitespace-pre-line">
-                            {systemDesignFramework.introduction}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-4 space-y-3 px-0">
-                            <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
-                            {systemDesignFramework.steps.map((step, index) => (
-                                <li key={`framework-step-${index}`} className="leading-relaxed"
-                                    dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, '<strong class="text-accent/90">$1</strong>') }}
-                                />
-                            ))}
-                            </ul>
-                            <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
-                        </CardContent>
-                        </Card>
-                    </AccordionContent>
-                    </AccordionItem>
+                <AccordionItem value="framework-item" className="border-none p-0">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
+                      <div className="flex items-center gap-3">
+                          <systemDesignFramework.icon className="h-7 w-7" />
+                          {systemDesignFramework.title}
+                      </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0 pl-1 pr-1">
+                      <Card className="shadow-md rounded-lg border-none bg-transparent">
+                      <CardHeader className="pb-2 pt-0 px-0">
+                          <CardDescription className="text-sm text-muted-foreground pt-1 whitespace-pre-line">
+                          {systemDesignFramework.introduction}
+                          </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-4 space-y-3 px-0">
+                          <ul className="list-none space-y-3 text-sm text-foreground/80 pl-2 whitespace-pre-line">
+                          {systemDesignFramework.steps.map((step, index) => (
+                              <li key={`framework-step-${index}`} className="leading-relaxed"
+                                  dangerouslySetInnerHTML={{ __html: step.replace(/\*\*(.*?)\*\*/g, '<strong class="text-accent/90">$1</strong>') }}
+                              />
+                          ))}
+                          </ul>
+                          <p className="text-sm text-muted-foreground italic pt-2">{systemDesignFramework.conclusion}</p>
+                      </CardContent>
+                      </Card>
+                  </AccordionContent>
+                </AccordionItem>
 
-                    <AccordionItem value="common-questions-item" className="border-none p-0">
-                    <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
-                        <div className="flex items-center gap-3">
-                            <HelpCircle className="h-7 w-7" />
-                            Common System Design Questions
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-0 pl-1 pr-1">
-                        <Accordion type="multiple" className="w-full space-y-4">
-                        {systemDesignQuestions.map((question) => (
-                            <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
-                            <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
-                                <div className="flex items-center gap-3 text-left">
-                                <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
-                                <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="p-6 space-y-5">
-                                <div>
-                                <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
-                                <p className="text-sm text-foreground/80 whitespace-pre-line">{question.problemStatement}</p>
-                                </div>
-                                <div>
-                                <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
-                                    {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
-                                </ul>
-                                </div>
-                                <div>
-                                <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {question.relevantRustikComponents.map((compName, index) => (
-                                    <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
-                                        {compName}
-                                    </span>
-                                    ))}
-                                </div>
-                                </div>
-                                <div>
-                                <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
-                                <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
-                                </div>
-                                <div>
-                                <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
-                                    {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
-                                </ul>
-                                </div>
-                            </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                        </Accordion>
-                    </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                <AccordionItem value="common-questions-item" className="border-none p-0">
+                  <AccordionTrigger className="text-xl font-semibold text-primary hover:no-underline p-0 mb-3 data-[state=open]:pb-2 data-[state=open]:border-b data-[state=open]:border-primary/20">
+                      <div className="flex items-center gap-3">
+                          <HelpCircle className="h-7 w-7" />
+                          Common System Design Questions
+                      </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0 pl-1 pr-1">
+                      <Accordion type="multiple" className="w-full space-y-4">
+                      {systemDesignQuestions.map((question) => (
+                          <AccordionItem value={question.id} key={question.id} className="border border-border/70 rounded-xl shadow-md overflow-hidden bg-card hover:shadow-lg transition-shadow">
+                          <AccordionTrigger className="px-6 py-4 text-lg font-semibold hover:no-underline bg-muted/20 hover:bg-muted/40 data-[state=open]:border-b data-[state=open]:border-border/50">
+                              <div className="flex items-center gap-3 text-left">
+                              <question.icon className="h-6 w-6 text-primary flex-shrink-0" />
+                              <span className="text-gray-700 dark:text-gray-200">{question.title}</span>
+                              </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="p-6 space-y-5">
+                              <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Problem Statement:</h5>
+                              <p className="text-sm text-foreground/80 whitespace-pre-line">{question.problemStatement}</p>
+                              </div>
+                              <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Key Requirements & Considerations:</h5>
+                              <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4 whitespace-pre-line">
+                                  {question.requirements.map((req, index) => <li key={`req-${question.id}-${index}`}>{req}</li>)}
+                              </ul>
+                              </div>
+                              <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Relevant Rustik Components:</h5>
+                              <div className="flex flex-wrap gap-1.5">
+                                  {question.relevantRustikComponents.map((compName, index) => (
+                                  <span key={`comp-${question.id}-${index}`} className="px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary rounded-full border border-primary/30">
+                                      {compName}
+                                  </span>
+                                  ))}
+                              </div>
+                              {question.rustikRelevanceNote && (
+                                  <p className="text-xs text-muted-foreground mt-2 italic whitespace-pre-line">{question.rustikRelevanceNote}</p>
+                              )}
+                              </div>
+                              <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Conceptual Solution Outline:</h5>
+                              <div className="text-xs text-foreground/75 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line bg-muted/20 p-3 rounded-md border border-border/40">{question.conceptualSolutionOutline}</div>
+                              </div>
+                              <div>
+                              <h5 className="text-md font-semibold text-accent mb-1.5">Discussion Points for an Interview:</h5>
+                              <ul className="list-disc list-inside space-y-1 text-xs text-foreground/75 pl-4">
+                                  {question.discussionPoints.map((point, index) => <li key={`disc-${question.id}-${index}`}>{point}</li>)}
+                              </ul>
+                              </div>
+                          </AccordionContent>
+                          </AccordionItem>
+                      ))}
+                      </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -2007,3 +2071,4 @@ export default function SystemDesignInterviewPage() {
     </div>
   );
 }
+
