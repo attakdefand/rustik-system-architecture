@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/layout/app-header';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput, FileText, ImageIcon } from 'lucide-react';
+import { DraftingCompass, Network, ListChecks, BrainCircuit, AlertTriangle, Scaling, Cpu, Shield, WorkflowIcon, FileOutput, ImageIcon } from 'lucide-react';
 import { architectureComponents, type ArchitectureComponent, type TypeDefinition } from '@/data/architecture-data';
 import { analyzeSystem, type AnalyzeSystemInput, type AnalyzeSystemOutput } from '@/ai/flows/analyze-system-flow';
 import { suggestMicroservices, type SuggestMicroservicesInput, type SuggestMicroservicesOutput } from '@/ai/flows/suggest-microservices-flow';
@@ -54,6 +54,18 @@ export default function SystemVisualizerPage() {
   const [isAnalyzingSecurity, setIsAnalyzingSecurity] = useState(false);
   const [securityAnalysisError, setSecurityAnalysisError] = useState<string | null>(null);
 
+  const [hoverMessage, setHoverMessage] = useState<string | null>(null);
+  const hoverMessageTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerHoverMessage = (message: string) => {
+    if (hoverMessageTimerRef.current) {
+      clearTimeout(hoverMessageTimerRef.current);
+    }
+    setHoverMessage(message);
+    hoverMessageTimerRef.current = setTimeout(() => {
+      setHoverMessage(null);
+    }, 5000);
+  };
 
   const handleTypeSelection = (componentId: string, typeName: string, isSelected: boolean) => {
     setSelectedTypesMap(prevMap => {
@@ -73,6 +85,7 @@ export default function SystemVisualizerPage() {
       }
       return newMap;
     });
+    // Reset analysis states when selection changes
     setAnalysisTriggered(false); 
     setAiAnalysis(null);
     setAnalysisError(null);
@@ -99,16 +112,8 @@ export default function SystemVisualizerPage() {
         return false;
     }
     setGeneratedDiagramComponents(flowInput.components.map(c => architectureComponents.find(ac => ac.title === c.componentTitle)!));
-    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); // Snapshot for diagram display
+    setSnapshotSelectedTypesMap(new Map(selectedTypesMap)); 
     setAnalysisTriggered(true); 
-
-    // Reset specific analysis states if needed, though they are reset on selection change
-    // setAiAnalysis(null);
-    // setAnalysisError(null);
-    // setSuggestedMicroservicesList(null);
-    // setSuggestMicroservicesError(null);
-    // setSecurityPostureResult(null);
-    // setSecurityAnalysisError(null);
     return true;
   }
 
@@ -117,6 +122,12 @@ export default function SystemVisualizerPage() {
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setAnalysisError(null);
+    // Reset other analysis results
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
+
     const flowInput = getFlowInput();
 
     try {
@@ -135,6 +146,12 @@ export default function SystemVisualizerPage() {
     setIsSuggestingMicroservices(true);
     setSuggestedMicroservicesList(null);
     setSuggestMicroservicesError(null);
+    // Reset other analysis results
+    setAiAnalysis(null);
+    setAnalysisError(null);
+    setSecurityPostureResult(null);
+    setSecurityAnalysisError(null);
+
     const flowInput = getFlowInput();
     
     try {
@@ -153,6 +170,12 @@ export default function SystemVisualizerPage() {
     setIsAnalyzingSecurity(true);
     setSecurityPostureResult(null);
     setSecurityAnalysisError(null);
+    // Reset other analysis results
+    setAiAnalysis(null);
+    setAnalysisError(null);
+    setSuggestedMicroservicesList(null);
+    setSuggestMicroservicesError(null);
+
     const flowInput = getFlowInput();
 
     try {
@@ -217,9 +240,9 @@ export default function SystemVisualizerPage() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 py-10 sm:py-16 flex flex-col items-center">
-        <div className="text-center w-full max-w-3xl">
-          <DraftingCompass className="h-24 w-24 text-primary mb-8 mx-auto" />
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-gray-800 dark:text-gray-100">
+        <div className="text-center w-full max-w-3xl group" onMouseEnter={() => triggerHoverMessage("The System Visualizer helps you explore how different architectural components can fit together.")}>
+          <DraftingCompass className="h-24 w-24 text-primary mb-8 mx-auto group-hover:text-accent transition-colors" />
+          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-gray-800 dark:text-gray-100 group-hover:text-accent transition-colors">
             System Visualizer
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
@@ -228,16 +251,20 @@ export default function SystemVisualizerPage() {
         </div>
 
         <div className="mt-8 w-full max-w-6xl">
-          <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100">
+          <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-center text-gray-800 dark:text-gray-100 group" onMouseEnter={() => triggerHoverMessage("Select components to build your conceptual architecture.")}>
             1. Choose Your Architectural Components &amp; Types
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {architectureComponents.map((component) => (
-              <Card key={component.id} className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70">
-                <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30">
-                  <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0" />
+              <Card 
+                key={component.id} 
+                className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border border-border/70 hover:border-primary group"
+                onMouseEnter={() => triggerHoverMessage(`${component.title}: ${component.eli5Summary}`)}
+              >
+                <CardHeader className="flex flex-row items-start space-x-3 pb-2 pt-4 px-4 bg-muted/30 group-hover:bg-primary/5 transition-colors">
+                  <component.icon className="h-7 w-7 text-accent mt-1 flex-shrink-0 group-hover:text-primary transition-colors" />
                   <div className="flex-grow">
-                    <CardTitle className="text-md font-semibold leading-tight text-foreground">{component.title}</CardTitle>
+                    <CardTitle className="text-md font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">{component.title}</CardTitle>
                     <Badge variant={complexityVariant(component.complexity)} className="mt-1 text-xs px-1.5 py-0.5">
                       {component.complexity}
                     </Badge>
@@ -292,6 +319,8 @@ export default function SystemVisualizerPage() {
                 size="lg" 
                 disabled={isAnyButtonDisabled}
                 onClick={handleGenerateInteractionAnalysis}
+                onMouseEnter={() => triggerHoverMessage("Get AI insights on how your selected components might interact.")}
+                className="group-hover:bg-primary/90"
               >
                 <BrainCircuit className="mr-2 h-5 w-5" />
                 {isAnalyzing ? "Analyzing Interactions..." : "Analyze Interactions"}
@@ -301,6 +330,8 @@ export default function SystemVisualizerPage() {
                 variant="outline"
                 disabled={isSuggestMicroservicesButtonDisabled}
                 onClick={handleSuggestMicroservices}
+                onMouseEnter={() => triggerHoverMessage("If 'Microservices Architecture' is selected with infrastructure, get AI suggestions for services.")}
+                className="group-hover:border-primary"
               >
                 <Cpu className="mr-2 h-5 w-5" />
                 {isSuggestingMicroservices ? "Suggesting Microservices..." : "Suggest Potential Microservices"}
@@ -310,6 +341,8 @@ export default function SystemVisualizerPage() {
                 variant="outline"
                 disabled={isAnyButtonDisabled}
                 onClick={handleAnalyzeSecurityPosture}
+                onMouseEnter={() => triggerHoverMessage("Get a conceptual AI analysis of your selection's security posture.")}
+                className="group-hover:border-primary"
               >
                 <Shield className="mr-2 h-5 w-5" />
                 {isAnalyzingSecurity ? "Analyzing Security..." : "Analyze Conceptual Security Posture"}
@@ -319,6 +352,8 @@ export default function SystemVisualizerPage() {
                 variant="outline"
                 disabled={isAnyButtonDisabled} 
                 onClick={handleAnalyzeScalingPotential}
+                onMouseEnter={() => triggerHoverMessage("Explore the conceptual scaling potential of your choices in a dedicated analyzer.")}
+                className="group-hover:border-primary"
               >
                 <Scaling className="mr-2 h-5 w-5" />
                 Analyze Scaling Potential
@@ -343,8 +378,8 @@ export default function SystemVisualizerPage() {
 
           {analysisTriggered && (
             <Card className="mt-16 w-full max-w-5xl mx-auto shadow-xl rounded-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold text-primary flex items-center">
+              <CardHeader className="pb-4 group" onMouseEnter={() => triggerHoverMessage("An overview of your selected configuration and its analyses.")}>
+                <CardTitle className="text-2xl font-bold text-primary flex items-center group-hover:text-accent transition-colors">
                   <Network className="mr-3 h-7 w-7" />
                   Conceptual System Overview &amp; Analysis
                 </CardTitle>
@@ -354,8 +389,8 @@ export default function SystemVisualizerPage() {
               </CardHeader>
               <CardContent className="space-y-8 pt-2">
                 <div>
-                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <ListChecks className="h-5 w-5 mr-2 text-accent" />
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center group" onMouseEnter={() => triggerHoverMessage("A summary of the components and types you've selected.")}>
+                    <ListChecks className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                     Selected Architectural Elements &amp; Types:
                   </h4>
                   {generatedDiagramComponents.length > 0 ? (
@@ -381,9 +416,9 @@ export default function SystemVisualizerPage() {
                   )}
                 </div>
                 <Separator />
-                 <div>
-                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                     <WorkflowIcon className="h-5 w-5 mr-2 text-accent" />
+                 <div className="group" onMouseEnter={() => triggerHoverMessage("A textual representation of your selected components. Graphical diagrams coming soon!")}>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center group-hover:text-primary transition-colors">
+                     <WorkflowIcon className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                     Conceptual Diagram Area:
                   </h4>
                   <div className="p-6 border-2 border-dashed border-border/70 rounded-lg bg-muted/20 min-h-[200px] flex flex-col justify-center items-center">
@@ -423,10 +458,10 @@ export default function SystemVisualizerPage() {
                 {(aiAnalysis || isAnalyzing || analysisError) && (
                   <>
                     <Separator />
-                    <div>
+                    <div className="group" onMouseEnter={() => triggerHoverMessage("AI-generated insights on component interactions, benefits, and data flow.")}>
                       <CardHeader className="px-0 py-4">
-                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
-                            <BrainCircuit className="h-5 w-5 mr-2 text-accent" />
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center group-hover:text-primary transition-colors">
+                            <BrainCircuit className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                             AI-Powered Interaction Analysis:
                         </CardTitle>
                         <CardDescription className="pt-1">
@@ -462,10 +497,10 @@ export default function SystemVisualizerPage() {
                 {(suggestedMicroservicesList || isSuggestingMicroservices || suggestMicroservicesError) && (
                   <>
                     <Separator />
-                    <div>
+                    <div className="group" onMouseEnter={() => triggerHoverMessage("AI-suggested microservices if 'Microservices Architecture' is selected.")}>
                       <CardHeader className="px-0 py-4">
-                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
-                            <Cpu className="h-5 w-5 mr-2 text-accent" />
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center group-hover:text-primary transition-colors">
+                            <Cpu className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                             AI-Suggested Potential Microservices:
                         </CardTitle>
                         <CardDescription className="pt-1">
@@ -510,10 +545,10 @@ export default function SystemVisualizerPage() {
                 {(securityPostureResult || isAnalyzingSecurity || securityAnalysisError) && (
                   <>
                     <Separator />
-                     <div>
+                     <div className="group" onMouseEnter={() => triggerHoverMessage("AI-generated conceptual security overview of your selected components.")}>
                       <CardHeader className="px-0 py-4">
-                        <CardTitle className="text-xl font-semibold text-accent flex items-center">
-                          <Shield className="h-5 w-5 mr-2 text-accent" />
+                        <CardTitle className="text-xl font-semibold text-accent flex items-center group-hover:text-primary transition-colors">
+                          <Shield className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                           Conceptual Security Posture Analysis:
                         </CardTitle>
                         <CardDescription className="pt-1">
@@ -576,23 +611,23 @@ export default function SystemVisualizerPage() {
                   </>
                 )}
                 <Separator />
-                <div>
-                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center">
-                    <FileOutput className="h-5 w-5 mr-2 text-accent" />
+                <div className="group" onMouseEnter={() => triggerHoverMessage("Explore options to export your conceptual design (features in development).")}>
+                  <h4 className="text-xl font-semibold mb-4 text-accent flex items-center group-hover:text-primary transition-colors">
+                    <FileOutput className="h-5 w-5 mr-2 text-accent group-hover:text-primary transition-colors" />
                     Export Options:
                   </h4>
                   <div className="flex flex-wrap gap-3">
-                    <Button variant="outline" onClick={() => handleExportClick("PlantUML")}>
-                      <FileText className="mr-2 h-4 w-4" /> Export PlantUML
+                    <Button variant="outline" onClick={() => handleExportClick("PlantUML")} onMouseEnter={() => triggerHoverMessage("Generate PlantUML notation for your diagram.")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export PlantUML
                     </Button>
-                    <Button variant="outline" onClick={() => handleExportClick("SVG/PNG Diagram")}>
-                      <FileText className="mr-2 h-4 w-4" /> Export SVG/PNG
+                    <Button variant="outline" onClick={() => handleExportClick("SVG/PNG Diagram")} onMouseEnter={() => triggerHoverMessage("Export a visual diagram as SVG or PNG.")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export SVG/PNG
                     </Button>
-                    <Button variant="outline" onClick={() => handleExportClick("Terraform Stubs")}>
-                      <FileText className="mr-2 h-4 w-4" /> Export IaC (Terraform)
+                    <Button variant="outline" onClick={() => handleExportClick("Terraform Stubs")} onMouseEnter={() => triggerHoverMessage("Generate conceptual Terraform stubs.")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (Terraform)
                     </Button>
-                     <Button variant="outline" onClick={() => handleExportClick("CloudFormation Stubs")}>
-                      <FileText className="mr-2 h-4 w-4" /> Export IaC (CloudFormation)
+                     <Button variant="outline" onClick={() => handleExportClick("CloudFormation Stubs")} onMouseEnter={() => triggerHoverMessage("Generate conceptual CloudFormation stubs.")}>
+                      <FileOutput className="mr-2 h-4 w-4" /> Export IaC (CloudFormation)
                     </Button>
                   </div>
                 </div>
@@ -601,17 +636,34 @@ export default function SystemVisualizerPage() {
           )}
         </div>
 
-        <div className="mt-20 text-center">
-          <Button asChild variant="outline">
+        <div className="mt-20 text-center group" onMouseEnter={() => triggerHoverMessage("Learn more about the challenges of building large-scale systems.")}>
+          <Button asChild variant="outline" className="group-hover:border-primary">
             <Link href="/system-builder-challenges">Learn about System Building Challenges</Link>
           </Button>
         </div>
       </main>
+      {hoverMessage && (
+        <div 
+          key={Date.now()} 
+          className="fixed bottom-5 right-5 p-4 bg-accent text-accent-foreground rounded-lg shadow-2xl z-[100] w-auto max-w-md animate-fade-in-out-message border-2 border-primary/50"
+        >
+          <div className="flex items-center">
+            <div className="flex space-x-1.5 mr-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-ping opacity-80" style={{animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-300 animate-ping opacity-80" style={{animationDelay: '0.25s', animationDuration: '1.5s'}}></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400 animate-ping opacity-80" style={{animationDelay: '0.5s', animationDuration: '1.5s'}}></span>
+            </div>
+            <p className="text-sm">{hoverMessage}</p>
+          </div>
+        </div>
+      )}
       <footer className="py-8 text-center text-muted-foreground border-t border-border/50 mt-16">
         <p>&copy; {new Date().getFullYear()} Rustik. Visualizing the future of architecture.</p>
       </footer>
     </div>
   );
 }
+
+    
 
     
