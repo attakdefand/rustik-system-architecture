@@ -5,19 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, FileCode } from 'lucide-react';
 
 const RustikArchitectLogo = () => (
   <svg viewBox="0 0 100 100" fill="currentColor" className="h-12 w-12 text-primary relative z-10">
-    {/* Stylized R */}
-    <path d="M30 90 L30 10 L50 10 Q70 10 70 30 Q70 50 50 50 L50 50 L75 90 L55 90 L45 60 L30 90 Z" />
-    <path d="M50 50 L50 70" stroke="currentColor" strokeWidth="10" fill="none" />
+    {/* Stylized R - Modern Interpretation */}
+    <path d="M30 10 L30 90 L50 90 L50 55 Q60 45 70 55 L70 90 L90 90 L90 30 Q80 10 60 10 L30 10 Z M50 25 L60 25 Q65 25 65 30 L65 40 Q60 45 50 40 L50 25 Z" />
   </svg>
 );
 
 const navItems = [
   { href: "/master-flow", label: "Master-Flow", pageId: "master-flow" },
   { href: "/", label: "Components", pageId: "components" },
+  { href: "/code-snippets", label: "Snippets", icon: FileCode, pageId: "code-snippets" },
   { href: "/system-builder-challenges", label: "Builder Insights", pageId: "builder-insights" },
   { href: "/system-visualizer", label: "Visualizer", pageId: "visualizer" },
   { href: "/system-design-interview", label: "Interview Prep", icon: HelpCircle, pageId: "interview-prep" },
@@ -31,6 +31,7 @@ const generalMessages = [
   "Rustik: Conceptualize and understand complex, high-performance architectures.",
   "Discover the building blocks of modern, scalable software.",
   "Leverage AI to analyze and understand system design trade-offs.",
+  "Browse practical code snippets for architectural components."
 ];
 
 const mottoCycleTexts = ["Dream", "Click", "Architect", "Built with Rustik"];
@@ -48,11 +49,10 @@ const dotColors = [
 export function AppHeader() {
   const pathname = usePathname();
   const [currentMottoCycleIndex, setCurrentMottoCycleIndex] = useState(0);
-  const [showMottoSuffix, setShowMottoSuffix] = useState(false);
 
   const [highlightedNavIndex, setHighlightedNavIndex] = useState(0);
   const [currentDynamicMessage, setCurrentDynamicMessage] = useState("");
-  const [messageKey, setMessageKey] = useState(0);
+  const [messageKey, setMessageKey] = useState(0); // Used to re-trigger animation
 
   const navItemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [pendulumStyle, setPendulumStyle] = useState<{ left: string; width: string; opacity: number }>({
@@ -66,27 +66,32 @@ export function AppHeader() {
   useEffect(() => {
     const mottoIntervalId = setInterval(() => {
       setCurrentMottoCycleIndex((prevIndex) => (prevIndex + 1) % mottoCycleTexts.length);
-    }, 30000); // Change motto text every 30 seconds
+    }, 30000);
 
     const navInterval = setInterval(() => {
       setHighlightedNavIndex(prevIndex => (prevIndex + 1) % navItems.length);
-    }, 5000); // Highlight next nav item every 5 seconds
+    }, 5000);
 
     return () => {
       clearInterval(mottoIntervalId);
       clearInterval(navInterval);
     };
-  }, [mottoCycleTexts.length]);
+  }, []);
 
   useEffect(() => {
     const selectedNavItem = navItems[highlightedNavIndex];
     if (selectedNavItem.pageId === "master-flow") {
       setCurrentDynamicMessage("Master-Flow: Your hub for comprehensive architectural analysis!");
+    } else if (selectedNavItem.pageId === "code-snippets") {
+      setCurrentDynamicMessage("Code Snippets: Practical examples for architectural components.");
     } else {
-      const randomIndex = Math.floor(Math.random() * generalMessages.length);
-      setCurrentDynamicMessage(generalMessages[randomIndex]);
+      const generalMessagesForPage = generalMessages.filter(msg => 
+        !msg.toLowerCase().includes("master-flow") && !msg.toLowerCase().includes("code snippets")
+      );
+      const randomIndex = Math.floor(Math.random() * generalMessagesForPage.length);
+      setCurrentDynamicMessage(generalMessagesForPage[randomIndex]);
     }
-    setMessageKey(prev => prev + 1);
+    setMessageKey(prev => prev + 1); // Re-trigger animation
 
     const targetElement = navItemRefs.current[highlightedNavIndex];
     if (targetElement && navRef.current) {
@@ -118,9 +123,12 @@ export function AppHeader() {
   },[])
 
 
+  const [showMottoSuffix, setShowMottoSuffix] = useState(false);
   const handleMottoWordClick = () => {
     setShowMottoSuffix(true);
+    setTimeout(() => setShowMottoSuffix(false), 3000); // Hide after 3 seconds
   };
+
 
   return (
     <header className="bg-card text-card-foreground shadow-lg sticky top-0 z-50 py-3">
@@ -134,12 +142,12 @@ export function AppHeader() {
                   <span
                     key={`logo-dot-${index}`}
                     className={`absolute w-2 h-2 rounded-full animate-orbit-blink ${color}`}
-                    style={{ animationDelay: `${index * 0.5}s` }}
+                    style={{ animationDelay: `${index * 0.5}s` }} // Stagger animation for each dot
                   />
                 ))}
               </div>
               <h1 className="text-3xl font-bold text-primary tracking-tight mt-1">Rustik</h1>
-              <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] max-w-[250px] overflow-hidden">
+               <div className="h-6 mt-1 text-sm text-center text-muted-foreground min-w-[150px] max-w-[250px] overflow-hidden">
                  <span className="animate-slide-in-out-text absolute left-1/2 -translate-x-1/2">
                   {mottoCycleTexts[currentMottoCycleIndex]}
                 </span>
@@ -215,7 +223,7 @@ export function AppHeader() {
               {dotColors.map((bgColor, dotIndex) => (
                 <span
                   key={`pendulum-dot-${dotIndex}`}
-                  className={`h-full flex-grow ${bgColor}`} // Use flex-grow to fill width
+                  className={`h-full flex-grow ${bgColor}`}
                 />
               ))}
             </div>
